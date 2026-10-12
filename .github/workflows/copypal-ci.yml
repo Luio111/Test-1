@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 15
     container: swift:6.1-noble
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build and test CopyPalKit
         run: swift test --package-path CopyPal/Packages/CopyPalKit 2>&1 | tee package.log
       - name: No warnings in own sources
@@ -50,7 +50,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
       XCODEGEN_VERSION: "2.46.0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Toolchain
         run: |
           xcodebuild -version

@@ -15,6 +15,18 @@ Plan und Stand: [Docs/ROADMAP.md](Docs/ROADMAP.md) · Design: [Docs/Design.md](D
 
 ## Loslegen
 
+Repository einmalig auf den Mac holen (privat, daher mit GitHub-Anmeldung):
+
+```sh
+brew install gh
+gh auth login                  # GitHub.com → HTTPS → Login with a web browser
+mkdir -p ~/Developer && cd ~/Developer
+gh repo clone Luio111/Test-1
+cd Test-1
+```
+
+Dann im Ordner `Test-1`:
+
 ```sh
 cd CopyPal
 ./scripts/bootstrap.sh --open
@@ -23,6 +35,8 @@ cd CopyPal
 Das Skript legt `Config/Signing.local.xcconfig` an (bleibt lokal, wird nie eingecheckt), trägt deine Team-ID ein, wenn sie eindeutig ist, und erzeugt `CopyPal.xcodeproj`. Danach in Xcode **⌘R**.
 
 ## Einen Pull Request testen
+
+Im Ordner `Test-1` (z. B. `cd ~/Developer/Test-1`):
 
 ```sh
 git fetch origin
