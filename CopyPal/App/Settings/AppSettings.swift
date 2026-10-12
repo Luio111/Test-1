@@ -40,7 +40,8 @@ enum AppSettings {
     static let sensitiveLifetimeOptions = [30, 60, 300, 900]
 
     /// The self-test uses its own, emptied defaults, so it never changes the user's settings.
-    private static let defaults: UserDefaults = {
+    /// `UserDefaults` is thread-safe (documented), but not marked Sendable in the SDK.
+    nonisolated(unsafe) private static let defaults: UserDefaults = {
         let suiteName = "CopyPal.SelfTest"
         if CommandLine.arguments.contains("--self-test"), let suite = UserDefaults(suiteName: suiteName) {
             suite.removePersistentDomain(forName: suiteName)

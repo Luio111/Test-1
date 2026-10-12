@@ -17,7 +17,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: copypal-ci-${{ github.ref }}
+  # One group per branch for pull_request and manual runs alike: the newest run wins.
+  group: copypal-ci-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 permissions:
