@@ -1,0 +1,52 @@
+# XcodeGen project definition. Generate the Xcode project with:
+#   ./scripts/bootstrap.sh      (or: xcodegen generate)
+# CopyPal.xcodeproj is generated and never committed.
+name: CopyPal
+
+options:
+  # Pinned so every XcodeGen version writes the same project format (Xcode 16.0+)
+  # and Xcode does not ask to "update to recommended settings" after each bootstrap.
+  projectFormat: xcode16_0
+  xcodeVersion: "26.0"
+  developmentLanguage: de
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+configs:
+  Debug: debug
+  Release: release
+
+configFiles:
+  Debug: Config/Debug.xcconfig
+  Release: Config/Release.xcconfig
+
+packages:
+  CopyPalKit:
+    path: Packages/CopyPalKit
+
+targets:
+  CopyPal:
+    type: application
+    platform: macOS
+    configFiles:
+      Debug: Config/Debug.xcconfig
+      Release: Config/Release.xcconfig
+    sources:
+      - path: App
+    dependencies:
+      - package: CopyPalKit
+        product: CopyPalCore
+      - package: CopyPalKit
+        product: CopyPalSystem
+
+schemes:
+  CopyPal:
+    build:
+      targets:
+        CopyPal: all
+    run:
+      config: Debug
+    archive:
+      config: Release

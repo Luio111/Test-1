@@ -1,0 +1,77 @@
+name: CopyPal CI
+
+# Runs only for changes to the app. The repository is private, so macOS minutes
+# count 10x against the Actions quota: the cheap Linux job runs first and the macOS
+# job only starts when it passes. Compiler warnings in CopyPal's own sources fail
+# the build (Docs/ADR/0002).
+on:
+  pull_request:
+    paths:
+      - "CopyPal/**"
+      - ".github/workflows/copypal-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "CopyPal/**"
+      - ".github/workflows/copypal-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: copypal-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  package-linux:
+    name: Package tests (Linux)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container: swift:6.1-noble
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build and test CopyPalKit
+        run: swift test --package-path CopyPal/Packages/CopyPalKit 2>&1 | tee package.log
+      - name: No warnings in own sources
+        run: CopyPal/scripts/ci-check-warnings.sh package.log
+
+  app-macos:
+    name: App build + tests (macOS)
+    needs: package-linux
+    runs-on: macos-15
+    timeout-minutes: 25
+    env:
+      # Pinned so CI and the documented minimum (README) match; update together.
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      XCODEGEN_VERSION: "2.46.0"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Package tests (incl. macOS adapters)
+        run: swift test --package-path CopyPal/Packages/CopyPalKit 2>&1 | tee package.log
+      - name: Install XcodeGen ${{ env.XCODEGEN_VERSION }}
+        run: |
+          curl -fsSL "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip" -o "$RUNNER_TEMP/xcodegen.zip"
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/xcodegen/bin" >> "$GITHUB_PATH"
+      - name: Generate Xcode project
+        working-directory: CopyPal
+        run: xcodegen generate
+      - name: Build app (unsigned)
+        run: |
+          xcodebuild build \
+            -project CopyPal/CopyPal.xcodeproj \
+            -scheme CopyPal \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee app.log
+      - name: No warnings in own sources
+        run: CopyPal/scripts/ci-check-warnings.sh package.log app.log
