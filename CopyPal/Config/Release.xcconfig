@@ -1,0 +1,4 @@
+#include "Base.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = $(BUNDLE_ID_PREFIX).CopyPal
+INFOPLIST_KEY_CFBundleDisplayName = CopyPal

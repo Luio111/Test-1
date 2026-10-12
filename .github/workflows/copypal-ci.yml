@@ -1,0 +1,56 @@
+name: CopyPal CI
+
+# Runs only for changes to the app. The repository is private, so macOS minutes
+# count 10x against the Actions quota: the cheap Linux job runs first and the macOS
+# job only starts when it passes.
+on:
+  pull_request:
+    paths:
+      - "CopyPal/**"
+      - ".github/workflows/copypal-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: copypal-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  package-linux:
+    name: Package tests (Linux)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container: swift:6.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test CopyPalKit
+        run: swift test --package-path CopyPal/Packages/CopyPalKit
+
+  app-macos:
+    name: App build + tests (macOS)
+    needs: package-linux
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Package tests (incl. macOS adapters)
+        run: swift test --package-path CopyPal/Packages/CopyPalKit
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: CopyPal
+        run: xcodegen generate
+      - name: Build app (unsigned)
+        run: |
+          xcodebuild build \
+            -project CopyPal/CopyPal.xcodeproj \
+            -scheme CopyPal \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO

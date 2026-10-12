@@ -1,0 +1,7 @@
+#include "Base.xcconfig"
+
+// Separate bundle ID so the dev build has its own Accessibility grant, Keychain
+// item and data folder.
+PRODUCT_BUNDLE_IDENTIFIER = $(BUNDLE_ID_PREFIX).CopyPal.dev
+INFOPLIST_KEY_CFBundleDisplayName = CopyPal Dev
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG

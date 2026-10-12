@@ -1,0 +1,33 @@
+// Shared build settings for all configurations. Personal values (team, bundle ID
+// prefix) live in Signing.local.xcconfig, which is not checked in.
+
+MACOSX_DEPLOYMENT_TARGET = 14.0
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+// Fallback prefix; override in Signing.local.xcconfig with an ID that is unique to you.
+BUNDLE_ID_PREFIX = io.github.luio111
+DEVELOPMENT_TEAM =
+
+// Stable development signing keeps the Accessibility grant across rebuilds.
+// Never switch to "Sign to Run Locally" (ad hoc), see Docs/Troubleshooting.md.
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Development
+ENABLE_HARDENED_RUNTIME = YES
+
+// App target: Swift 5 mode with complete concurrency checking, see Docs/ADR/0002.
+SWIFT_VERSION = 5.0
+SWIFT_STRICT_CONCURRENCY = complete
+
+// Info.plist is generated from these keys (no plist file in the repo).
+GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_KEY_LSUIElement = YES
+INFOPLIST_KEY_NSPrincipalClass = NSApplication
+INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.productivity
+INFOPLIST_KEY_NSHumanReadableCopyright =
+
+// All UI strings go through the String Catalog (development language: German).
+LOCALIZATION_PREFERS_STRING_CATALOGS = YES
+SWIFT_EMIT_LOC_STRINGS = YES
+
+#include? "Signing.local.xcconfig"

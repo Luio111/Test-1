@@ -18,7 +18,7 @@ Schwerpunkte sind Datenschutz und Einfachheit. Die iPhone-App ist ausdrücklich 
 
 | Meilenstein | Inhalt | Status |
 |---|---|---|
-| M0 | Fundament: Projekt, Signierung, CI, Diagnose | offen |
+| M0 | Fundament: Projekt, Signierung, CI, Diagnose | in Arbeit |
 | M1 | Spike A: ⌘V halten, Einfügen, Fokus | offen |
 | M2 | Spike B: Zwischenablage, Datenschutz-Abfragen, Universal Clipboard | offen |
 | G1 | Go/No-Go-Entscheidung | offen |
@@ -688,7 +688,7 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 
 | # | Entscheidung | Empfehlung | Spätestens |
 |---|---|---|---|
-| D1 | Repo: Sichtbarkeit und Ort | jetzt `Test-1/CopyPal`, vor der Beta in ein eigenes Repo | Sichtbarkeit: M0 · Umzug: M9 |
+| D1 | Repo: Sichtbarkeit und Ort | jetzt `Test-1/CopyPal` (privat: macOS-CI-Minuten zählen zehnfach), vor der Beta in ein eigenes Repo | Sichtbarkeit: M0 · Umzug: M9 |
 | D2 | Standard-Halteschwelle | Start mit 0,3 s, endgültiger Wert nach Messung | G1 |
 | D3 | Umgang mit iPhone-Kopien | nach Messung in M2; als Einstellung | G1 |
 | D4 | Tasteneingabe ins Pop-up | Key-Panel; Tasten-Weiterleitung nur, wenn es Fehlschläge gibt | G1 |
