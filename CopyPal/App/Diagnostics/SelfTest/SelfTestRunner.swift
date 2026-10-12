@@ -108,7 +108,7 @@ final class SelfTestRunner {
             _ = await self.waitUntil { self.input.popup.isVisible }
             await self.press(18, flags: [])
             let result = await self.expectText(PlaceholderClip.all[0].plainText)
-            return (result.0 && self.isBold, "\(result.1), fett: \(self.isBold)")
+            return (result.0 && self.isBold && self.clipboardHasRTF, "\(result.1), fett: \(self.isBold), RTF: \(self.clipboardHasRTF)")
         }
 
         await check("⇧1 fügt unformatiert ein") {
@@ -117,7 +117,7 @@ final class SelfTestRunner {
             _ = await self.waitUntil { self.input.popup.isVisible }
             await self.press(18, flags: .maskShift)
             let result = await self.expectText(PlaceholderClip.all[0].plainText)
-            return (result.0 && !self.isBold, "\(result.1), fett: \(self.isBold)")
+            return (result.0 && !self.isBold && !self.clipboardHasRTF, "\(result.1), fett: \(self.isBold), RTF: \(self.clipboardHasRTF)")
         }
 
         await check("Esc schließt das Pop-up ohne Einfügen") {
@@ -179,7 +179,10 @@ final class SelfTestRunner {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(clipboard, forType: .string)
+        // Plain text takes on the typing attributes, so a previous bold paste would
+        // make the next plain one bold too.
         textView.string = ""
+        textView.typingAttributes = [.font: NSFont.systemFont(ofSize: 13), .foregroundColor: NSColor.textColor]
         focusTextView()
         await sleep(150)
     }
@@ -196,6 +199,10 @@ final class SelfTestRunner {
             return false
         }
         return NSFontManager.shared.traits(of: font).contains(.boldFontMask)
+    }
+
+    private var clipboardHasRTF: Bool {
+        NSPasteboard.general.data(forType: .rtf) != nil
     }
 
     private func expectText(_ expected: String) async -> (Bool, String) {
