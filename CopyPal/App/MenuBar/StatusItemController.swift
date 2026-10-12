@@ -84,6 +84,11 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         menu.addItem(makeItem(String(localized: "Einstellungen …"), keyEquivalent: ",") { app in
             app.showSettings()
         })
+        if app.updates.isAvailable {
+            menu.addItem(makeItem(String(localized: "Nach Updates suchen …")) { app in
+                app.updates.checkForUpdates()
+            })
+        }
         menu.addItem(makeItem(String(localized: "Diagnose …")) { app in
             app.showDiagnostics()
         })

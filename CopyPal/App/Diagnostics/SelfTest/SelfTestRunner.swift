@@ -584,14 +584,13 @@ final class SelfTestRunner {
 
     /// Physical memory footprint (what Activity Monitor shows as "Memory").
     private static func memoryFootprint() -> Double {
-        var info = task_vm_info_data_t()
-        var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size)
+        var info = rusage_info_v4()
         let result = withUnsafeMutablePointer(to: &info) { pointer in
-            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
-                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+            pointer.withMemoryRebound(to: rusage_info_t?.self, capacity: 1) {
+                proc_pid_rusage(getpid(), RUSAGE_INFO_V4, $0)
             }
         }
-        return result == KERN_SUCCESS ? Double(info.phys_footprint) : 0
+        return result == 0 ? Double(info.ri_phys_footprint) : 0
     }
 
     /// Files below `directory` whose bytes contain `marker`.

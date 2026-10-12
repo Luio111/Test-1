@@ -29,6 +29,9 @@ enum AppSettings {
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
     }
 
+    /// Read by the Sparkle delegate off the main actor, hence public and plain.
+    static let betaUpdatesKey = "betaUpdates"
+
     static let holdThresholdRange: ClosedRange<Double> = 0.15...0.6
     static let pasteDelayRange: ClosedRange<Double> = 0...150
     static let historyLimitOptions = [100, 250, 500, 1_000, 2_000]
@@ -186,6 +189,12 @@ enum AppSettings {
     static var loadFavicons: Bool {
         get { defaults.bool(forKey: Key.loadFavicons) }
         set { set(newValue, for: Key.loadFavicons) }
+    }
+
+    /// Also offer beta versions (Sparkle channel "beta").
+    static var betaUpdates: Bool {
+        get { defaults.bool(forKey: betaUpdatesKey) }
+        set { set(newValue, for: betaUpdatesKey) }
     }
 
     static var hasCompletedOnboarding: Bool {

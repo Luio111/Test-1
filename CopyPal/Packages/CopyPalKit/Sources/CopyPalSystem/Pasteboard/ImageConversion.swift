@@ -30,7 +30,7 @@ public enum ImageConversion {
 
     private static func encodePNG(_ image: CGImage) -> Data? {
         let output = NSMutableData()
-        guard let destination = CGImageDestinationCreateWithData(output, UTType.png.identifier as CFString, 1, nil) else {
+        guard let destination = CGImageDestinationCreateWithData(output as CFMutableData, UTType.png.identifier as CFString, 1, nil) else {
             return nil
         }
         CGImageDestinationAddImage(destination, image, nil)

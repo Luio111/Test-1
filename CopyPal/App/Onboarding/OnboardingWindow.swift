@@ -189,7 +189,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: Theme.Spacing.l) {
             PageHeader(systemImage: "lock.shield", title: "Deine Daten bleiben bei dir")
             explanationRow("lock", title: "Verschlüsselt auf diesem Mac", text: "Der Schlüssel liegt in deinem Schlüsselbund. Ohne ihn ist der Verlauf unlesbar.")
-            explanationRow("wifi.slash", title: "Kein Netz, keine Statistik", text: "Keine Konten, keine Cloud, keine Nutzungsdaten.")
+            explanationRow("wifi.slash", title: "Keine Cloud, keine Statistik", text: "Keine Konten, keine Nutzungsdaten. Ins Netz nur für Updates – und nur, wenn du zustimmst.")
             explanationRow("key", title: "Passwörter bleiben draußen", text: "Kopien aus Passwortmanagern und als geheim markierte Inhalte speichert CopyPal nie.")
             explanationRow("timer", title: "Sensibles verschwindet", text: "IBAN, Kartennummern, Schlüssel und Einmalcodes werden verdeckt und nach einer Minute gelöscht.")
         }

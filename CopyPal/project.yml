@@ -25,6 +25,11 @@ configFiles:
 packages:
   CopyPalKit:
     path: Packages/CopyPalKit
+  # Updates outside the App Store (ROADMAP M9). Exact version, like CopyPalKit's
+  # dependencies, because Package.resolved is not checked in.
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.9.6
 
 targets:
   CopyPal:
@@ -44,6 +49,7 @@ targets:
         product: CopyPalSystem
       - package: CopyPalKit
         product: CopyPalServices
+      - package: Sparkle
 
 schemes:
   CopyPal:

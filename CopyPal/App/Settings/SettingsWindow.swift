@@ -89,7 +89,7 @@ struct SettingsView: View {
                     case .history: HistorySettings(app: app, settings: settings)
                     case .privacy: PrivacySettingsPage(app: app, settings: settings)
                     case .favorites: FavoritesSettings(history: history)
-                    case .about: AboutPage()
+                    case .about: AboutPage(updates: app.updates, settings: settings)
                     }
                 }
                 .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
@@ -375,7 +375,7 @@ private struct PrivacySettingsPage: View {
         PageHeader(
             systemImage: "lock.shield",
             title: "Datenschutz",
-            subtitle: "Alles bleibt verschlüsselt auf diesem Mac. CopyPal sendet nichts ins Netz und sammelt keine Nutzungsdaten."
+            subtitle: "Alles bleibt verschlüsselt auf diesem Mac. CopyPal sammelt keine Nutzungsdaten und geht nur für Updates und Website-Symbole ins Netz – beides nur mit deiner Zustimmung."
         )
 
         SectionBlock(title: "Sensible Inhalte") {
@@ -639,6 +639,9 @@ private struct FavoriteRow: View {
 // MARK: About
 
 private struct AboutPage: View {
+    let updates: UpdateController
+    @Bindable var settings: SettingsModel
+
     var body: some View {
         PageHeader(systemImage: "doc.on.clipboard", title: "CopyPal", subtitle: "Der Verlauf deiner Zwischenablage – mit ⌘V.")
 
@@ -649,6 +652,13 @@ private struct AboutPage: View {
             PropertyRow(label: "Gebaut mit") {
                 Text(verbatim: AppInfo.buildEnvironment)
             }
+            if updates.isAvailable {
+                SettingRow(title: "Beta-Versionen erhalten", detail: "Neue Funktionen früher – mit kleinem Risiko.") {
+                    Toggle("", isOn: $settings.betaUpdates).labelsHidden().toggleStyle(.switch)
+                }
+                Button("Nach Updates suchen …") { updates.checkForUpdates() }
+                    .buttonStyle(SubtleButtonStyle())
+            }
         }
 
         Hairline()
@@ -656,7 +666,7 @@ private struct AboutPage: View {
         SectionBlock(title: "Datenschutzversprechen") {
             VStack(alignment: .leading, spacing: Theme.Spacing.s) {
                 Label("Alles bleibt auf diesem Mac, verschlüsselt mit einem Schlüssel aus deinem Schlüsselbund.", systemImage: "lock")
-                Label("Keine Konten, keine Cloud, keine Nutzungsstatistik, keine Werbung.", systemImage: "eye.slash")
+                Label("Keine Konten, keine Cloud, keine Nutzungsstatistik, keine Werbung. Ins Netz geht CopyPal nur für Updates und Website-Symbole – beides nur, wenn du es erlaubst.", systemImage: "eye.slash")
                 Label("Passwortmanager und markierte Inhalte werden nie gespeichert.", systemImage: "key")
                 Label("Sensible Einträge verschwinden nach kurzer Zeit und gehen nie ans iPhone.", systemImage: "timer")
             }
@@ -667,7 +677,7 @@ private struct AboutPage: View {
         Hairline()
 
         SectionBlock(title: "Open Source") {
-            Text("CopyPal verwendet GRDB (MIT-Lizenz) und swift-crypto (Apache 2.0) für die Tests.")
+            Text("CopyPal verwendet GRDB (MIT-Lizenz) und Sparkle (MIT-Lizenz); swift-crypto (Apache 2.0) nur für Tests.")
                 .font(Theme.Typography.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
         }

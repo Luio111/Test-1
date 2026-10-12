@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Keys Xcode cannot generate from INFOPLIST_KEY_* build settings; merged with the
+     generated Info.plist (GENERATE_INFOPLIST_FILE = YES). -->
+<plist version="1.0">
+<dict>
+	<!-- Sparkle updates (ROADMAP M9). Empty until the update key exists; the app
+	     only starts the updater when both are set (Config/Release.xcconfig). -->
+	<key>SUFeedURL</key>
+	<string>$(COPYPAL_FEED_URL)</string>
+	<key>SUPublicEDKey</key>
+	<string>$(COPYPAL_SPARKLE_PUBLIC_KEY)</string>
+	<!-- No system profile is ever sent with update checks. -->
+	<key>SUEnableSystemProfiling</key>
+	<false/>
+</dict>
+</plist>

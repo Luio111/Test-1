@@ -23,6 +23,8 @@ final class AppController {
     let popup: PopupController
     let hotKey = GlobalHotKey()
     let loginItem = LoginItem()
+    let updates = UpdateController()
+    let license: any LicenseProvider = AlwaysLicensed()
     /// Where the history lives; for the self-test a temporary folder.
     let storageDirectory: URL
     /// Set when the history could not be opened normally (shown in the menu).

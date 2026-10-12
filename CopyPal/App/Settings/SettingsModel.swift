@@ -110,6 +110,11 @@ final class SettingsModel: Observable {
         set { write(\.pausedUntil) { AppSettings.pausedUntil = newValue } }
     }
 
+    var betaUpdates: Bool {
+        get { read(\.betaUpdates) { AppSettings.betaUpdates } }
+        set { write(\.betaUpdates) { AppSettings.betaUpdates = newValue } }
+    }
+
     // MARK: Helpers
 
     func isIgnored(_ bundleID: String) -> Bool {

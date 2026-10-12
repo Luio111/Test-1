@@ -42,7 +42,7 @@ public final class GlobalHotKey {
             0,
             &ref
         )
-        guard status == noErr, let ref else { return false }
+        guard status == OSStatus(noErr), let ref else { return false }
         hotKeyRef = ref
         self.shortcut = shortcut
         return true
@@ -69,7 +69,7 @@ public final class GlobalHotKey {
                 MainActor.assumeIsolated {
                     hotKey.onPress?()
                 }
-                return noErr
+                return OSStatus(noErr)
             },
             1,
             &eventType,

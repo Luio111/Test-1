@@ -19,8 +19,9 @@ ENABLE_HARDENED_RUNTIME = YES
 SWIFT_VERSION = 5.0
 SWIFT_STRICT_CONCURRENCY = complete
 
-// Info.plist is generated from these keys (no plist file in the repo).
+// Info.plist is generated from these keys, merged with Config/Info.plist (Sparkle keys).
 GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_FILE = Config/Info.plist
 INFOPLIST_KEY_LSUIElement = YES
 INFOPLIST_KEY_NSPrincipalClass = NSApplication
 INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.productivity
@@ -33,3 +34,8 @@ SWIFT_EMIT_LOC_STRINGS = YES
 DEAD_CODE_STRIPPING = YES
 
 #include? "Signing.local.xcconfig"
+
+// Sparkle updates (ROADMAP M9): appcast URL and EdDSA public key. Set in
+// Release.xcconfig once the key exists (see Docs/Release.md); empty = no updater.
+COPYPAL_FEED_URL =
+COPYPAL_SPARKLE_PUBLIC_KEY =

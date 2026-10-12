@@ -1,5 +1,6 @@
 #if os(macOS)
 import Carbon
+import CopyPalCore
 import Foundation
 
 /// Finds the physical key that produces "v" together with ⌘ in the current keyboard
