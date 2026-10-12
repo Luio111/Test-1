@@ -49,6 +49,7 @@ final class NotchRetractPanel: NSPanel {
 /// Shared setup: above the menu bar on every Space, transparent, always dark (the
 /// notch is black). No window shadow: it would keep the outline of the first frame
 /// while the shape animates; the view draws its own.
+@MainActor
 private func configureForNotch(_ panel: NSPanel) {
     panel.isFloatingPanel = true
     panel.level = .statusBar
