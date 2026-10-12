@@ -1,5 +1,5 @@
 #if os(macOS)
-import Carbon.HIToolbox
+import Carbon
 import Foundation
 
 /// Finds the physical key that produces "v" together with ⌘ in the current keyboard

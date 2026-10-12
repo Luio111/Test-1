@@ -1,4 +1,9 @@
 import Foundation
+// CGRect's members (minX, width, …) come from CoreGraphics on Apple platforms;
+// Foundation alone no longer provides them with Xcode 26.
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 import Testing
 @testable import CopyPalCore
 

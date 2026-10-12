@@ -1,6 +1,6 @@
 #if os(macOS)
 import AppKit
-import Carbon.HIToolbox
+import Carbon
 
 /// "Secure Event Input" (password fields, Terminal's secure keyboard entry) hides
 /// all key events from event taps. Then ⌘V works normally, but holding does nothing.
