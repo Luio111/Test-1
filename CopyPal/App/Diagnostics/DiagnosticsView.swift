@@ -19,6 +19,8 @@ struct DiagnosticsView: View {
                 Hairline()
                 pasteboardSection
                 Hairline()
+                crashSection
+                Hairline()
                 footer
             }
             .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
@@ -199,6 +201,27 @@ struct DiagnosticsView: View {
                 Text(verbatim: probe.types.joined(separator: "\n"))
                     .font(Theme.Typography.mono)
                     .foregroundStyle(Theme.Colors.textSecondary)
+            }
+        }
+    }
+
+    private var crashSection: some View {
+        SectionBlock(title: "Abstürze") {
+            PropertyRow(label: "Letzter Absturz", systemImage: "exclamationmark.octagon") {
+                if let crash = model.latestCrash {
+                    HStack(spacing: Theme.Spacing.s) {
+                        Text(crash.date.formatted(date: .abbreviated, time: .shortened))
+                        Button {
+                            model.copyCrashReport()
+                        } label: {
+                            model.crashCopied ? Text("Kopiert ✓") : Text("Absturzbericht kopieren")
+                        }
+                        .buttonStyle(SubtleButtonStyle())
+                    }
+                } else {
+                    Text("Keiner")
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
 import AppKit
+import os
 import CopyPalCore
 import CopyPalServices
 import CopyPalStorage
@@ -43,6 +44,7 @@ final class AppController {
     private var maintenanceTimer: Timer?
     private var observers: [(NotificationCenter, NSObjectProtocol)] = []
     private var storageOutcome: OpenOutcome = .created
+    private var holdSignpost: OSSignpostIntervalState?
 
     init() {
         AppSettings.registerDefaults()
@@ -78,7 +80,14 @@ final class AppController {
         input.onPermissionChange = { [weak self] _ in self?.statusItem?.update() }
         input.start()
         popup.onClose = { [weak self] in self?.input.popupDidClose() }
-        popup.onVisible = { [weak self] in self?.input.popupDidAppear() }
+        popup.onVisible = { [weak self] in
+            guard let self else { return }
+            self.input.popupDidAppear()
+            if let signpost = self.holdSignpost {
+                Log.signposter.endInterval("Halten bis sichtbar", signpost)
+                self.holdSignpost = nil
+            }
+        }
         hotKey.onPress = { [weak self] in self?.showPopup() }
         applyHotKey()
 
@@ -94,8 +103,17 @@ final class AppController {
         }
         runMaintenance()
 
-        if case let .recoveredFromKeyLoss(movedTo) = storageOutcome, !Self.isSelfTest {
-            showKeyLossNotice(movedTo: movedTo)
+        switch storageOutcome {
+        case .created: Log.storage.info("Neuer Verlauf angelegt")
+        case .opened: Log.storage.info("Verlauf geöffnet")
+        case let .recoveredFromKeyLoss(movedTo):
+            Log.storage.error("Schlüssel passte nicht – alter Verlauf beiseitegelegt")
+            if !Self.isSelfTest {
+                showKeyLossNotice(movedTo: movedTo)
+            }
+        }
+        if let storageProblem {
+            Log.storage.error("\(storageProblem, privacy: .public)")
         }
         if !AppSettings.hasCompletedOnboarding, !Self.isSelfTest {
             showOnboarding()
@@ -106,6 +124,7 @@ final class AppController {
 
     func showPopup() {
         guard !popup.isVisible else { return }
+        holdSignpost = Log.signposter.beginInterval("Halten bis sichtbar", id: Log.signposter.makeSignpostID())
         popup.show(targetProcessID: NSWorkspace.shared.frontmostApplication?.processIdentifier)
     }
 

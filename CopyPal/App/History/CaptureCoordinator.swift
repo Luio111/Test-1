@@ -24,6 +24,8 @@ struct CaptureLogEntry: Identifiable, Sendable {
 @Observable
 final class CaptureCoordinator {
     private(set) var log: [CaptureLogEntry] = []
+    /// Milliseconds from noticing a change to having stored it (ROADMAP M8).
+    private(set) var storeLatencies: [Double] = []
     /// Why capture currently cannot run (pasteboard privacy setting), if it cannot.
     private(set) var blockedReason: CaptureSkipReason?
 
@@ -78,6 +80,9 @@ final class CaptureCoordinator {
     }
 
     private func process(_ change: PasteboardMonitor.Change) async {
+        let signpost = Log.signposter.beginInterval("Kopieren bis gespeichert", id: Log.signposter.makeSignpostID())
+        defer { Log.signposter.endInterval("Kopieren bis gespeichert", signpost) }
+        let started = ContinuousClock.now
         await engine.pasteboardDidChange(to: change.changeCount)
         if change.isOwnWrite {
             record(change, outcome: describe(.ownWrite))
@@ -123,6 +128,11 @@ final class CaptureCoordinator {
                 content.sourceBundleID = change.sourceBundleID
                 content.origin = origin
                 await store(content, change: change, milliseconds: milliseconds)
+                let (seconds, attoseconds) = (ContinuousClock.now - started).components
+                storeLatencies.append(Double(seconds) * 1_000 + Double(attoseconds) / 1e15)
+                if storeLatencies.count > 200 {
+                    storeLatencies.removeFirst(storeLatencies.count - 200)
+                }
             }
         }
     }
@@ -164,6 +174,8 @@ final class CaptureCoordinator {
         if log.count > 50 {
             log.removeFirst(log.count - 50)
         }
+        // Outcome, size and type count only – never content.
+        Log.capture.info("Änderung \(change.changeCount, privacy: .public): \(outcome, privacy: .public), \(change.types.count, privacy: .public) Formate, \(bytes ?? 0, privacy: .public) B")
     }
 
     private func describe(_ reason: CaptureSkipReason) -> String {

@@ -74,6 +74,7 @@ final class SelfTestRunner {
         await gestureChecks()
         await popupChecks()
         await robustnessChecks()
+        await performanceChecks()
 
         if let popup = app.input.tap.diagnostics.snapshot().popup {
             Self.write(String(format: "Messwert Pop-up-Latenz: Median %.0f ms · p90 %.0f ms (n = %ld)", popup.median, popup.p90, popup.count))
@@ -344,6 +345,30 @@ final class SelfTestRunner {
         }
     }
 
+    /// M8: big copies must not freeze the UI; idle cost and memory are reported.
+    private func performanceChecks() async {
+        await check("Großes Bild (≈ 20 MB) blockiert die Oberfläche nicht") {
+            guard let png = Self.noisePNG(width: 2_600, height: 2_000) else { return (false, "kein Testbild") }
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setData(png, forType: .png)
+            let meter = StallMeter()
+            meter.start()
+            await self.app.capture.drain()
+            _ = await self.waitUntil(timeout: 5_000) { self.app.history.items.first?.byteSize ?? 0 > 10_000_000 }
+            meter.stop()
+            let stored = (self.app.history.items.first?.byteSize ?? 0) > 10_000_000
+            return (stored && meter.longestStall < 0.25, String(
+                format: "%.1f MB gespeichert: %@, längste Blockade des Main-Threads: %.0f ms",
+                Double(png.count) / 1_000_000, stored ? "ja" : "nein", meter.longestStall * 1_000
+            ))
+        }
+
+        let idle = await Self.cpuUsage(during: 5)
+        Self.write(String(format: "Messwert CPU im Leerlauf (5 s): %.2f %%", idle * 100))
+        Self.write(String(format: "Messwert Speicher: %.0f MB bei %ld Einträgen", Self.memoryFootprint() / 1_000_000, app.history.items.count))
+    }
+
     // MARK: Helpers
 
     private func check(_ name: String, _ body: () async -> (Bool, String)) async {
@@ -524,6 +549,51 @@ final class SelfTestRunner {
         return ImageConversion.png(fromImageData: tiff)
     }
 
+    /// Random pixels: a PNG that does not compress (about width × height × 4 bytes).
+    private static func noisePNG(width: Int, height: Int) -> Data? {
+        var generator = SystemRandomNumberGenerator()
+        var words = [UInt64](repeating: 0, count: width * height / 2)
+        for index in words.indices {
+            words[index] = generator.next()
+        }
+        let pixels = words.withUnsafeBytes { Data($0) }
+        guard let provider = CGDataProvider(data: pixels as CFData),
+              let image = CGImage(
+                  width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: width * 4,
+                  space: CGColorSpaceCreateDeviceRGB(),
+                  bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
+                  provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent
+              ) else {
+            return nil
+        }
+        return NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])
+    }
+
+    /// Share of one CPU core used by CopyPal over `seconds` of waiting.
+    private static func cpuUsage(during seconds: Double) async -> Double {
+        func cpuTime() -> Double {
+            var usage = rusage()
+            getrusage(RUSAGE_SELF, &usage)
+            return Double(usage.ru_utime.tv_sec + usage.ru_stime.tv_sec)
+                + Double(usage.ru_utime.tv_usec + usage.ru_stime.tv_usec) / 1_000_000
+        }
+        let start = cpuTime()
+        try? await Task.sleep(for: .seconds(seconds))
+        return (cpuTime() - start) / seconds
+    }
+
+    /// Physical memory footprint (what Activity Monitor shows as "Memory").
+    private static func memoryFootprint() -> Double {
+        var info = task_vm_info_data_t()
+        var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size)
+        let result = withUnsafeMutablePointer(to: &info) { pointer in
+            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+            }
+        }
+        return result == KERN_SUCCESS ? Double(info.phys_footprint) : 0
+    }
+
     /// Files below `directory` whose bytes contain `marker`.
     private static func files(containing marker: String, in directory: URL) -> [String] {
         guard let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil) else { return [] }
@@ -539,6 +609,37 @@ final class SelfTestRunner {
 
     nonisolated private static func write(_ line: String) {
         FileHandle.standardOutput.write(Data((line + "\n").utf8))
+    }
+}
+
+/// Measures the longest gap between 10 ms timer ticks on the main thread.
+@MainActor
+private final class StallMeter {
+    private(set) var longestStall: TimeInterval = 0
+    private var timer: Timer?
+    private var lastTick = Date()
+
+    func start() {
+        lastTick = Date()
+        let timer = Timer(timeInterval: 0.01, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.tick()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
+    }
+
+    func stop() {
+        tick()
+        timer?.invalidate()
+        timer = nil
+    }
+
+    private func tick() {
+        let now = Date()
+        longestStall = max(longestStall, now.timeIntervalSince(lastTick))
+        lastTick = now
     }
 }
 #endif

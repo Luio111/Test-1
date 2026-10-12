@@ -42,6 +42,7 @@ final class PasteController {
               !representations.isEmpty else {
             NSSound.beep()
             toast.show(String(localized: "Eintrag nicht mehr verfügbar"), systemImage: "exclamationmark.circle")
+            Log.paste.notice("Eintrag nicht verfügbar")
             return .unavailable
         }
 
@@ -52,6 +53,7 @@ final class PasteController {
 
         guard input.canPaste else {
             toast.show(String(localized: "Jetzt ⌘V drücken"), systemImage: "command")
+            Log.paste.notice("Ohne Bedienungshilfen: nur in die Zwischenablage")
             return .onPasteboard(.noPermission)
         }
         // Give focus a moment to return to the target app, then paste only if it is
@@ -59,9 +61,11 @@ final class PasteController {
         try? await Task.sleep(for: .milliseconds(Int(AppSettings.pasteDelayMilliseconds)))
         if let targetProcessID, NSWorkspace.shared.frontmostApplication?.processIdentifier != targetProcessID {
             toast.show(String(localized: "In der Zwischenablage – mit ⌘V einfügen"), systemImage: "doc.on.clipboard")
+            Log.paste.notice("Ziel-App nicht mehr vorne: nur in die Zwischenablage")
             return .onPasteboard(.targetNotInFront)
         }
         PasteSynthesizer.postPaste(keyCode: input.layout.pasteKeyCode)
+        Log.paste.info("Eingefügt: \(item.kind.rawValue, privacy: .public)\(plainText ? " (ohne Formatierung)" : "", privacy: .public)")
         return .pasted
     }
 

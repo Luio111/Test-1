@@ -2,6 +2,11 @@
 
 Nativer Clipboard-Manager für den Mac: **⌘V tippen** fügt wie gewohnt ein, **⌘V halten** öffnet den Verlauf aus der Notch.
 
+- **1–8** fügt den Eintrag ein, **⇧** ohne Formatierung, Tippen sucht, **⇥** zeigt die Favoriten, **⌘P** pinnt an.
+- Alles bleibt **verschlüsselt auf diesem Mac**: AES-GCM, der Schlüssel liegt im Schlüsselbund. Kein Netz, keine Statistik.
+- Passwortmanager werden nie gespeichert. IBAN, Kartennummern, API-Schlüssel und Einmalcodes werden verdeckt und nach einer Minute gelöscht.
+- **⌃⌥V** öffnet den Verlauf auch ohne Bedienungshilfen-Freigabe.
+
 Plan und Stand: [Docs/ROADMAP.md](Docs/ROADMAP.md) · Design: [Docs/Design.md](Docs/Design.md) · Probleme: [Docs/Troubleshooting.md](Docs/Troubleshooting.md)
 
 ## Voraussetzungen
@@ -62,4 +67,18 @@ cd CopyPal && ./scripts/bootstrap.sh
 swift test --package-path Packages/CopyPalKit
 ```
 
-Die CI (`.github/workflows/copypal-ci.yml`) testet das Package unter Linux und macOS und baut die App bei jedem Pull Request. Compiler-Warnungen im eigenen Code lassen sie scheitern.
+Unter Linux zusätzlich `-Xswiftc -DSQLITE_DISABLE_SNAPSHOT` und das Paket `libsqlite3-dev` (siehe [ADR 0004](Docs/ADR/0004-grdb-linux-und-einstellungen.md)).
+
+Die CI (`.github/workflows/copypal-ci.yml`) läuft bei jedem Pull Request:
+
+1. testet das Package unter Linux und macOS,
+2. baut die App,
+3. führt den **Selbsttest** auf einem echten Mac aus: Erfassen, Datenschutz, Verlauf, ⌘V tippen und halten, Pop-up, Suche, Favoriten, Verschlüsselung auf der Platte, 100 schnelle Kopien, großes Bild.
+
+Compiler-Warnungen im eigenen Code lassen die CI scheitern.
+
+Den Selbsttest kannst du auch selbst starten (Debug-Build, braucht die Bedienungshilfen-Freigabe für das Terminal). Er nutzt einen eigenen, temporären Verlauf und eigene Einstellungen, schreibt aber in die echte Zwischenablage:
+
+```sh
+~/Library/Developer/Xcode/DerivedData/CopyPal-*/Build/Products/Debug/CopyPal.app/Contents/MacOS/CopyPal --self-test
+```
