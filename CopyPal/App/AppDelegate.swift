@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     #if DEBUG
     private lazy var labWindowController = LabWindowController(input: input)
+    private var selfTest: SelfTestRunner?
     #endif
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -25,6 +26,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             onShowLab: showLab,
             onQuit: { NSApp.terminate(nil) }
         )
+
+        #if DEBUG
+        if SelfTestRunner.isRequested {
+            let runner = SelfTestRunner(input: input)
+            selfTest = runner
+            runner.run()
+        }
+        #endif
     }
 
     /// Opening CopyPal again (Finder, Spotlight, `open`) shows the diagnostics window,
