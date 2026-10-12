@@ -77,21 +77,7 @@ private struct HistoryPage: View {
             if items.isEmpty {
                 emptyState
             } else {
-                List {
-                    ForEach(items) { item in
-                        HistoryRow(
-                            item: item,
-                            visuals: visuals,
-                            revealedText: revealed[item.id],
-                            actions: actions(for: item)
-                        )
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 1, leading: 0, bottom: 1, trailing: 0))
-                    }
-                    .onMove(perform: list == .favorites && query.isEmpty ? moveFavorites : nil)
-                }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
+                entryList
             }
             footer
         }
@@ -100,17 +86,50 @@ private struct HistoryPage: View {
         .padding(.bottom, Theme.Spacing.l)
         .frame(minWidth: 520, minHeight: 480)
         .background(Theme.Colors.background)
-        .alert("Favorit benennen", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+        .alert("Favorit benennen", isPresented: isRenaming) {
             TextField("Name, z. B. „E-Mail privat“", text: $newLabel)
-            Button("Sichern") {
-                if let item = renaming {
-                    let label = newLabel.trimmingCharacters(in: .whitespaces)
-                    Task { await history.perform { try await $0.setPinLabel(item.id, label: label.isEmpty ? nil : label) } }
-                }
-                renaming = nil
-            }
+            Button("Sichern", action: saveLabel)
             Button("Abbrechen", role: .cancel) { renaming = nil }
         }
+    }
+
+    private var entryList: some View {
+        List {
+            ForEach(items) { item in
+                row(for: item)
+            }
+            .onMove(perform: moveAction)
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+    }
+
+    private func row(for item: ClipItem) -> some View {
+        HistoryRow(item: item, visuals: visuals, revealedText: revealed[item.id], actions: actions(for: item))
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets(top: 1, leading: 0, bottom: 1, trailing: 0))
+    }
+
+    /// Favorites can be reordered by dragging, but only the full, unfiltered list.
+    private var moveAction: ((IndexSet, Int) -> Void)? {
+        guard list == .favorites, query.isEmpty else { return nil }
+        return { source, destination in
+            moveFavorites(from: source, to: destination)
+        }
+    }
+
+    private var isRenaming: Binding<Bool> {
+        Binding(get: { renaming != nil }, set: { presented in
+            if !presented { renaming = nil }
+        })
+    }
+
+    private func saveLabel() {
+        defer { renaming = nil }
+        guard let id = renaming?.id else { return }
+        let label = newLabel.trimmingCharacters(in: .whitespaces)
+        let value: String? = label.isEmpty ? nil : label
+        Task { await history.perform { try await $0.setPinLabel(id, label: value) } }
     }
 
     private var header: some View {
