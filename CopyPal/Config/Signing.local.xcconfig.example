@@ -1,8 +1,10 @@
 // Copy to Signing.local.xcconfig (scripts/bootstrap.sh does this for you).
 // This file stays on your Mac and is never committed.
 
-// Your 10-character team ID (free "Personal Team" works).
-// Find it with: security find-certificate -c "Apple Development" -p | openssl x509 -noout -subject
+// Your 10-character team ID (free "Personal Team" works). bootstrap.sh fills it in
+// when it finds exactly one. Manually: the value after "OU=" (not the ID in
+// parentheses after your name) in:
+//   security find-certificate -a -c "Apple Development" -p | openssl x509 -noout -subject
 DEVELOPMENT_TEAM =
 
 // Reverse-DNS prefix that is unique to you, e.g. io.github.<your-github-name>

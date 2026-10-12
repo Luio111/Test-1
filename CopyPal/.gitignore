@@ -2,8 +2,8 @@
 *.xcodeproj
 *.xcworkspace
 
-# Personal signing settings
-Config/Signing.local.xcconfig
+# Personal signing settings (incl. temp files written by bootstrap.sh)
+Config/Signing.local.xcconfig*
 
 # Build output
 DerivedData/
@@ -11,3 +11,6 @@ DerivedData/
 .swiftpm/
 build/
 xcuserdata/
+
+# macOS
+.DS_Store

@@ -8,5 +8,5 @@
 - UI- und Systemtypen werden explizit mit `@MainActor` annotiert.
 
 **Folgen.**
-- Warnungen werden wie Fehler behandelt und vor dem Merge behoben.
+- Warnungen werden wie Fehler behandelt: `scripts/ci-check-warnings.sh` lässt die CI scheitern, sobald im eigenen Code (App, Package-Quellen und -Tests) eine Compiler-Warnung auftaucht. Warnungen aus Abhängigkeiten zählen nicht.
 - Spätestens in M8 (Härtung) werden System und App auf Swift 6 umgestellt.

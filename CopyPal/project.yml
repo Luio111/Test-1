@@ -4,6 +4,10 @@
 name: CopyPal
 
 options:
+  # Pinned so every XcodeGen version writes the same project format (Xcode 16.0+)
+  # and Xcode does not ask to "update to recommended settings" after each bootstrap.
+  projectFormat: xcode16_0
+  xcodeVersion: "26.0"
   developmentLanguage: de
   deploymentTarget:
     macOS: "14.0"

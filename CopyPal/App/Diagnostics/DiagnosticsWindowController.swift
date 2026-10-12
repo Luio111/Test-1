@@ -24,6 +24,11 @@ final class DiagnosticsWindowController: NSObject, NSWindowDelegate {
         model.stopMonitoring()
     }
 
+    /// Coming back from System Settings: re-read every row, not only the live ones.
+    func windowDidBecomeKey(_ notification: Notification) {
+        model.refresh()
+    }
+
     private func makeWindow() -> NSWindow {
         let window = NSWindow(contentViewController: NSHostingController(rootView: DiagnosticsView(model: model)))
         window.title = String(localized: "Diagnose")
@@ -33,7 +38,7 @@ final class DiagnosticsWindowController: NSObject, NSWindowDelegate {
         window.isMovableByWindowBackground = true
         window.backgroundColor = Theme.Colors.windowBackground
         window.isReleasedWhenClosed = false
-        window.setContentSize(NSSize(width: 620, height: 680))
+        window.setContentSize(Theme.Layout.windowSize)
         window.center()
         window.delegate = self
         return window

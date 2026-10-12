@@ -21,8 +21,11 @@ public enum PermissionState: Sendable, Equatable {
 
 /// Mirrors `NSPasteboard.AccessBehavior` (macOS 15.4+) without depending on AppKit.
 public enum PasteboardAccessStatus: Sendable, Equatable {
-    /// The API does not exist on this macOS version (or the SDK used to build is too old).
+    /// This macOS version has no per-app pasteboard setting (before 15.4).
     case unavailable
+    /// macOS has the setting, but the app was built with an SDK older than 15.4
+    /// (Xcode < 16.3) and cannot read it.
+    case notInBuildSDK
     case systemDefault
     case ask
     case alwaysAllow
@@ -32,9 +35,32 @@ public enum PasteboardAccessStatus: Sendable, Equatable {
     /// `true` when background reads could be blocked or interrupted by a system prompt.
     public var mayInterruptCapture: Bool {
         switch self {
-        case .ask, .alwaysDeny, .systemDefault, .unknown: true
+        case .ask, .alwaysDeny, .systemDefault, .notInBuildSDK, .unknown: true
         case .unavailable, .alwaysAllow: false
         }
+    }
+}
+
+/// Problems the diagnostics window and report point out. Typed so the UI has to
+/// handle every case (exhaustive switch) and stays in sync with the report.
+public enum DiagnosticsWarning: Sendable, Hashable, CaseIterable {
+    case unstableSigning
+    case accessibilityDenied
+    case pasteboardMayAsk
+    case pasteboardDenied
+    case pasteboardStatusUnknown
+
+    public static func warnings(for snapshot: DiagnosticsSnapshot) -> [DiagnosticsWarning] {
+        var result: [DiagnosticsWarning] = []
+        if !snapshot.signing.isStable { result.append(.unstableSigning) }
+        if snapshot.accessibility == .denied { result.append(.accessibilityDenied) }
+        switch snapshot.pasteboardAccess {
+        case .ask, .systemDefault: result.append(.pasteboardMayAsk)
+        case .alwaysDeny: result.append(.pasteboardDenied)
+        case .notInBuildSDK, .unknown: result.append(.pasteboardStatusUnknown)
+        case .unavailable, .alwaysAllow: break
+        }
+        return result
     }
 }
 
@@ -50,12 +76,19 @@ public struct PasteboardProbe: Sendable, Equatable {
         self.types = types
         self.duration = duration
     }
+
+    public var milliseconds: Double {
+        let (seconds, attoseconds) = duration.components
+        return Double(seconds) * 1_000 + Double(attoseconds) / 1e15
+    }
 }
 
 public struct DiagnosticsSnapshot: Sendable, Equatable {
     public var appVersion: String
     public var buildNumber: String
     public var bundleIdentifier: String
+    /// Xcode and SDK the app was built with, e.g. "Xcode 16.4 · macosx15.5".
+    public var buildEnvironment: String
     public var osVersion: String
     public var signing: SigningStatus
     public var accessibility: PermissionState
@@ -67,6 +100,7 @@ public struct DiagnosticsSnapshot: Sendable, Equatable {
         appVersion: String,
         buildNumber: String,
         bundleIdentifier: String,
+        buildEnvironment: String,
         osVersion: String,
         signing: SigningStatus,
         accessibility: PermissionState,
@@ -77,6 +111,7 @@ public struct DiagnosticsSnapshot: Sendable, Equatable {
         self.appVersion = appVersion
         self.buildNumber = buildNumber
         self.bundleIdentifier = bundleIdentifier
+        self.buildEnvironment = buildEnvironment
         self.osVersion = osVersion
         self.signing = signing
         self.accessibility = accessibility

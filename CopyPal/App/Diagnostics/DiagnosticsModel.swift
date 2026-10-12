@@ -3,8 +3,9 @@ import Observation
 import CopyPalCore
 import CopyPalSystem
 
-/// State behind the diagnostics window. Refreshes the Accessibility state every
-/// second while the window is open, so granting it in System Settings shows up live.
+/// State behind the diagnostics window. While the window is open, Accessibility and
+/// the pasteboard setting are re-read every second, so changes made in System
+/// Settings show up live.
 @MainActor
 @Observable
 final class DiagnosticsModel {
@@ -18,16 +19,18 @@ final class DiagnosticsModel {
         snapshot = Self.makeSnapshot(probe: nil)
     }
 
-    var warnings: [String] {
-        DiagnosticsReport.warnings(for: snapshot)
+    var warnings: [DiagnosticsWarning] {
+        DiagnosticsWarning.warnings(for: snapshot)
     }
 
+    /// Re-reads everything, keeping the last probe result.
     func refresh() {
         snapshot = Self.makeSnapshot(probe: snapshot.pasteboardProbe)
     }
 
     func runPasteboardProbe() {
-        snapshot = Self.makeSnapshot(probe: PasteboardInspector.probe())
+        let probe = PasteboardInspector.probe()
+        snapshot = Self.makeSnapshot(probe: probe)
     }
 
     func requestAccessibility() {
@@ -40,11 +43,13 @@ final class DiagnosticsModel {
     }
 
     func copyReport() {
+        refresh()
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(DiagnosticsReport.text(for: snapshot), forType: .string)
 
         reportCopied = true
+        announce(String(localized: "Bericht kopiert"))
         copiedResetTask?.cancel()
         copiedResetTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))
@@ -57,7 +62,7 @@ final class DiagnosticsModel {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
-                self?.refreshAccessibility()
+                self?.refreshLiveState()
             }
         }
     }
@@ -67,11 +72,27 @@ final class DiagnosticsModel {
         timer = nil
     }
 
-    private func refreshAccessibility() {
-        let state = AccessibilityPermission.state
-        if state != snapshot.accessibility {
-            snapshot.accessibility = state
+    /// Cheap reads only (no code-signing lookup), so it can run every second.
+    private func refreshLiveState() {
+        let accessibility = AccessibilityPermission.state
+        if accessibility != snapshot.accessibility {
+            snapshot.accessibility = accessibility
         }
+        let pasteboardAccess = PasteboardInspector.accessStatus()
+        if pasteboardAccess != snapshot.pasteboardAccess {
+            snapshot.pasteboardAccess = pasteboardAccess
+        }
+    }
+
+    private func announce(_ message: String) {
+        NSAccessibility.post(
+            element: NSApp as Any,
+            notification: .announcementRequested,
+            userInfo: [
+                .announcement: message,
+                .priority: NSAccessibilityPriorityLevel.high.rawValue,
+            ]
+        )
     }
 
     private static func makeSnapshot(probe: PasteboardProbe?) -> DiagnosticsSnapshot {
@@ -79,6 +100,7 @@ final class DiagnosticsModel {
             appVersion: AppInfo.version,
             buildNumber: AppInfo.build,
             bundleIdentifier: AppInfo.bundleIdentifier,
+            buildEnvironment: AppInfo.buildEnvironment,
             osVersion: AppInfo.osVersion,
             signing: CodeSigningInspector.currentProcess(),
             accessibility: AccessibilityPermission.state,

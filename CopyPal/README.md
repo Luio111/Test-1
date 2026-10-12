@@ -6,9 +6,12 @@ Plan und Stand: [Docs/ROADMAP.md](Docs/ROADMAP.md) · Design: [Docs/Design.md](D
 
 ## Voraussetzungen
 
-- macOS 14 oder neuer, Xcode 16 oder neuer
+- Xcode **16.3 oder neuer** (die App selbst läuft ab macOS 14)
 - [Homebrew](https://brew.sh) und XcodeGen: `brew install xcodegen`
-- In Xcode mit deiner Apple-ID angemeldet (Xcode → Einstellungen → Accounts). Das kostenlose „Personal Team“ reicht.
+- Aktives Developer-Verzeichnis ist Xcode: `xcode-select -p` zeigt `/Applications/Xcode.app/…`, sonst `sudo xcode-select -s /Applications/Xcode.app`
+- Apple ID in Xcode, kostenloses „Personal Team“ reicht:
+  1. Xcode → Settings… → Accounts → „+“ → Apple ID
+  2. Team „… (Personal Team)“ auswählen → Manage Certificates… → „+“ → **Apple Development**
 
 ## Loslegen
 
@@ -17,9 +20,17 @@ cd CopyPal
 ./scripts/bootstrap.sh --open
 ```
 
-Das Skript legt `Config/Signing.local.xcconfig` an (bleibt lokal, wird nicht eingecheckt), trägt deine Team-ID ein, wenn es sie findet, und erzeugt `CopyPal.xcodeproj`. Danach in Xcode **⌘R**.
+Das Skript legt `Config/Signing.local.xcconfig` an (bleibt lokal, wird nie eingecheckt), trägt deine Team-ID ein, wenn sie eindeutig ist, und erzeugt `CopyPal.xcodeproj`. Danach in Xcode **⌘R**.
 
-`CopyPal.xcodeproj` wird nie eingecheckt. Nach jedem `git pull` erneut `./scripts/bootstrap.sh` ausführen.
+## Einen Pull Request testen
+
+```sh
+git fetch origin
+git switch <branch-aus-dem-PR>
+cd CopyPal && ./scripts/bootstrap.sh
+```
+
+`CopyPal.xcodeproj` wird erzeugt und nie eingecheckt – nach jedem Branch-Wechsel oder `git pull` erneut `./scripts/bootstrap.sh` ausführen. Die Checkliste steht im PR bzw. in `Docs/Testplaene/`.
 
 ## Aufbau
 
@@ -28,7 +39,7 @@ Das Skript legt `Config/Signing.local.xcconfig` an (bleibt lokal, wird nicht ein
 | `App/` | App-Target: Menüleiste, Fenster, SwiftUI-Ansichten, Design-System |
 | `Packages/CopyPalKit/` | Logik als Swift-Package: `CopyPalCore` (plattformneutral), `CopyPalStorage`, `CopyPalSystem` (macOS-Adapter), `CopyPalServices` |
 | `Config/` | Build-Einstellungen (`.xcconfig`) |
-| `scripts/` | `bootstrap.sh`, `reset-dev-state.sh` |
+| `scripts/` | `bootstrap.sh`, `reset-dev-state.sh`, `ci-check-warnings.sh` |
 | `Docs/` | Roadmap, Design, Entscheidungen (ADR), Testpläne, Troubleshooting |
 
 ## Tests
@@ -37,4 +48,4 @@ Das Skript legt `Config/Signing.local.xcconfig` an (bleibt lokal, wird nicht ein
 swift test --package-path Packages/CopyPalKit
 ```
 
-Die CI (`.github/workflows/copypal-ci.yml`) führt die Package-Tests unter Linux und macOS aus und baut die App bei jedem Pull Request.
+Die CI (`.github/workflows/copypal-ci.yml`) testet das Package unter Linux und macOS und baut die App bei jedem Pull Request. Compiler-Warnungen im eigenen Code lassen sie scheitern.

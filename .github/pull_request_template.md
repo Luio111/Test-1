@@ -1,5 +1,7 @@
 ## Ziel
-<!-- Welcher Meilenstein / welches Problem? Link zu Docs/ROADMAP.md -->
+<!-- Welcher Meilenstein / welches Problem? Link zu CopyPal/Docs/ROADMAP.md -->
+
+**Branch zum Testen:** `<branch>` (`git fetch origin && git switch <branch>`, dann `./scripts/bootstrap.sh`)
 
 ## Änderungen
 -

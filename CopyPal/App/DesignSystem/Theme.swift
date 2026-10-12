@@ -9,12 +9,18 @@ enum Theme {
         static let background = Color.dynamic(light: 0xFFFFFF, dark: 0x191919)
         static let surface = Color.dynamic(light: 0xF7F7F5, dark: 0x202020)
         static let textPrimary = Color.dynamic(light: 0x37352F, dark: 0xFFFFFF, darkAlpha: 0.81)
-        static let textSecondary = Color.dynamic(light: 0x787774, dark: 0x9B9B9B)
+        // Slightly darker than Notion's #787774 to reach WCAG AA (4.8:1 on white).
+        static let textSecondary = Color.dynamic(light: 0x73726E, dark: 0x9B9B9B)
+        /// Decorative only (placeholders, disabled); too little contrast for information.
         static let textTertiary = Color.dynamic(light: 0xA5A29C, dark: 0x6F6F6F)
         static let divider = Color.dynamic(light: 0x37352F, lightAlpha: 0.09, dark: 0xFFFFFF, darkAlpha: 0.094)
         static let hover = Color.dynamic(light: 0x37352F, lightAlpha: 0.06, dark: 0xFFFFFF, darkAlpha: 0.055)
         static let pressed = Color.dynamic(light: 0x37352F, lightAlpha: 0.12, dark: 0xFFFFFF, darkAlpha: 0.1)
         static let accent = Color.dynamic(light: 0x2383E2, dark: 0x2383E2)
+        /// Fills for the primary button: darker than `accent` so white text reaches WCAG AA.
+        static let accentFill = Color.dynamic(light: 0x1C6FC2, dark: 0x1C6FC2)
+        static let accentFillHover = Color.dynamic(light: 0x1A6AB8, dark: 0x1A6AB8)
+        static let accentFillPressed = Color.dynamic(light: 0x165FA6, dark: 0x165FA6)
 
         static let windowBackground = NSColor.dynamic(light: 0xFFFFFF, dark: 0x191919)
     }
@@ -61,6 +67,16 @@ enum Theme {
         static let l: CGFloat = 16
         static let xl: CGFloat = 24
         static let xxl: CGFloat = 32
+    }
+
+    /// Fixed layout metrics outside the spacing scale.
+    enum Layout {
+        static let pageHorizontalPadding: CGFloat = 40
+        /// Room for the transparent title bar.
+        static let pageTopPadding: CGFloat = 44
+        static let rowVerticalPadding: CGFloat = 6
+        static let labelColumnWidth: CGFloat = 168
+        static let windowSize = CGSize(width: 620, height: 680)
     }
 
     enum Radius {

@@ -29,12 +29,13 @@ struct PropertyRow<Value: View>: View {
                     Image(systemName: systemImage)
                         .font(.system(size: 13))
                         .frame(width: 16)
+                        .accessibilityHidden(true)
                 }
                 Text(label)
             }
             .font(Theme.Typography.body)
             .foregroundStyle(Theme.Colors.textSecondary)
-            .frame(width: 168, alignment: .leading)
+            .frame(width: Theme.Layout.labelColumnWidth, alignment: .leading)
 
             value
                 .font(Theme.Typography.body)
@@ -42,7 +43,7 @@ struct PropertyRow<Value: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .textSelection(.enabled)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, Theme.Layout.rowVerticalPadding)
     }
 }
 
@@ -55,7 +56,7 @@ struct StatusTag: View {
         Text(text)
             .font(Theme.Typography.caption)
             .foregroundStyle(style.foreground)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, Theme.Spacing.s - Theme.Spacing.xxs)
             .padding(.vertical, Theme.Spacing.xxs)
             .background(style.background, in: RoundedRectangle(cornerRadius: Theme.Radius.tag))
     }
@@ -108,7 +109,8 @@ private struct HoverableLabel: View {
 
     private var background: Color {
         if prominent {
-            return Theme.Colors.accent.opacity(configuration.isPressed ? 0.8 : (isHovering ? 0.9 : 1))
+            if configuration.isPressed { return Theme.Colors.accentFillPressed }
+            return isHovering ? Theme.Colors.accentFillHover : Theme.Colors.accentFill
         }
         if configuration.isPressed { return Theme.Colors.pressed }
         return isHovering ? Theme.Colors.hover : .clear

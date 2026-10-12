@@ -19,6 +19,11 @@ public enum PasteboardInspector {
             @unknown default: return .unknown(rawValue: behavior.rawValue)
             }
         }
+        #else
+        let pasteboardPrivacyOS = OperatingSystemVersion(majorVersion: 15, minorVersion: 4, patchVersion: 0)
+        if ProcessInfo.processInfo.isOperatingSystemAtLeast(pasteboardPrivacyOS) {
+            return .notInBuildSDK
+        }
         #endif
         return .unavailable
     }

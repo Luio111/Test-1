@@ -10,7 +10,7 @@ struct DiagnosticsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
                 header
-                if !callouts.isEmpty {
+                if !model.warnings.isEmpty {
                     callout
                 }
                 appSection
@@ -21,8 +21,8 @@ struct DiagnosticsView: View {
                 Hairline()
                 footer
             }
-            .padding(.horizontal, 40)
-            .padding(.top, 44)
+            .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
+            .padding(.top, Theme.Layout.pageTopPadding)
             .padding(.bottom, Theme.Spacing.xxl)
         }
         .frame(minWidth: 580, minHeight: 540)
@@ -37,9 +37,11 @@ struct DiagnosticsView: View {
                 .font(.system(size: 28, weight: .regular))
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .padding(.bottom, Theme.Spacing.xs)
+                .accessibilityHidden(true)
             Text("Diagnose")
                 .font(Theme.Typography.title)
                 .foregroundStyle(Theme.Colors.textPrimary)
+                .accessibilityAddTraits(.isHeader)
             Text("Technische Angaben für Fehlerberichte. Enthält keine Inhalte deiner Zwischenablage.")
                 .font(Theme.Typography.body)
                 .foregroundStyle(Theme.Colors.textSecondary)
@@ -48,29 +50,16 @@ struct DiagnosticsView: View {
 
     // MARK: Callout
 
-    private var callouts: [LocalizedStringKey] {
-        var result: [LocalizedStringKey] = []
-        if !snapshot.signing.isStable {
-            result.append("Die App ist nicht stabil signiert. Die Freigabe für Bedienungshilfen geht dadurch bei jedem Build verloren – siehe Docs/Troubleshooting.md.")
-        }
-        if snapshot.accessibility == .denied {
-            result.append("Bedienungshilfen sind nicht freigegeben. Ohne sie kann CopyPal ⌘V nicht erkennen.")
-        }
-        if snapshot.pasteboardAccess.mayInterruptCapture {
-            result.append("Der Zugriff auf die Zwischenablage steht nicht auf „Immer erlauben“. macOS kann beim Mitlesen nachfragen.")
-        }
-        return result
-    }
-
     private var callout: some View {
         HStack(alignment: .top, spacing: Theme.Spacing.m) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 14))
                 .foregroundStyle(Theme.Tag.orange.foreground)
                 .padding(.top, 1)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-                ForEach(Array(callouts.enumerated()), id: \.offset) { _, text in
-                    Text(text)
+                ForEach(model.warnings, id: \.self) { warning in
+                    Text(text(for: warning))
                         .font(Theme.Typography.body)
                         .foregroundStyle(Theme.Colors.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -82,6 +71,21 @@ struct DiagnosticsView: View {
         .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.control))
     }
 
+    private func text(for warning: DiagnosticsWarning) -> LocalizedStringKey {
+        switch warning {
+        case .unstableSigning:
+            "Die App ist nicht stabil signiert. Die Freigabe für Bedienungshilfen geht dadurch bei jedem Build verloren – siehe Docs/Troubleshooting.md."
+        case .accessibilityDenied:
+            "Bedienungshilfen sind nicht freigegeben. Ohne sie kann CopyPal ⌘V nicht erkennen."
+        case .pasteboardMayAsk:
+            "Der Zugriff auf die Zwischenablage steht nicht auf „Immer erlauben“. macOS kann beim Mitlesen nachfragen."
+        case .pasteboardDenied:
+            "Der Zugriff auf die Zwischenablage ist verboten. CopyPal kann nichts mitlesen."
+        case .pasteboardStatusUnknown:
+            "Der Zugriff auf die Zwischenablage lässt sich nicht auslesen. Baue die App mit Xcode 16.3 oder neuer."
+        }
+    }
+
     // MARK: Sections
 
     private var appSection: some View {
@@ -91,6 +95,9 @@ struct DiagnosticsView: View {
             }
             PropertyRow(label: "Bundle-ID", systemImage: "shippingbox") {
                 Text(verbatim: snapshot.bundleIdentifier).font(Theme.Typography.mono)
+            }
+            PropertyRow(label: "Gebaut mit", systemImage: "hammer") {
+                Text(verbatim: snapshot.buildEnvironment)
             }
             PropertyRow(label: "macOS", systemImage: "laptopcomputer") {
                 Text(verbatim: snapshot.osVersion)
@@ -111,6 +118,7 @@ struct DiagnosticsView: View {
                     Text(verbatim: teamID).font(Theme.Typography.mono)
                 }
                 if let certificate {
+                    // Shown locally only; the copied report omits the holder's name.
                     Text(verbatim: certificate)
                         .font(Theme.Typography.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)
@@ -138,7 +146,7 @@ struct DiagnosticsView: View {
                         StatusTag(text: "Nicht erteilt", style: .red)
                         Button("Anfragen") { model.requestAccessibility() }
                             .buttonStyle(SubtleButtonStyle())
-                        Button("Einstellungen öffnen") { model.openAccessibilitySettings() }
+                        Button("Systemeinstellungen öffnen") { model.openAccessibilitySettings() }
                             .buttonStyle(SubtleButtonStyle())
                     }
                 }
@@ -148,7 +156,7 @@ struct DiagnosticsView: View {
 
     private var pasteboardSection: some View {
         SectionBlock(title: "Zwischenablage") {
-            PropertyRow(label: "Zugriff durch Apps", systemImage: "lock") {
+            PropertyRow(label: "Zugriff für CopyPal", systemImage: "lock") {
                 pasteboardAccessTag
             }
             PropertyRow(label: "Lesetest", systemImage: "doc.on.clipboard") {
@@ -158,7 +166,7 @@ struct DiagnosticsView: View {
                     if let probe = snapshot.pasteboardProbe {
                         probeResult(probe)
                     } else {
-                        Text("Liest nur Änderungszähler und Formate. Achte darauf, ob macOS dabei einen Hinweis zeigt.")
+                        Text("Liest nur Änderungszähler und Formate, keine Inhalte. Achte darauf, ob macOS dabei einen Hinweis zeigt.")
                             .font(Theme.Typography.caption)
                             .foregroundStyle(Theme.Colors.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -175,14 +183,16 @@ struct DiagnosticsView: View {
         case .ask: StatusTag(text: "Fragen", style: .orange)
         case .systemDefault: StatusTag(text: "Systemstandard", style: .orange)
         case .alwaysDeny: StatusTag(text: "Nie erlauben", style: .red)
+        case .notInBuildSDK: StatusTag(text: "Nicht auslesbar (Xcode zu alt)", style: .orange)
         case .unavailable: StatusTag(text: "Nicht vorhanden (vor macOS 15.4)", style: .gray)
         case let .unknown(rawValue): StatusTag(text: "Unbekannt (\(rawValue))", style: .gray)
         }
     }
 
     private func probeResult(_ probe: PasteboardProbe) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            Text("\(probe.types.count) Formate · Zähler \(probe.changeCount) · \(DiagnosticsReport.milliseconds(probe.duration)) ms")
+        let duration = probe.milliseconds.formatted(.number.precision(.fractionLength(2)))
+        return VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            Text("Formate: \(probe.types.count) · Änderungszähler: \(probe.changeCount) · \(duration) ms")
                 .font(Theme.Typography.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
             if !probe.types.isEmpty {
@@ -197,10 +207,11 @@ struct DiagnosticsView: View {
 
     private var footer: some View {
         HStack {
-            Text("Den Bericht kannst du in einen GitHub-Kommentar einfügen.")
+            Text("Den Bericht kannst du in einen GitHub-Kommentar einfügen. Er enthält keine persönlichen Daten.")
                 .font(Theme.Typography.caption)
-                .foregroundStyle(Theme.Colors.textTertiary)
-            Spacer()
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: Theme.Spacing.l)
             Button {
                 model.copyReport()
             } label: {

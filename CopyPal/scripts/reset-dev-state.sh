@@ -21,7 +21,7 @@ bundle_id="${1:-$prefix.CopyPal.dev}"
 
 echo "Setzt den Entwicklungsstand zurück für: $bundle_id"
 echo "Bitte CopyPal vorher beenden."
-read -r -p "Fortfahren? [j/N] " answer
+read -r -p "Fortfahren? [j/N] " answer || answer=""
 case "$answer" in
     j | J | y | Y) ;;
     *) echo "Abgebrochen."; exit 0 ;;

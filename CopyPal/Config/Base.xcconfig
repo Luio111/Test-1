@@ -26,8 +26,10 @@ INFOPLIST_KEY_NSPrincipalClass = NSApplication
 INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.productivity
 INFOPLIST_KEY_NSHumanReadableCopyright =
 
-// All UI strings go through the String Catalog (development language: German).
+// All UI strings are localizable (LocalizedStringKey / String(localized:)); the String
+// Catalog itself is added together with the second language (ROADMAP D9).
 LOCALIZATION_PREFERS_STRING_CATALOGS = YES
 SWIFT_EMIT_LOC_STRINGS = YES
+DEAD_CODE_STRIPPING = YES
 
 #include? "Signing.local.xcconfig"

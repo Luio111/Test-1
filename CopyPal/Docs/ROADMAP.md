@@ -70,28 +70,28 @@ Test-1/
    ├─ project.yml                        # XcodeGen; CopyPal.xcodeproj wird NIE eingecheckt
    ├─ .gitignore                         # *.xcodeproj, DerivedData, .build, Signing.local.xcconfig
    ├─ Config/
-   │  ├─ Base.xcconfig                   # MACOSX_DEPLOYMENT_TARGET=14.0, Swift 6, Hardened Runtime
+   │  ├─ Base.xcconfig                   # macOS 14.0, Signierung, Hardened Runtime, Swift-Modus (ADR 0002)
    │  ├─ Debug.xcconfig / Release.xcconfig
-   │  ├─ Signing.local.xcconfig.example  # DEVELOPMENT_TEAM, BUNDLE_ID_PREFIX (Kopie bleibt lokal)
-   │  └─ CopyPal.entitlements            # keine Sandbox
+   │  └─ Signing.local.xcconfig.example  # DEVELOPMENT_TEAM, BUNDLE_ID_PREFIX (Kopie bleibt lokal)
    ├─ App/                               # dünnes UI-Target (AppKit-Lifecycle + SwiftUI-Inhalte)
-   │  ├─ Main.swift, AppDelegate.swift, AppEnvironment.swift
-   │  ├─ MenuBar/      StatusItemController.swift
+   │  ├─ CopyPalMain.swift, AppDelegate.swift, AppInfo.swift
+   │  ├─ MenuBar/      StatusItemController, MainMenu (unsichtbar, für ⌘-Kurzbefehle)
+   │  ├─ DesignSystem/ Theme (Tokens), Components
    │  ├─ Popup/        PopupPanel, PopupController, PopupViewModel, PopupView, ClipRowView
    │  ├─ Notch/        ScreenLocator, NotchAnimator, CopyFeedbackController
    │  ├─ Onboarding/   OnboardingWindowController + Schritt-Views
    │  ├─ Settings/     SettingsWindowController + Allgemein/Verlauf/Datenschutz/Favoriten/Über
-   │  ├─ Diagnostics/  DiagnosticsView, DiagnosticsReport, Lab/ (nur #if DEBUG)
+   │  ├─ Diagnostics/  DiagnosticsModel, DiagnosticsView, DiagnosticsWindowController, Lab/ (nur #if DEBUG)
    │  ├─ Licensing/    LicenseProvider.swift (v1: AlwaysLicensed)
-   │  └─ Resources/    Assets.xcassets, Localizable.xcstrings (Entwicklungssprache: Deutsch)
+   │  └─ Resources/    Assets.xcassets, Localizable.xcstrings (ab der zweiten Sprache, D9)
    ├─ Packages/CopyPalKit/
    │  ├─ Package.swift
-   │  ├─ Sources/CopyPalCore/      # nur Foundation, plattformneutral
+   │  ├─ Sources/CopyPalCore/      # nur Foundation, plattformneutral (u. a. DiagnosticsReport)
    │  ├─ Sources/CopyPalStorage/   # GRDB, CryptoKit, Keychain
    │  ├─ Sources/CopyPalSystem/    # AppKit-, CoreGraphics- und Carbon-Adapter
    │  ├─ Sources/CopyPalServices/  # Orchestrierung: Erfassen, Verlauf, Einfügen
    │  └─ Tests/                    # je Modul ein Testtarget
-   ├─ scripts/  bootstrap.sh, reset-dev-state.sh, release.sh (ab M9)
+   ├─ scripts/  bootstrap.sh, reset-dev-state.sh, ci-check-warnings.sh, release.sh (ab M9)
    └─ Docs/     ROADMAP.md, ADR/, Testplaene/M0.md…M10.md, Kompatibilitaet.md,
                 Troubleshooting.md, Release-Checkliste.md
 ```
@@ -141,10 +141,10 @@ Event-Tap → Zustandsautomat
 3. **Keine Sandbox, Hardened Runtime an.** Der aktive Event-Tap und die synthetischen Tasten brauchen die Bedienungshilfen-Freigabe.
 4. **Event-Tap auf eigenem Thread.** Der Callback ist minimal: keine Allokation, kein IO. UI-Aktionen laufen auf dem Main-Thread.
 5. **Speicher: GRDB (SQLite) plus verschlüsselte Blob-Dateien** statt SwiftData (Begründung in 1.5).
-6. **Swift 6 Sprachmodus.** App-Target mit MainActor als Standard, Package mit expliziten `Sendable`-Typen.
+6. **Swift-Sprachmodus (ADR 0002).** Swift 6 für Core, Storage und Services. System und App vorerst Swift 5 mit vollständiger Concurrency-Prüfung und explizitem `@MainActor`; Warnungen lassen die CI scheitern. Umstellung auf Swift 6 spätestens in M8.
 7. **Tests mit Swift Testing.**
 8. **Wenige Abhängigkeiten:** GRDB, KeyboardShortcuts (Fallback-Hotkey), ab M9 Sparkle. Keine Analytics, kein Crash-SDK.
-9. **Alle UI-Texte ab Tag 1 im String Catalog.** Englisch lässt sich später ohne Umbau ergänzen.
+9. **Alle UI-Texte ab Tag 1 lokalisierbar** (`LocalizedStringKey`, `String(localized:)`). Der String Catalog kommt mit der zweiten Sprache (D9) dazu, Englisch braucht dann keinen Umbau.
 10. **Lizenz-Schnittstelle `LicenseProvider`:** in v1 immer „lizenziert“. So bleibt das Preismodell offen.
 11. **Getrennte Bundle-IDs:** Debug `<prefix>.CopyPal.dev`, Release `<prefix>.CopyPal`. Das trennt Freigaben, Keychain und Daten.
 12. **Kein Wiederherstellen der alten Zwischenablage nach dem Einfügen.** Der eingefügte Eintrag bleibt oben. Damit gilt „⌘V = zuletzt gewählter Eintrag“, und das iPhone bekommt über Universal Clipboard genau diesen Eintrag.
@@ -243,7 +243,7 @@ Ziffern werden über die physische Taste erkannt, nicht über das erzeugte Zeich
 1. **Claude:** kleiner PR mit einem Thema, wenn möglich unter 400 Zeilen. Die Beschreibung enthält eine „So testen“-Checkliste aus `Docs/Testplaene/M<N>.md`.
 2. **CI muss grün sein.** Fehler liest und behebt Claude selbst über die GitHub-Anbindung, bevor du testest. Du bekommst nur grüne PRs.
 3. **Du:**
-   1. `git pull`
+   1. PR-Branch holen: `git fetch origin && git switch <branch>` (der Branch steht im PR)
    2. `./scripts/bootstrap.sh`
    3. in Xcode ⌘R
    4. Checkliste abhaken
@@ -255,17 +255,18 @@ Ziffern werden über die physische Taste erkannt, nicht über das erzeugte Zeich
 
 - **Auslöser:** Pull Requests und Push auf `main`, nur bei Änderungen unter `CopyPal/**`. Ältere Läufe desselben Branches werden abgebrochen.
 - **Schritte:**
-  1. `swift test` im Package
-  2. `xcodegen generate`
-  3. `xcodebuild build` ohne Signierung
+  1. Linux: `swift test` im Package (günstig, läuft zuerst)
+  2. macOS (nur wenn 1 grün): `swift test`, `xcodegen generate`, `xcodebuild build` ohne Signierung
+  3. Compiler-Warnungen im eigenen Code lassen den Lauf scheitern (`scripts/ci-check-warnings.sh`)
+- **Versionen fest:** Xcode 16.4 und XcodeGen 2.46.0. Mindestversion für dich: Xcode 16.3 (README).
 - **Keychain-Tests** laufen nur lokal.
 - **Kosten:** In privaten Repos zählen macOS-Minuten mit Faktor 10 gegen das Freikontingent. Ziel sind unter 8 Minuten pro Lauf. Öffentliche Repos sind kostenlos (siehe D1).
 - **Optional:** Swift-Toolchain im Cloud-Container über einen SessionStart-Hook. Dann laufen die Core-Tests schon vor dem Push.
 
 ### 2.3 Signierung während der Entwicklung (ohne bezahlten Developer-Account)
 
-- **Kostenloses „Personal Team“ in Xcode einrichten:** Einstellungen → Accounts → Apple-ID hinzufügen.
-- **`Config/Signing.local.xcconfig` anlegen:** `DEVELOPMENT_TEAM = …`, `BUNDLE_ID_PREFIX = de.<name>`.
+- **Kostenloses „Personal Team“ in Xcode einrichten:** Xcode → Settings… → Accounts → Apple ID hinzufügen, dann unter Manage Certificates… ein „Apple Development“-Zertifikat anlegen.
+- **`Config/Signing.local.xcconfig`:** legt `scripts/bootstrap.sh` an und trägt die Team-ID ein, wenn sie eindeutig ist; `BUNDLE_ID_PREFIX` z. B. `io.github.<name>`.
 - **Immer mit „Apple Development“ signieren, nie „Sign to Run Locally“.** macOS bindet die Bedienungshilfen-Freigabe an die Signatur. Mit Ad-hoc-Signatur ginge sie bei jedem Build verloren.
 - **Beim späteren Wechsel zum bezahlten Team (M9):** Die Freigabe muss einmal neu erteilt werden. Die Entwicklungsdaten werden verworfen. Das ist erwartet.
 
@@ -527,7 +528,7 @@ Ziffern werden über die physische Taste erkannt, nicht über das erzeugte Zeich
   - Über
 - **Start bei Anmeldung** über `SMAppService`, inklusive Fall „Freigabe nötig“.
 - **Wird die Bedienungshilfen-Freigabe zur Laufzeit entzogen:** Warn-Icon in der Menüleiste und Menüeintrag „Berechtigung erneut erteilen“.
-- **Abschluss:** alle Texte im String Catalog, VoiceOver-Beschriftungen, App- und Menüleisten-Icon (nach D8).
+- **Abschluss:** String Catalog mit allen Texten (und ggf. Englisch, D9), VoiceOver-Beschriftungen, App- und Menüleisten-Icon (nach D8).
 
 **Fertig wenn**
 - [ ] Auf einem Mac mit Notch wächst das Pop-up sichtbar aus der Notch.
@@ -673,7 +674,7 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 | R12 | Speicherbedarf durch große Inhalte | Größenlimits; Blobs auf der Platte; Miniaturen; nur die neuesten Einträge im RAM | M4, M8 |
 | R13 | Claude kann nicht selbst kompilieren | CI bei jedem PR; kleine PRs; Logik im Package | M0 |
 | R14 | CI-Kosten (macOS-Minuten) | Pfadfilter, Abbruch alter Läufe, Cache; öffentliches Repo oder eigener Runner | M0 |
-| R15 | Unterschiedliche Xcode-Versionen bei dir und in der CI | gleiche Xcode-Hauptversion festlegen | M0 |
+| R15 | Unterschiedliche Xcode-Versionen bei dir und in der CI | CI auf Xcode 16.4 festgelegt; „Gebaut mit“ in der Diagnose; auf deine Hauptversion umstellen, sobald bekannt | M0 |
 | R16 | Nur ein Test-Mac, Mindestversion ist macOS 14 | VM mit macOS 14; Beta-Tester mit älteren Macs bzw. Macs ohne Notch | M8, M9 |
 | R17 | Notch-Geometrie, mehrere Bildschirme, Vollbild | getestete Geometrie; Labor-Overlay; Rückfall oben mittig | M7 |
 | R18 | Name „CopyPal“ markenrechtlich oder als Domain belegt | früh prüfen: DPMA, EUIPO, USPTO, App Store, Domains | D8 |
