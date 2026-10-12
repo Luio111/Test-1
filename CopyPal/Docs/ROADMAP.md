@@ -18,8 +18,8 @@ Schwerpunkte sind Datenschutz und Einfachheit. Die iPhone-App ist ausdrücklich 
 
 | Meilenstein | Inhalt | Status |
 |---|---|---|
-| M0 | Fundament: Projekt, Signierung, CI, Diagnose | in Arbeit |
-| M1 | Spike A: ⌘V halten, Einfügen, Fokus | offen |
+| M0 | Fundament: Projekt, Signierung, CI, Diagnose | erledigt (12.10.2026) |
+| M1 | Spike A: ⌘V halten, Einfügen, Fokus | in Arbeit |
 | M2 | Spike B: Zwischenablage, Datenschutz-Abfragen, Universal Clipboard | offen |
 | G1 | Go/No-Go-Entscheidung | offen |
 | M3 | Kern und Speicher (parallel zu M1/M2) | offen |
@@ -258,7 +258,7 @@ Ziffern werden über die physische Taste erkannt, nicht über das erzeugte Zeich
   1. Linux: `swift test` im Package (günstig, läuft zuerst)
   2. macOS (nur wenn 1 grün): `swift test`, `xcodegen generate`, `xcodebuild build` ohne Signierung
   3. Compiler-Warnungen im eigenen Code lassen den Lauf scheitern (`scripts/ci-check-warnings.sh`)
-- **Versionen fest:** Xcode 16.4 und XcodeGen 2.46.0. Mindestversion für dich: Xcode 16.3 (README).
+- **Versionen fest:** Xcode 26.0 (wie der Entwicklungs-Mac) und XcodeGen 2.46.0. Mindestversion laut README: Xcode 16.3.
 - **Keychain-Tests** laufen nur lokal.
 - **Kosten:** In privaten Repos zählen macOS-Minuten mit Faktor 10 gegen das Freikontingent. Ziel sind unter 8 Minuten pro Lauf. Öffentliche Repos sind kostenlos (siehe D1).
 - **Optional:** Swift-Toolchain im Cloud-Container über einen SessionStart-Hook. Dann laufen die Core-Tests schon vor dem Push.
@@ -674,7 +674,7 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 | R12 | Speicherbedarf durch große Inhalte | Größenlimits; Blobs auf der Platte; Miniaturen; nur die neuesten Einträge im RAM | M4, M8 |
 | R13 | Claude kann nicht selbst kompilieren | CI bei jedem PR; kleine PRs; Logik im Package | M0 |
 | R14 | CI-Kosten (macOS-Minuten) | Pfadfilter, Abbruch alter Läufe, Cache; öffentliches Repo oder eigener Runner | M0 |
-| R15 | Unterschiedliche Xcode-Versionen bei dir und in der CI | CI auf Xcode 16.4 festgelegt; „Gebaut mit“ in der Diagnose; auf deine Hauptversion umstellen, sobald bekannt | M0 |
+| R15 | Unterschiedliche Xcode-Versionen bei dir und in der CI | CI baut mit Xcode 26.0 wie dein Mac (Diagnose „Gebaut mit“); bei Xcode-Updates beide anheben | M0 |
 | R16 | Nur ein Test-Mac, Mindestversion ist macOS 14 | VM mit macOS 14; Beta-Tester mit älteren Macs bzw. Macs ohne Notch | M8, M9 |
 | R17 | Notch-Geometrie, mehrere Bildschirme, Vollbild | getestete Geometrie; Labor-Overlay; Rückfall oben mittig | M7 |
 | R18 | Name „CopyPal“ markenrechtlich oder als Domain belegt | früh prüfen: DPMA, EUIPO, USPTO, App Store, Domains | D8 |

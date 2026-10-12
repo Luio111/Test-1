@@ -32,7 +32,7 @@ jobs:
     name: Package tests (Linux)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    container: swift:6.1-noble
+    container: swift:6.2-noble
     steps:
       - uses: actions/checkout@v5
       - name: Build and test CopyPalKit
@@ -46,11 +46,20 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 25
     env:
-      # Pinned so CI and the documented minimum (README) match; update together.
-      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      # Same major version as the main development Mac (ROADMAP R15).
+      XCODE_VERSION: "26.0"
       XCODEGEN_VERSION: "2.46.0"
     steps:
       - uses: actions/checkout@v5
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          xcode="$(ls -d /Applications/Xcode_"${XCODE_VERSION}"*.app 2>/dev/null | head -n 1)"
+          if [ -z "$xcode" ]; then
+            echo "::error::Xcode ${XCODE_VERSION} fehlt auf dem Runner. Vorhanden:"
+            ls -d /Applications/Xcode*.app
+            exit 1
+          fi
+          echo "DEVELOPER_DIR=$xcode/Contents/Developer" >> "$GITHUB_ENV"
       - name: Toolchain
         run: |
           xcodebuild -version

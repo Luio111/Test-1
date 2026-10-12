@@ -6,10 +6,12 @@ import AppKit
 final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
     private let onShowDiagnostics: () -> Void
+    private let onShowLab: (() -> Void)?
     private let onQuit: () -> Void
 
-    init(onShowDiagnostics: @escaping () -> Void, onQuit: @escaping () -> Void) {
+    init(onShowDiagnostics: @escaping () -> Void, onShowLab: (() -> Void)? = nil, onQuit: @escaping () -> Void) {
         self.onShowDiagnostics = onShowDiagnostics
+        self.onShowLab = onShowLab
         self.onQuit = onQuit
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         super.init()
@@ -30,6 +32,9 @@ final class StatusItemController: NSObject {
         menu.addItem(title)
         menu.addItem(.separator())
         menu.addItem(makeItem(String(localized: "Diagnose …"), action: #selector(showDiagnostics)))
+        if onShowLab != nil {
+            menu.addItem(makeItem(String(localized: "Labor …"), action: #selector(showLab)))
+        }
         menu.addItem(.separator())
         menu.addItem(makeItem(String(localized: "CopyPal beenden"), action: #selector(quit), keyEquivalent: "q"))
         return menu
@@ -43,6 +48,10 @@ final class StatusItemController: NSObject {
 
     @objc private func showDiagnostics() {
         onShowDiagnostics()
+    }
+
+    @objc private func showLab() {
+        onShowLab?()
     }
 
     @objc private func quit() {
