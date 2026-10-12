@@ -111,12 +111,12 @@
         }
       }
     },
-    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P anpinnen · esc" : {
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P anpinnen" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P pin · esc"
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P pin"
           }
         }
       }
@@ -1651,6 +1651,16 @@
         }
       }
     },
+    "macOS hat den Anmeldestart nicht übernommen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS did not apply the login item."
+          }
+        }
+      }
+    },
     "macOS wartet auf deine Zustimmung unter Systemeinstellungen → Allgemein → Anmeldeobjekte." : {
       "localizations" : {
         "en" : {
@@ -1847,16 +1857,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nothing copied yet"
-          }
-        }
-      }
-    },
-    "Nur verfügbar, wenn CopyPal im Programme-Ordner liegt." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only available when CopyPal is in the Applications folder."
           }
         }
       }

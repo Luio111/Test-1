@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import Observation
 import CopyPalCore
@@ -10,31 +11,98 @@ enum PopupList: Equatable {
 
 /// Fixed metrics, so the popup's size is known before SwiftUI lays it out.
 enum PopupMetrics {
-    static let width: CGFloat = 420
-    static let headerHeight: CGFloat = 46
-    static let rowHeight: CGFloat = 34
-    static let listPadding: CGFloat = 6
-    static let emptyHeight: CGFloat = 76
-    static let footerHeight: CGFloat = 32
+    /// Body width (without the flares at the top edge); wider on screens whose notch
+    /// leaves less room beside it, see `minimumWing`.
+    static let width: CGFloat = 520
+    static let rowHeight: CGFloat = 28
+    static let listHorizontalPadding: CGFloat = 8
+    static let listVerticalPadding: CGFloat = 4
+    static let emptyHeight: CGFloat = 56
+    static let footerHeight: CGFloat = 26
+    /// Search (left) and list switch (right) sit beside the notch, in its height.
+    static let wingPadding: CGFloat = 16
+    static let notchGap: CGFloat = 10
+    static let minimumWing: CGFloat = 140
+    static let bottomRadius: CGFloat = 20
+    /// Concave corners where the shape meets the top edge, like the notch itself.
+    static let flare: CGFloat = 8
+    /// Room for the shadow beside and below the shape.
+    static let shadowMargin: CGFloat = 24
     static let maxRows = PopupKeyMap.maxIndex
 
-    static func cardHeight(rows: Int) -> CGFloat {
-        let list = rows > 0 ? CGFloat(rows) * rowHeight + 2 * listPadding : emptyHeight
-        return headerHeight + 1 + list + 1 + footerHeight
+    static func listHeight(rows: Int) -> CGFloat {
+        rows > 0 ? CGFloat(rows) * rowHeight + 2 * listVerticalPadding : emptyHeight
     }
 }
 
-/// Where the popup's grow animation starts (the notch, or a small capsule at the top)
-/// and where the card ends up, in the panel's coordinates (origin top left).
+/// Geometry of one appearance of the popup, in the panel's coordinates (origin top left).
 struct PopupLayout: Equatable {
+    /// The panel: the tallest popup plus room for the shadow. Fixed while it is open,
+    /// so only the shape animates, never the window.
     var panelSize: CGSize
-    var cardTop: CGFloat
-    var cardSize: CGSize
+    /// The popup body for the current number of rows (without the flares).
+    var bodySize: CGSize
+    /// Height of the strip beside the notch (search and list switch).
+    var bandHeight: CGFloat
+    /// Space kept free for the camera housing (0 without notch).
+    var notchGap: CGFloat
+    /// Collapsed state: exactly the notch, so it is hidden behind the camera housing.
+    /// Without notch a sliver at the top edge that then drops down.
     var startSize: CGSize
-    var startTop: CGFloat
-    var startRadius: CGFloat
 
-    static let zero = PopupLayout(panelSize: .zero, cardTop: 0, cardSize: .zero, startSize: .zero, startTop: 0, startRadius: 0)
+    static let zero = PopupLayout(panelSize: .zero, bodySize: .zero, bandHeight: 0, notchGap: 0, startSize: .zero)
+
+    init(panelSize: CGSize, bodySize: CGSize, bandHeight: CGFloat, notchGap: CGFloat, startSize: CGSize) {
+        self.panelSize = panelSize
+        self.bodySize = bodySize
+        self.bandHeight = bandHeight
+        self.notchGap = notchGap
+        self.startSize = startSize
+    }
+
+    init(anchor: NotchAnchor, rows: Int) {
+        let notchGap = anchor.notchWidth > 0 ? anchor.notchWidth + 2 * PopupMetrics.notchGap : 0
+        let width = max(PopupMetrics.width, notchGap + 2 * (PopupMetrics.minimumWing + PopupMetrics.wingPadding))
+        func height(rows: Int) -> CGFloat {
+            anchor.height + PopupMetrics.listHeight(rows: rows) + PopupMetrics.footerHeight
+        }
+        let margin = PopupMetrics.shadowMargin
+        self.init(
+            panelSize: CGSize(
+                width: width + 2 * (PopupMetrics.flare + margin),
+                height: height(rows: PopupMetrics.maxRows) + margin
+            ),
+            bodySize: CGSize(width: width, height: height(rows: rows)),
+            bandHeight: anchor.height,
+            notchGap: notchGap,
+            startSize: anchor.notchWidth > 0
+                ? CGSize(width: anchor.notchWidth, height: anchor.height)
+                : CGSize(width: width * 0.6, height: 0)
+        )
+    }
+
+    /// Width of the search and the list switch beside the notch.
+    var wingWidth: CGFloat {
+        max((bodySize.width - notchGap) / 2 - PopupMetrics.wingPadding, 0)
+    }
+
+    /// The black shape: the notch while collapsed, the popup when expanded.
+    func silhouette(expanded: Bool) -> NotchShape {
+        if expanded {
+            return NotchShape(
+                bodyWidth: bodySize.width,
+                height: bodySize.height,
+                bottomRadius: PopupMetrics.bottomRadius,
+                flare: PopupMetrics.flare
+            )
+        }
+        return NotchShape(
+            bodyWidth: startSize.width,
+            height: startSize.height,
+            bottomRadius: min(10, startSize.height / 3),
+            flare: 0
+        )
+    }
 }
 
 @MainActor
@@ -44,7 +112,7 @@ final class PopupModel {
     var query = ""
     var selectedIndex = 0
     var layout = PopupLayout.zero
-    /// Grow animation: false = shape at the notch, true = full card.
+    /// false = the shape sits in the notch, true = the popup has dropped down.
     var expanded = false
     var contentVisible = false
 

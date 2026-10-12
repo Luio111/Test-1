@@ -1,98 +1,137 @@
 import SwiftUI
 import CopyPalCore
 
-/// The popup: a calm card that grows out of the notch (ROADMAP M7). The black shape
-/// starts at the notch and morphs into the card; the content fades in on top.
+/// The popup (ROADMAP M7): the notch itself grows and drops down into a black panel.
+/// Always dark, so the camera housing and the popup are one shape (Docs/Design.md,
+/// variant A). Only the shape animates; the content is laid out once, revealed by the
+/// growing shape and fades in row by row.
 struct PopupRootView: View {
     let model: PopupModel
     let visuals: ClipVisuals
     let onSelect: @MainActor (Int) -> Void
+    let onHover: @MainActor (Int) -> Void
 
     private var layout: PopupLayout { model.layout }
 
     var body: some View {
+        let silhouette = layout.silhouette(expanded: model.expanded)
         ZStack(alignment: .top) {
-            RoundedRectangle(cornerRadius: model.expanded ? Theme.Radius.panel : layout.startRadius, style: .continuous)
-                .fill(model.expanded ? Theme.Colors.background : Color.black)
-                .overlay {
-                    RoundedRectangle(cornerRadius: model.expanded ? Theme.Radius.panel : layout.startRadius, style: .continuous)
-                        .strokeBorder(model.expanded ? Theme.Colors.divider : .clear)
-                }
-                .frame(
-                    width: model.expanded ? layout.cardSize.width : layout.startSize.width,
-                    height: model.expanded ? layout.cardSize.height : layout.startSize.height
-                )
-                .offset(y: model.expanded ? layout.cardTop : layout.startTop)
-                .shadow(color: .black.opacity(model.expanded ? 0.12 : 0), radius: 12, y: 4)
-
-            PopupCard(model: model, visuals: visuals, onSelect: onSelect)
-                .frame(width: layout.cardSize.width, height: layout.cardSize.height)
-                .offset(y: layout.cardTop)
-                .opacity(model.contentVisible ? 1 : 0)
+            silhouette
+                .fill(Theme.Notch.fill)
+                .shadow(color: .black.opacity(model.expanded ? 0.28 : 0), radius: 14, y: 6)
+            PopupContent(model: model, visuals: visuals, onSelect: onSelect, onHover: onHover)
+                .frame(width: layout.bodySize.width, height: layout.bodySize.height, alignment: .top)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .mask { silhouette }
         }
         .frame(width: layout.panelSize.width, height: layout.panelSize.height, alignment: .top)
+        .environment(\.colorScheme, .dark)
     }
 }
 
-private struct PopupCard: View {
+/// How the popup moves (ROADMAP M7: "falls" out of the notch).
+enum PopupMotion {
+    /// The shape drops down with a slight bounce.
+    static let open = Animation.spring(duration: 0.42, bounce: 0.2)
+    /// Back into the notch, without bounce.
+    static let close = Animation.spring(duration: 0.26, bounce: 0)
+    /// Fewer or more rows while searching.
+    static let resize = Animation.spring(duration: 0.24, bounce: 0)
+    /// Search and list switch beside the notch, footer.
+    static let chrome = Animation.easeOut(duration: 0.2).delay(0.08)
+    /// Delay before an animation starts, so its start state has been drawn once.
+    static let firstFrame: TimeInterval = 0.02
+
+    /// Rows follow the falling edge one after the other.
+    static func row(_ index: Int) -> Animation {
+        .spring(duration: 0.32, bounce: 0.12).delay(0.05 + Double(index) * 0.018)
+    }
+}
+
+private struct PopupContent: View {
     let model: PopupModel
     let visuals: ClipVisuals
     let onSelect: @MainActor (Int) -> Void
+    let onHover: @MainActor (Int) -> Void
 
     var body: some View {
         let items = model.visibleItems
-        VStack(alignment: .leading, spacing: 0) {
-            header
-            Hairline()
+        VStack(spacing: 0) {
+            band
+                .frame(height: model.layout.bandHeight)
+                .opacity(model.contentVisible ? 1 : 0)
+                .animation(PopupMotion.chrome, value: model.contentVisible)
             if items.isEmpty {
                 emptyState
+                    .opacity(model.contentVisible ? 1 : 0)
+                    .animation(PopupMotion.chrome, value: model.contentVisible)
             } else {
                 VStack(spacing: 0) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         PopupRow(number: index + 1, item: item, visuals: visuals, isSelected: index == model.selectedIndex)
                             .onTapGesture { onSelect(index) }
+                            .onHover { inside in
+                                if inside { onHover(index) }
+                            }
+                            .opacity(model.contentVisible ? 1 : 0)
+                            .offset(y: model.contentVisible ? 0 : -8)
+                            .animation(PopupMotion.row(index), value: model.contentVisible)
                     }
                 }
-                .padding(.horizontal, PopupMetrics.listPadding)
-                .padding(.vertical, PopupMetrics.listPadding)
+                .padding(.horizontal, PopupMetrics.listHorizontalPadding)
+                .padding(.vertical, PopupMetrics.listVerticalPadding)
             }
             Spacer(minLength: 0)
-            Hairline()
             footer
+                .opacity(model.contentVisible ? 1 : 0)
+                .animation(PopupMotion.chrome, value: model.contentVisible)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("CopyPal"))
     }
 
-    private var header: some View {
-        HStack(spacing: Theme.Spacing.s) {
+    // MARK: Beside the notch
+
+    /// Search on the left of the notch, list switch on the right; the middle stays
+    /// free for the camera housing.
+    private var band: some View {
+        HStack(spacing: 0) {
+            search
+                .frame(width: model.layout.wingWidth, alignment: .leading)
+            Spacer(minLength: model.layout.notchGap)
+            listSwitch
+                .frame(width: model.layout.wingWidth, alignment: .trailing)
+        }
+        .padding(.horizontal, PopupMetrics.wingPadding)
+    }
+
+    private var search: some View {
+        HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 13))
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Theme.Notch.textSecondary)
                 .accessibilityHidden(true)
             if model.query.isEmpty {
                 Text("Tippen zum Suchen")
-                    .font(Theme.Typography.body)
-                    .foregroundStyle(Theme.Colors.textTertiary)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.Notch.textTertiary)
+                    .lineLimit(1)
             } else {
                 HStack(spacing: 1) {
                     Text(verbatim: model.query)
-                        .font(Theme.Typography.body)
-                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Theme.Notch.textPrimary)
                         .lineLimit(1)
                         .truncationMode(.head)
                     Rectangle()
                         .fill(Theme.Colors.accent)
-                        .frame(width: 1.5, height: 16)
+                        .frame(width: 1.5, height: 14)
                         .accessibilityHidden(true)
                 }
+                .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text("Suche: \(model.query)"))
             }
-            Spacer(minLength: Theme.Spacing.s)
-            listSwitch
         }
-        .padding(.horizontal, Theme.Spacing.m)
-        .frame(height: PopupMetrics.headerHeight)
     }
 
     private var listSwitch: some View {
@@ -101,28 +140,31 @@ private struct PopupCard: View {
             switchLabel("Favoriten", active: model.list == .favorites)
         }
         .padding(2)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.control))
+        .background(Theme.Notch.control, in: Capsule())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(model.list == .history ? Text("Verlauf, ⇥ wechselt zu Favoriten") : Text("Favoriten, ⇥ wechselt zum Verlauf"))
     }
 
     private func switchLabel(_ title: LocalizedStringKey, active: Bool) -> some View {
         Text(title)
-            .font(Theme.Typography.label)
-            .foregroundStyle(active ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
-            .padding(.horizontal, Theme.Spacing.s)
-            .padding(.vertical, 3)
-            .background(active ? Theme.Colors.background : .clear, in: RoundedRectangle(cornerRadius: Theme.Radius.tag))
+            .font(.system(size: 11.5, weight: .medium))
+            .foregroundStyle(active ? Theme.Notch.textPrimary : Theme.Notch.textSecondary)
+            .lineLimit(1)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2)
+            .background(active ? Theme.Notch.selection : .clear, in: Capsule())
     }
 
+    // MARK: List and footer
+
     private var emptyState: some View {
-        VStack(spacing: Theme.Spacing.xs) {
+        VStack(spacing: 2) {
             Text(emptyTitle)
-                .font(Theme.Typography.bodyMedium)
-                .foregroundStyle(Theme.Colors.textPrimary)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Theme.Notch.textPrimary)
             Text(emptyHint)
-                .font(Theme.Typography.caption)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.Notch.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .frame(height: PopupMetrics.emptyHeight)
@@ -139,18 +181,24 @@ private struct PopupCard: View {
     }
 
     private var footer: some View {
-        Text(footerText)
-            .font(Theme.Typography.caption)
-            .foregroundStyle(Theme.Colors.textSecondary)
-            .lineLimit(1)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Theme.Spacing.m)
-            .frame(height: PopupMetrics.footerHeight)
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(Theme.Notch.divider)
+                .frame(height: 1)
+                .padding(.horizontal, PopupMetrics.wingPadding)
+            Text(footerText)
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.Notch.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+                .frame(maxWidth: .infinity)
+                .frame(height: PopupMetrics.footerHeight - 1)
+        }
     }
 
     private var footerText: LocalizedStringKey {
         if model.query.isEmpty {
-            "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P anpinnen · esc"
+            "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P anpinnen"
         } else {
             "↩ einfügen · ⌘1–8 Eintrag · ⇧↩ ohne Formatierung · esc Suche leeren"
         }
@@ -162,26 +210,26 @@ private struct PopupRow: View {
     let item: ClipItem
     let visuals: ClipVisuals
     let isSelected: Bool
-    @State private var isHovering = false
 
     var body: some View {
         HStack(spacing: Theme.Spacing.s) {
             Text(verbatim: "\(number)")
-                .font(Theme.Typography.mono)
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .frame(width: 18, height: 18)
-                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.tag))
+                .font(.system(size: 11, weight: .medium))
+                .monospacedDigit()
+                .foregroundStyle(isSelected ? Theme.Notch.textPrimary : Theme.Notch.textSecondary)
+                .frame(width: 16, height: 16)
+                .background(Theme.Notch.control, in: RoundedRectangle(cornerRadius: 4))
                 .accessibilityHidden(true)
-            ClipLeadingVisual(item: item, visuals: visuals, size: 20)
+            ClipLeadingVisual(item: item, visuals: visuals, size: 18)
             Text(verbatim: visuals.title(for: item))
-                .font(Theme.Typography.body)
-                .foregroundStyle(item.isRemotePlaceholder ? Theme.Colors.textSecondary : Theme.Colors.textPrimary)
+                .font(.system(size: 13))
+                .foregroundStyle(item.isRemotePlaceholder ? Theme.Notch.textSecondary : Theme.Notch.textPrimary)
                 .lineLimit(1)
                 .truncationMode(.tail)
             if item.preview.lineCount > 1, item.kind == .text || item.kind == .richText, item.sensitivity == nil {
                 Text(verbatim: "+\(item.preview.lineCount - 1)")
-                    .font(Theme.Typography.caption)
-                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.Notch.textSecondary)
                     .accessibilityHidden(true)
             }
             ClipTags(item: item, visuals: visuals)
@@ -190,12 +238,8 @@ private struct PopupRow: View {
         }
         .padding(.horizontal, Theme.Spacing.s)
         .frame(height: PopupMetrics.rowHeight)
-        .background(
-            (isSelected || isHovering) ? Theme.Colors.hover : .clear,
-            in: RoundedRectangle(cornerRadius: Theme.Radius.control)
-        )
+        .background(isSelected ? Theme.Notch.selection : .clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .contentShape(Rectangle())
-        .onHover { isHovering = $0 }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: "\(number): \(visuals.title(for: item))"))
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)

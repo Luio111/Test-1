@@ -26,26 +26,38 @@ struct NotchGeometryTests {
         #expect(NotchGeometry.notchRect(on: external) == nil)
     }
 
-    @Test func popupHangsBelowTheNotch() {
-        let frame = NotchGeometry.popupFrame(size: CGSize(width: 360, height: 320), on: macBook)
-        #expect(frame.midX == 756)
-        #expect(frame.maxY == 950)
-        #expect(frame.height == 320)
+    @Test func anchorIsTheNotch() {
+        #expect(NotchGeometry.anchor(on: macBook) == NotchAnchor(midX: 756, height: 32, notchWidth: 185))
     }
 
-    @Test func popupBelowMenuBarOnExternalScreen() {
+    @Test func anchorWithoutNotchIsTheMenuBarCenter() {
         let external = ScreenMetrics(frame: CGRect(x: 1512, y: 0, width: 2560, height: 1440), menuBarHeight: 25)
-        let frame = NotchGeometry.popupFrame(size: CGSize(width: 360, height: 320), on: external)
+        #expect(NotchGeometry.anchor(on: external) == NotchAnchor(midX: 2792, height: 25, notchWidth: 0))
+        // Menu bar hidden: still a usable strip at the top.
+        let hidden = ScreenMetrics(frame: CGRect(x: 1512, y: 0, width: 2560, height: 1440), menuBarHeight: 0)
+        #expect(NotchGeometry.anchor(on: hidden).height == 24)
+    }
+
+    @Test func popupHangsFromTheTopEdgeCenteredOnTheNotch() {
+        let frame = NotchGeometry.popupPanelFrame(size: CGSize(width: 564, height: 330), on: macBook)
+        #expect(frame.midX == 756)
+        #expect(frame.maxY == 982)
+        #expect(frame.height == 330)
+    }
+
+    @Test func popupOnExternalScreenHangsFromItsTopEdge() {
+        let external = ScreenMetrics(frame: CGRect(x: 1512, y: 0, width: 2560, height: 1440), menuBarHeight: 25)
+        let frame = NotchGeometry.popupPanelFrame(size: CGSize(width: 564, height: 330), on: external)
         #expect(frame.midX == CGFloat(2792))
-        #expect(frame.maxY == 1415)
+        #expect(frame.maxY == 1440)
     }
 
     @Test func popupStaysInsideSmallScreen() {
         let tiny = ScreenMetrics(frame: CGRect(x: 0, y: 0, width: 300, height: 200))
-        let frame = NotchGeometry.popupFrame(size: CGSize(width: 360, height: 320), on: tiny)
-        // Wider than the screen: the right-edge clamp wins, the popup stays reachable from the top.
+        let frame = NotchGeometry.popupPanelFrame(size: CGSize(width: 360, height: 320), on: tiny)
+        // Wider than the screen: the right-edge clamp wins; the top edge stays at the screen's top.
         #expect(frame.maxX == CGFloat(300))
-        #expect(frame.minY == CGFloat(0))
+        #expect(frame.maxY == CGFloat(200))
     }
 }
 

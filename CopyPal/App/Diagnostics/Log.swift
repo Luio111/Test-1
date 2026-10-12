@@ -11,6 +11,7 @@ enum Log {
     static let paste = Logger(subsystem: subsystem, category: "paste")
     static let input = Logger(subsystem: subsystem, category: "input")
     static let storage = Logger(subsystem: subsystem, category: "storage")
+    static let app = Logger(subsystem: subsystem, category: "app")
 
     /// Intervals for Instruments (Points of Interest): "Halten bis sichtbar" and
     /// "Kopieren bis gespeichert".

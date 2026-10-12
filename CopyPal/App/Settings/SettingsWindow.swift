@@ -198,31 +198,11 @@ private struct GeneralSettings: View {
         Hairline()
 
         SectionBlock(title: "Start") {
-            SettingRow(title: "Bei der Anmeldung starten", detail: loginDetail) {
-                Toggle("", isOn: Binding(
-                    get: { loginItem.state == .enabled || loginItem.state == .requiresApproval },
-                    set: { loginItem.setEnabled($0) }
-                ))
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .disabled(loginItem.state == .unavailable)
-            }
-            if loginItem.state == .requiresApproval {
-                Button("Anmeldeobjekte öffnen …") { loginItem.openSystemSettings() }
-                    .buttonStyle(SubtleButtonStyle())
-            }
+            LoginItemSetting(loginItem: loginItem, detail: "CopyPal startet unsichtbar in der Menüleiste.")
         }
     }
 
     @State private var editingHoldOff = false
-
-    private var loginDetail: LocalizedStringKey {
-        switch loginItem.state {
-        case .requiresApproval: "macOS wartet auf deine Zustimmung unter Systemeinstellungen → Allgemein → Anmeldeobjekte."
-        case .unavailable: "Nur verfügbar, wenn CopyPal im Programme-Ordner liegt."
-        case .enabled, .disabled: "CopyPal startet unsichtbar in der Menüleiste."
-        }
-    }
 }
 
 /// Click, then press the new combination (with ⌘, ⌥ or ⌃). Esc cancels.

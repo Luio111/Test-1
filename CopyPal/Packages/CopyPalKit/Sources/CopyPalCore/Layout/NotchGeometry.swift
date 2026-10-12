@@ -83,16 +83,37 @@ public enum NotchGeometry {
         return CGRect(x: (screen.frame.midX - size.width / 2).rounded(), y: top - size.height, width: size.width, height: size.height)
     }
 
-    /// Popup frame: horizontally centered on the notch (or the screen), hanging
-    /// directly below the notch (or the menu bar), kept inside the screen.
-    public static func popupFrame(size: CGSize, on screen: ScreenMetrics) -> CGRect {
-        let notch = notchRect(on: screen)
-        let centerX = notch?.midX ?? screen.frame.midX
-        let top = screen.frame.maxY - (notch?.height ?? screen.menuBarHeight)
+    /// Where the popup grows from: the notch, or on screens without one a "virtual
+    /// notch" of zero width at the center, as high as the menu bar (at least
+    /// `minimumHeight`, e.g. when the menu bar hides itself).
+    public static func anchor(on screen: ScreenMetrics, minimumHeight: CGFloat = 24) -> NotchAnchor {
+        if let notch = notchRect(on: screen) {
+            return NotchAnchor(midX: notch.midX, height: notch.height, notchWidth: notch.width)
+        }
+        return NotchAnchor(midX: screen.frame.midX, height: max(screen.menuBarHeight, minimumHeight), notchWidth: 0)
+    }
 
-        var x = (centerX - size.width / 2).rounded()
+    /// Popup panel frame: hangs from the top edge of the screen, horizontally centered
+    /// on the notch (or the screen), kept inside the screen horizontally.
+    public static func popupPanelFrame(size: CGSize, on screen: ScreenMetrics) -> CGRect {
+        var x = (anchor(on: screen).midX - size.width / 2).rounded()
         x = min(max(x, screen.frame.minX), screen.frame.maxX - size.width)
-        let y = max(top - size.height, screen.frame.minY)
-        return CGRect(x: x, y: y, width: size.width, height: size.height)
+        return CGRect(x: x, y: screen.frame.maxY - size.height, width: size.width, height: size.height)
+    }
+}
+
+/// The strip at the top edge the popup grows out of (see `NotchGeometry.anchor`).
+public struct NotchAnchor: Sendable, Equatable {
+    /// Horizontal center in global coordinates.
+    public var midX: CGFloat
+    /// Height of the camera housing, or of the menu bar on screens without a notch.
+    public var height: CGFloat
+    /// Width of the camera housing; 0 on screens without a notch.
+    public var notchWidth: CGFloat
+
+    public init(midX: CGFloat, height: CGFloat, notchWidth: CGFloat) {
+        self.midX = midX
+        self.height = height
+        self.notchWidth = notchWidth
     }
 }

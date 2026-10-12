@@ -33,7 +33,10 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
             self?.window?.close()
         }
         self.model = model
-        let window = NSWindow(contentViewController: NSHostingController(rootView: OnboardingView(model: model, loginItem: app.loginItem)))
+        let controller = NSHostingController(rootView: OnboardingView(model: model, loginItem: app.loginItem))
+        // The window takes the size SwiftUI computes: as high as the tallest step.
+        controller.sizingOptions = [.preferredContentSize]
+        let window = NSWindow(contentViewController: controller)
         window.title = String(localized: "Willkommen bei CopyPal")
         window.styleMask = [.titled, .closable, .fullSizeContentView]
         window.titlebarAppearsTransparent = true
@@ -41,7 +44,6 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         window.isMovableByWindowBackground = true
         window.backgroundColor = Theme.Colors.windowBackground
         window.isReleasedWhenClosed = false
-        window.setContentSize(CGSize(width: 600, height: 600))
         window.center()
         window.delegate = self
         return window
@@ -147,26 +149,38 @@ struct OnboardingView: View {
     @Bindable var model: OnboardingModel
     let loginItem: LoginItem
 
+    static let width: CGFloat = 560
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
-                    content
+            // Every step is laid out, the inactive ones hidden: the window fits the
+            // tallest step and keeps its size while you click through.
+            ZStack(alignment: .topLeading) {
+                ForEach(OnboardingStep.allCases, id: \.rawValue) { step in
+                    if step == model.step {
+                        content(for: step)
+                    } else {
+                        content(for: step)
+                            .hidden()
+                            .accessibilityHidden(true)
+                    }
                 }
-                .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
-                .padding(.top, Theme.Layout.pageTopPadding)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
+            .padding(.top, Theme.Layout.pageTopPadding)
+            .padding(.bottom, Theme.Spacing.xl)
+            .frame(maxWidth: .infinity, alignment: .leading)
             Hairline()
             footer
         }
-        .frame(width: 600, height: 600)
+        .frame(width: Self.width)
+        .fixedSize(horizontal: false, vertical: true)
         .background(Theme.Colors.background)
     }
 
     @ViewBuilder
-    private var content: some View {
-        switch model.step {
+    private func content(for step: OnboardingStep) -> some View {
+        switch step {
         case .welcome: welcome
         case .privacy: privacy
         case .accessibility: accessibility
@@ -271,15 +285,7 @@ struct OnboardingView: View {
     private var finish: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.l) {
             PageHeader(systemImage: "checkmark.circle", title: "Fertig", subtitle: "CopyPal läuft in der Menüleiste. Dort findest du Verlauf, Pause und Einstellungen.")
-            SettingRow(title: "Bei der Anmeldung starten", detail: "Empfohlen, damit dein Verlauf immer mitläuft.") {
-                Toggle("", isOn: Binding(
-                    get: { loginItem.state == .enabled || loginItem.state == .requiresApproval },
-                    set: { loginItem.setEnabled($0) }
-                ))
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .disabled(loginItem.state == .unavailable)
-            }
+            LoginItemSetting(loginItem: loginItem, detail: "Empfohlen, damit dein Verlauf immer mitläuft.")
         }
     }
 
