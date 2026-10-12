@@ -25,13 +25,16 @@ final class PopupController {
     /// Where the pointer was when the popup opened: hovering selects a row only after
     /// the mouse really moved (it may rest just where the popup appears).
     private var mouseLocationAtOpen: CGPoint = .zero
+    /// When the opening spring started (system uptime), nil while collapsed.
+    private var openStartedAt: TimeInterval?
 
     init(history: HistoryModel, visuals: ClipVisuals, paster: PasteController) {
         model = PopupModel(history: history)
         self.visuals = visuals
         self.paster = paster
-        // Created now, so the first ⌘V hold does not pay for building the panel.
+        // Created now, so the first ⌘V hold does not pay for building the panels.
         _ = panel
+        retract.prepare()
     }
 
     var isVisible: Bool {
@@ -48,6 +51,7 @@ final class PopupController {
         retract.cancel()
         self.targetProcessID = targetProcessID
         mouseLocationAtOpen = NSEvent.mouseLocation
+        openStartedAt = nil
         model.reset()
         screen = FocusedWindow.screenForPopup(frontmostProcessID: targetProcessID) ?? NSScreen.main ?? NSScreen.screens.first
         let animate = animates
@@ -80,6 +84,7 @@ final class PopupController {
                 withAnimation(PopupMotion.open) {
                     self.model.expanded = true
                 }
+                self.openStartedAt = ProcessInfo.processInfo.systemUptime
                 self.model.contentVisible = true
             }
         }
@@ -91,14 +96,35 @@ final class PopupController {
         // The visible popup leaves at once (focus and the paste go back to the app);
         // a passive copy of the shape shrinks back into the notch.
         if animates, model.expanded {
-            retract.play(layout: model.layout, frame: panel.frame)
+            retract.play(
+                from: visibleSilhouette(),
+                to: model.layout.silhouette(expanded: false),
+                panelSize: model.layout.panelSize,
+                frame: panel.frame
+            )
         }
         panel.orderOut(nil)
+        openStartedAt = nil
         withoutAnimation {
             model.expanded = false
             model.contentVisible = false
         }
         onClose?()
+    }
+
+    /// The shape as it is on screen: while the opening spring still runs (e.g. ⌘V
+    /// held and 3 pressed right away) somewhere between the notch and the popup.
+    private func visibleSilhouette() -> NotchShape {
+        let expanded = model.layout.silhouette(expanded: true)
+        guard let openStartedAt else { return expanded }
+        let elapsed = ProcessInfo.processInfo.systemUptime - openStartedAt
+        let progress = PopupMotion.openSpring.value(target: 1.0, time: elapsed)
+        let collapsed = model.layout.silhouette(expanded: false)
+        var change = expanded.animatableData - collapsed.animatableData
+        change.scale(by: progress)
+        var shape = collapsed
+        shape.animatableData = collapsed.animatableData + change
+        return shape
     }
 
     /// The mouse moved onto row `index`: select it, so ⌘P, ⌘⌫ and ↩ act on it.
@@ -271,32 +297,37 @@ private final class NotchRetract {
     @MainActor
     @Observable
     final class Model {
-        var layout = PopupLayout.zero
-        var expanded = true
+        var shape = NotchShape(bodyWidth: 0, height: 0, bottomRadius: 0, flare: 0)
+        var panelSize = CGSize.zero
     }
 
     private let model = Model()
     private lazy var panel = NotchRetractPanel(contentView: NSHostingView(rootView: NotchRetractView(model: model)))
     private var hideTask: Task<Void, Never>?
 
-    func play(layout: PopupLayout, frame: CGRect) {
+    /// Builds the panel ahead of time, off the path of the first ⌘V hold and close.
+    func prepare() {
+        _ = panel
+    }
+
+    func play(from start: NotchShape, to end: NotchShape, panelSize: CGSize, frame: CGRect) {
         hideTask?.cancel()
         var transaction = Transaction()
         transaction.disablesAnimations = true
         withTransaction(transaction) {
-            model.layout = layout
-            model.expanded = true
+            model.shape = start
+            model.panelSize = panelSize
         }
         panel.setFrame(frame, display: false)
         panel.contentView?.layoutSubtreeIfNeeded()
         panel.displayIfNeeded()
         panel.orderFrontRegardless()
         hideTask = Task { @MainActor [weak self] in
-            // About one frame later, so the expanded state is on screen before it shrinks.
+            // About one frame later, so the start state is on screen before it shrinks.
             try? await Task.sleep(for: .seconds(PopupMotion.firstFrame))
             guard let self, !Task.isCancelled else { return }
             withAnimation(PopupMotion.close) {
-                self.model.expanded = false
+                self.model.shape = end
             }
             try? await Task.sleep(for: .milliseconds(320))
             guard !Task.isCancelled else { return }
@@ -315,8 +346,8 @@ private struct NotchRetractView: View {
     let model: NotchRetract.Model
 
     var body: some View {
-        model.layout.silhouette(expanded: model.expanded)
+        model.shape
             .fill(Theme.Notch.fill)
-            .frame(width: model.layout.panelSize.width, height: model.layout.panelSize.height, alignment: .top)
+            .frame(width: model.panelSize.width, height: model.panelSize.height, alignment: .top)
     }
 }

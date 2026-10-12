@@ -31,8 +31,10 @@ struct PopupRootView: View {
 
 /// How the popup moves (ROADMAP M7: "falls" out of the notch).
 enum PopupMotion {
-    /// The shape drops down with a slight bounce.
-    static let open = Animation.spring(duration: 0.42, bounce: 0.2)
+    /// The shape drops down with a slight bounce. Kept as a `Spring` too, so a close
+    /// during the opening can start from the size that is on screen.
+    static let openSpring = Spring(duration: 0.42, bounce: 0.2)
+    static let open = Animation.spring(openSpring)
     /// Back into the notch, without bounce.
     static let close = Animation.spring(duration: 0.26, bounce: 0)
     /// Fewer or more rows while searching.

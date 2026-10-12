@@ -34,8 +34,6 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         }
         self.model = model
         let controller = NSHostingController(rootView: OnboardingView(model: model, loginItem: app.loginItem))
-        // The window takes the size SwiftUI computes: as high as the tallest step.
-        controller.sizingOptions = [.preferredContentSize]
         let window = NSWindow(contentViewController: controller)
         window.title = String(localized: "Willkommen bei CopyPal")
         window.styleMask = [.titled, .closable, .fullSizeContentView]
@@ -44,6 +42,9 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         window.isMovableByWindowBackground = true
         window.backgroundColor = Theme.Colors.windowBackground
         window.isReleasedWhenClosed = false
+        // As large as SwiftUI lays out the view (as high as the tallest step), set before
+        // centering: with the macOS 15+ SDK the hosting view sizes its window lazily.
+        window.setContentSize(controller.view.fittingSize)
         window.center()
         window.delegate = self
         return window

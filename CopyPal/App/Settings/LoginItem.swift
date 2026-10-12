@@ -1,3 +1,4 @@
+import AppKit
 import Observation
 import ServiceManagement
 import SwiftUI
@@ -17,9 +18,23 @@ final class LoginItem {
     private(set) var state: State = .disabled
     /// Why the last change did not take effect, shown below the switch.
     private(set) var lastError: String?
+    /// The state the error belongs to: once macOS reports another one (e.g. after
+    /// the user approved in System Settings), the error is outdated.
+    @ObservationIgnored private var errorState: State?
+    @ObservationIgnored private var activationObserver: NSObjectProtocol?
 
     init() {
         refresh()
+        // Coming back from System Settings activates CopyPal again: re-read the status.
+        activationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.refresh()
+            }
+        }
     }
 
     /// The switch shows "on" while macOS waits for the user's approval, too.
@@ -36,10 +51,15 @@ final class LoginItem {
         case .notRegistered, .notFound: .disabled
         @unknown default: .disabled
         }
+        if let errorState, errorState != state {
+            lastError = nil
+            self.errorState = nil
+        }
     }
 
     func setEnabled(_ enabled: Bool) {
         lastError = nil
+        errorState = nil
         do {
             if enabled {
                 try SMAppService.mainApp.register()
@@ -54,6 +74,7 @@ final class LoginItem {
         if enabled, state == .disabled, lastError == nil {
             lastError = String(localized: "macOS hat den Anmeldestart nicht übernommen.")
         }
+        errorState = lastError == nil ? nil : state
     }
 
     func openSystemSettings() {
