@@ -18,6 +18,8 @@ final class LabModel {
     private(set) var reportCopied = false
 
     private(set) var captureLog: [CaptureLogEntry] = []
+    private(set) var notchOverlayVisible = false
+    @ObservationIgnored private let notchOverlay = NotchOverlayController()
     private(set) var historyCount = 0
     private(set) var diskUsage = 0
 
@@ -50,6 +52,8 @@ final class LabModel {
     }
 
     func stop() {
+        notchOverlay.hide()
+        notchOverlayVisible = false
         timer?.invalidate()
         timer = nil
         input.tap.diagnostics.isRecording = false
@@ -57,6 +61,11 @@ final class LabModel {
 
     func applyHoldThreshold() {
         AppSettings.holdThreshold = holdThreshold
+    }
+
+    func toggleNotchOverlay() {
+        notchOverlay.toggle()
+        notchOverlayVisible = notchOverlay.isVisible
     }
 
     func applyRemoteMode() {

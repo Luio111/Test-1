@@ -76,6 +76,12 @@ struct LabView: View {
                     StatusTag(text: "Aus", style: .gray)
                 }
             }
+            PropertyRow(label: "Notch", systemImage: "rectangle.topthird.inset.filled") {
+                Button(model.notchOverlayVisible ? "Overlay ausblenden" : "Berechnete Notch zeigen") {
+                    model.toggleNotchOverlay()
+                }
+                .buttonStyle(SubtleButtonStyle())
+            }
             PropertyRow(label: "Tastaturlayout", systemImage: "globe") {
                 Text(verbatim: "\(model.layout.layoutName) · ⌘V-Taste \(model.layout.pasteKeyCode)\(model.layout.resolved ? "" : " (Standard)")")
             }
