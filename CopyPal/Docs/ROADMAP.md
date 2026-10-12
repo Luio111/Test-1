@@ -28,7 +28,7 @@ Schwerpunkte sind Datenschutz und Einfachheit. Die iPhone-App ist ausdrücklich 
 | M5 | Datenschutz komplett | umgesetzt, Korpus 0 Fehler · Handtest offen |
 | M6 | Vorschauen und Favoriten | umgesetzt · Handtest offen |
 | M7 | Notch-Erlebnis, Onboarding, Einstellungen | umgesetzt (Deutsch + Englisch) · Handtest offen |
-| M8 | Härtung, Performance, Kompatibilität | umgesetzt, soweit automatisierbar · Messungen am Mac, Matrix, macOS 14 offen |
+| M8 | Härtung, Performance, Kompatibilität | umgesetzt, soweit automatisierbar · CI-Selbsttest auf macOS 14.8 und 15.7 grün · Messungen am Mac, Matrix offen |
 | G3 | Bereit für die Beta | offen (D8, D10–D12) |
 | M9 | Beta-Vertrieb: Developer ID, Notarisierung, Sparkle | vorbereitet (Sparkle, `scripts/release.sh`, Anleitungen) · braucht Developer-Account (D10) |
 | M10 | Release 1.0 | vorbereitet (Website, Rechtstexte als Vorlage, Checkliste) · braucht D11 und deine Angaben |
@@ -556,11 +556,11 @@ Ziffern werden über die physische Taste erkannt, nicht über das erzeugte Zeich
 **Fertig wenn**
 - [ ] Die CPU liegt im Leerlauf unter 0,1 % (10 Minuten in der Aktivitätsanzeige gemessen).
 - [ ] Der Speicher bleibt bei 500 Einträgen (davon 50 Bilder) unter 50 MB.
-- [ ] Die Popup-Latenz liegt p90 unter 100 ms.
-- [ ] Ein 20-MB-Bild zu kopieren erzeugt kein Ruckeln.
-- [ ] `for i in {1..100}; do echo $i | pbcopy; sleep 0.1; done`: kein Absturz, keine Duplikate, der letzte Eintrag ist korrekt.
+- [ ] Die Popup-Latenz liegt p90 unter 100 ms. *(CI-VM: p90 55 ms auf macOS 15, 62 ms auf macOS 14)*
+- [ ] Ein 20-MB-Bild zu kopieren erzeugt kein Ruckeln. *(CI-VM: längste Blockade 39 bzw. 45 ms)*
+- [ ] `for i in {1..100}; do echo $i | pbcopy; sleep 0.1; done`: kein Absturz, keine Duplikate, der letzte Eintrag ist korrekt. *(im CI-Selbsttest nachgestellt: bestanden)*
 - [ ] Die Matrix ist vollständig; jede rote Zelle hat eine Umgehung oder eine App-Ausnahme.
-- [ ] Der Smoke-Test auf macOS 14 ist bestanden.
+- [x] Der Smoke-Test auf macOS 14 ist bestanden. *(CI, macOS 14.8.9, alle 28 Selbsttest-Prüfungen, 12.10.2026)*
 - [ ] 2 Wochen ohne Absturz, keine offenen kritischen Fehler.
 
 #### Gate G3: Bereit für die Beta
