@@ -19,6 +19,8 @@ struct LabView: View {
                 Hairline()
                 eventsSection
                 Hairline()
+                pasteboardSection
+                Hairline()
                 footer
             }
             .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
@@ -29,6 +31,7 @@ struct LabView: View {
         .background(Theme.Colors.background)
         .onChange(of: model.holdThreshold) { model.applyHoldThreshold() }
         .onChange(of: model.pasteDelay) { model.applyPasteDelay() }
+        .onChange(of: model.remoteMode) { model.applyRemoteMode() }
     }
 
     private var header: some View {
@@ -42,7 +45,7 @@ struct LabView: View {
                 .font(Theme.Typography.title)
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .accessibilityAddTraits(.isHeader)
-            Text("Messwerte für ⌘V halten. Nur im Debug-Build, erfasst nur Tastencodes – keine Zeichen.")
+            Text("Messwerte für ⌘V halten und das Mitlesen der Zwischenablage. Nur im Debug-Build; erfasst Tastencodes und Formate – keine Zeichen, keine Inhalte.")
                 .font(Theme.Typography.body)
                 .foregroundStyle(Theme.Colors.textSecondary)
         }
@@ -140,6 +143,46 @@ struct LabView: View {
                             .font(Theme.Typography.mono)
                             .foregroundStyle(Theme.Colors.textSecondary)
                             .lineLimit(1)
+                    }
+                }
+                .textSelection(.enabled)
+            }
+        }
+    }
+
+    private var pasteboardSection: some View {
+        SectionBlock(title: "Zwischenablage (M2)") {
+            PropertyRow(label: "iPhone-Kopien", systemImage: "iphone") {
+                Picker("", selection: $model.remoteMode) {
+                    Text("Erst bei Auswahl laden").tag(RemoteClipboardMode.onDemand)
+                    Text("Sofort lesen").tag(RemoteClipboardMode.readImmediately)
+                    Text("Nur Typen (ignorieren)").tag(RemoteClipboardMode.ignore)
+                }
+                .labelsHidden()
+                .frame(width: 220)
+            }
+            PropertyRow(label: "Schreibtest", systemImage: "square.and.pencil") {
+                HStack(spacing: Theme.Spacing.s) {
+                    Button("Normal schreiben") { model.writeTest(localOnly: false) }
+                        .buttonStyle(SubtleButtonStyle())
+                    Button("Nur lokal schreiben") { model.writeTest(localOnly: true) }
+                        .buttonStyle(SubtleButtonStyle())
+                }
+            }
+            PropertyRow(label: "Verlauf", systemImage: "internaldrive") {
+                Text(verbatim: "\(model.historyCount) Einträge · \(model.diskUsage / 1024) KB")
+            }
+            if model.captureLog.isEmpty {
+                Text("Kopiere etwas mit ⌘C – jede Änderung erscheint hier mit Formaten, Quell-App, Größe und Lesedauer.")
+                    .font(Theme.Typography.body)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            } else {
+                VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
+                    ForEach(model.captureLog.suffix(12).reversed()) { entry in
+                        Text(verbatim: LabModel.describe(entry))
+                            .font(Theme.Typography.mono)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .lineLimit(2)
                     }
                 }
                 .textSelection(.enabled)

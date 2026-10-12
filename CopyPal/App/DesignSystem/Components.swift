@@ -49,11 +49,22 @@ struct PropertyRow<Value: View>: View {
 
 /// Small colored tag for states (granted, missing, …).
 struct StatusTag: View {
-    let text: LocalizedStringKey
+    private let text: Text
     let style: Theme.Tag
 
+    init(text: LocalizedStringKey, style: Theme.Tag) {
+        self.text = Text(text)
+        self.style = style
+    }
+
+    /// Already localized or not to be translated.
+    init(verbatim: String, style: Theme.Tag) {
+        text = Text(verbatim: verbatim)
+        self.style = style
+    }
+
     var body: some View {
-        Text(text)
+        text
             .font(Theme.Typography.caption)
             .foregroundStyle(style.foreground)
             .padding(.horizontal, Theme.Spacing.s - Theme.Spacing.xxs)
@@ -114,5 +125,59 @@ private struct HoverableLabel: View {
         }
         if configuration.isPressed { return Theme.Colors.pressed }
         return isHovering ? Theme.Colors.hover : .clear
+    }
+}
+
+/// One setting: title and optional explanation on the left, the control on the right.
+struct SettingRow<Control: View>: View {
+    let title: LocalizedStringKey
+    var detail: LocalizedStringKey?
+    @ViewBuilder let control: Control
+
+    var body: some View {
+        HStack(alignment: .center, spacing: Theme.Spacing.l) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(Theme.Typography.body)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                if let detail {
+                    Text(detail)
+                        .font(Theme.Typography.caption)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            control
+        }
+        .padding(.vertical, Theme.Spacing.s)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// A page title with icon and subtitle, as used by every window.
+struct PageHeader: View {
+    let systemImage: String
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+            Image(systemName: systemImage)
+                .font(.system(size: 28))
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .padding(.bottom, Theme.Spacing.xs)
+                .accessibilityHidden(true)
+            Text(title)
+                .font(Theme.Typography.title)
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            if let subtitle {
+                Text(subtitle)
+                    .font(Theme.Typography.body)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 }

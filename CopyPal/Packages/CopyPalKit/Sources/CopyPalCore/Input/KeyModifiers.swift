@@ -1,5 +1,5 @@
 /// Modifier keys of a keyboard event, independent of AppKit/CoreGraphics.
-public struct KeyModifiers: OptionSet, Sendable, Hashable {
+public struct KeyModifiers: OptionSet, Sendable, Hashable, Codable {
     public let rawValue: UInt8
 
     public init(rawValue: UInt8) {
@@ -16,6 +16,16 @@ public struct KeyModifiers: OptionSet, Sendable, Hashable {
     /// ⌘ without ⇧, ⌥ or ⌃. Caps Lock and fn are ignored.
     public var isExactlyCommand: Bool {
         contains(.command) && isDisjoint(with: [.shift, .option, .control])
+    }
+
+    /// Order used in macOS menus: ⌃⌥⇧⌘.
+    public var symbolsInMenuOrder: String {
+        var result = ""
+        if contains(.control) { result += "⌃" }
+        if contains(.option) { result += "⌥" }
+        if contains(.shift) { result += "⇧" }
+        if contains(.command) { result += "⌘" }
+        return result
     }
 
     /// Short form for logs, e.g. "⌘⇧".

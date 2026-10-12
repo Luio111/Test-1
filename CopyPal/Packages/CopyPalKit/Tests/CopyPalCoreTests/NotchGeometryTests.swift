@@ -49,6 +49,47 @@ struct NotchGeometryTests {
     }
 }
 
+struct ScreenChoiceTests {
+    let builtIn = CGRect(x: 0, y: 0, width: 1512, height: 982)
+    let external = CGRect(x: 1512, y: 0, width: 2560, height: 1440)
+
+    @Test func keyWindowDecides() {
+        let window = CGRect(x: 1600, y: 100, width: 800, height: 600)
+        #expect(NotchGeometry.screenIndex(screens: [builtIn, external], keyWindowFrame: window, mouseLocation: CGPoint(x: 10, y: 10)) == 1)
+    }
+
+    @Test func windowAcrossScreensUsesLargerPart() {
+        let window = CGRect(x: 1300, y: 100, width: 800, height: 600)
+        #expect(NotchGeometry.screenIndex(screens: [builtIn, external], keyWindowFrame: window, mouseLocation: .zero) == 1)
+    }
+
+    @Test func mouseWhenNoWindow() {
+        #expect(NotchGeometry.screenIndex(screens: [builtIn, external], keyWindowFrame: nil, mouseLocation: CGPoint(x: 2000, y: 500)) == 1)
+        #expect(NotchGeometry.screenIndex(screens: [builtIn, external], keyWindowFrame: nil, mouseLocation: CGPoint(x: 100, y: 500)) == 0)
+    }
+
+    @Test func fallbackAndEmpty() {
+        #expect(NotchGeometry.screenIndex(screens: [builtIn], keyWindowFrame: nil, mouseLocation: CGPoint(x: -500, y: -500)) == 0)
+        #expect(NotchGeometry.screenIndex(screens: [], keyWindowFrame: nil, mouseLocation: .zero) == nil)
+    }
+
+    @Test func hudOnNotchCoversIt() {
+        let macBook = ScreenMetrics(frame: builtIn, safeAreaTop: 32, auxiliaryLeftWidth: 663.5, auxiliaryRightWidth: 663.5)
+        let frame = NotchGeometry.hudFrame(size: CGSize(width: 200, height: 28), on: macBook)
+        #expect(frame.maxY == CGFloat(982))
+        #expect(frame.midX == CGFloat(756))
+        #expect(frame.height == CGFloat(60))
+        #expect(frame.width >= 185)
+    }
+
+    @Test func hudBelowMenuBar() {
+        let screen = ScreenMetrics(frame: external, menuBarHeight: 25)
+        let frame = NotchGeometry.hudFrame(size: CGSize(width: 200, height: 28), on: screen)
+        #expect(frame.maxY == CGFloat(1407))
+        #expect(frame.midX == CGFloat(2792))
+    }
+}
+
 struct LatencySummaryTests {
     @Test func emptyHasNoSummary() {
         #expect(LatencySummary(milliseconds: []) == nil)

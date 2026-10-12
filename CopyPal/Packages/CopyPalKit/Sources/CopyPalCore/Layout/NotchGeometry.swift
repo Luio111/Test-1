@@ -52,6 +52,37 @@ public enum NotchGeometry {
         )
     }
 
+    /// The screen the popup belongs on: the one with the key window, else the one
+    /// with the mouse pointer, else the first (ROADMAP M7). Returns an index into `screens`.
+    public static func screenIndex(screens: [CGRect], keyWindowFrame: CGRect?, mouseLocation: CGPoint) -> Int? {
+        guard !screens.isEmpty else { return nil }
+        if let keyWindowFrame, !keyWindowFrame.isEmpty {
+            // The screen showing the largest part of the window.
+            let overlaps = screens.map { $0.intersection(keyWindowFrame) }.map { $0.isNull ? 0 : $0.width * $0.height }
+            if let best = overlaps.indices.max(by: { overlaps[$0] < overlaps[$1] }), overlaps[best] > 0 {
+                return best
+            }
+        }
+        if let index = screens.firstIndex(where: { $0.contains(mouseLocation) }) {
+            return index
+        }
+        return 0
+    }
+
+    /// Frame of a small status capsule ("Copied ✓"). On a notch screen it sits on the
+    /// notch, wider than it, so it looks like the notch grows; otherwise it hangs
+    /// below the menu bar.
+    public static func hudFrame(size: CGSize, on screen: ScreenMetrics) -> CGRect {
+        if let notch = notchRect(on: screen) {
+            // Even width keeps the capsule centered on whole points.
+            let width = (max(size.width, notch.width + 2 * size.height) / 2).rounded(.up) * 2
+            let height = notch.height + size.height
+            return CGRect(x: (notch.midX - width / 2).rounded(), y: screen.frame.maxY - height, width: width, height: height)
+        }
+        let top = screen.frame.maxY - screen.menuBarHeight - 8
+        return CGRect(x: (screen.frame.midX - size.width / 2).rounded(), y: top - size.height, width: size.width, height: size.height)
+    }
+
     /// Popup frame: horizontally centered on the notch (or the screen), hanging
     /// directly below the notch (or the menu bar), kept inside the screen.
     public static func popupFrame(size: CGSize, on screen: ScreenMetrics) -> CGRect {

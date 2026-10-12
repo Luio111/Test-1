@@ -39,7 +39,11 @@ targets:
       - package: CopyPalKit
         product: CopyPalCore
       - package: CopyPalKit
+        product: CopyPalStorage
+      - package: CopyPalKit
         product: CopyPalSystem
+      - package: CopyPalKit
+        product: CopyPalServices
 
 schemes:
   CopyPal:

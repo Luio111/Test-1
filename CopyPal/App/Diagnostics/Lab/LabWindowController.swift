@@ -7,8 +7,8 @@ final class LabWindowController: NSObject, NSWindowDelegate {
     private let model: LabModel
     private var window: NSWindow?
 
-    init(input: InputCoordinator) {
-        model = LabModel(input: input)
+    init(app: AppController) {
+        model = LabModel(app: app)
         super.init()
     }
 

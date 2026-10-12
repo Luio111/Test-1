@@ -35,8 +35,11 @@ jobs:
     container: swift:6.2-noble
     steps:
       - uses: actions/checkout@v5
+      - name: Install SQLite headers (GRDB)
+        run: apt-get update -qq && apt-get install -y -qq libsqlite3-dev > /dev/null
+      # Ubuntu's SQLite is built without snapshots, which GRDB uses on Apple platforms.
       - name: Build and test CopyPalKit
-        run: swift test --package-path CopyPal/Packages/CopyPalKit 2>&1 | tee package.log
+        run: swift test --package-path CopyPal/Packages/CopyPalKit -Xswiftc -DSQLITE_DISABLE_SNAPSHOT 2>&1 | tee package.log
       - name: No warnings in own sources
         run: CopyPal/scripts/ci-check-warnings.sh package.log
 
@@ -87,7 +90,7 @@ jobs:
         run: CopyPal/scripts/ci-check-warnings.sh package.log app.log
       # Runs the app's end-to-end check of the ⌘V gesture with simulated key presses.
       # GitHub's macOS runners grant Accessibility to processes started from job steps.
-      - name: Self-test (⌘V tap, hold, popup)
+      - name: Self-test (capture, history, ⌘V gesture, popup)
         timeout-minutes: 4
         run: |
           app="build/DerivedData/Build/Products/Debug/CopyPal.app/Contents/MacOS/CopyPal"

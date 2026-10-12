@@ -30,6 +30,12 @@ public final class EventTapController: @unchecked Sendable {
         set { lock.withLock { keyCode = newValue } }
     }
 
+    /// False while the frontmost app is on the "hold off" list: ⌘V then passes untouched.
+    public var holdEnabled: Bool {
+        get { lock.withLock { holdAllowed } }
+        set { lock.withLock { holdAllowed = newValue } }
+    }
+
     public var isRunning: Bool {
         lock.withLock { tap != nil }
     }
@@ -45,6 +51,7 @@ public final class EventTapController: @unchecked Sendable {
     private var showPopupHandler: (@MainActor @Sendable () -> Void)?
     private var threshold: TimeInterval
     private var keyCode: UInt16
+    private var holdAllowed = true
     private var tap: CFMachPort?
     private var runLoop: CFRunLoop?
 
@@ -180,6 +187,9 @@ public final class EventTapController: @unchecked Sendable {
         default: .flagsChanged
         }
 
+        if type == .keyDown {
+            machine.isEnabled = holdEnabled
+        }
         let disposition = apply(input: input, event: event)
 
         if type != .flagsChanged, stroke.isPasteKey || stroke.modifiers.contains(.command) {
