@@ -77,6 +77,8 @@ Die CI (`.github/workflows/copypal-ci.yml`) läuft bei jedem Pull Request:
 
 Compiler-Warnungen im eigenen Code lassen die CI scheitern.
 
+Den Selbsttest auf macOS 14 (älteste unterstützte Version) startest du von Hand: Actions → „CopyPal CI“ → Run workflow → „Zusätzlich Selbsttest auf macOS 14“ anhaken.
+
 Den Selbsttest kannst du auch selbst starten (Debug-Build, braucht die Bedienungshilfen-Freigabe für das Terminal). Er nutzt einen eigenen, temporären Verlauf und eigene Einstellungen, schreibt aber in die echte Zwischenablage:
 
 ```sh

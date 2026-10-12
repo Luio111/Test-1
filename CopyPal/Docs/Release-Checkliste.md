@@ -22,7 +22,7 @@ Vor jedem Release abhaken; für 1.0 vollständig.
 
 - [ ] CI grün auf dem Release-Commit (Package-Tests, App-Build, Selbsttest)
 - [ ] Testpläne M1–M8 auf aktuellem macOS abgehakt
-- [ ] Smoke-Test auf macOS 14 (VM oder CI-Workflow „CopyPal macOS 14“)
+- [ ] Smoke-Test auf macOS 14 (VM, oder „CopyPal CI“ von Hand mit „Zusätzlich Selbsttest auf macOS 14“)
 - [ ] Kompatibilitätsmatrix Gruppe A aktuell (`Docs/Kompatibilitaet.md`)
 - [ ] Keine offenen kritischen Fehler, zwei Wochen ohne Absturz
 - [ ] Performance: Leerlauf-CPU < 0,1 %, Speicher < 50 MB, Pop-up p90 < 100 ms

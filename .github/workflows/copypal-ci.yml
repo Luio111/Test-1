@@ -14,7 +14,14 @@ on:
     paths:
       - "CopyPal/**"
       - ".github/workflows/copypal-ci.yml"
+  # Manual runs (Actions → "CopyPal CI" → Run workflow) can add the smoke test on the
+  # oldest supported macOS (ROADMAP M8, D13); left out of automatic runs to save minutes.
   workflow_dispatch:
+    inputs:
+      macos14:
+        description: "Zusätzlich Selbsttest auf macOS 14"
+        type: boolean
+        default: false
 
 concurrency:
   # One group per branch for pull_request and manual runs alike: the newest run wins.
@@ -101,26 +108,33 @@ jobs:
       # GitHub's macOS runners grant Accessibility to processes started from job steps.
       - name: Self-test (capture, history, ⌘V gesture, popup)
         timeout-minutes: 4
+        run: CopyPal/scripts/ci-self-test.sh build/DerivedData/Build/Products/Debug/CopyPal.app
+      - name: Keep the app for the macOS 14 smoke test
+        if: inputs.macos14
+        run: ditto -c -k --keepParent build/DerivedData/Build/Products/Debug/CopyPal.app CopyPal.zip
+      - if: inputs.macos14
+        uses: actions/upload-artifact@v4
+        with:
+          name: CopyPal-debug
+          path: CopyPal.zip
+          retention-days: 3
+
+  smoke-macos14:
+    name: Self-test on macOS 14
+    needs: app-macos
+    if: inputs.macos14
+    runs-on: macos-14
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: CopyPal/scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: CopyPal-debug
+      - name: Self-test (same build as above)
+        timeout-minutes: 6
         run: |
-          app="build/DerivedData/Build/Products/Debug/CopyPal.app/Contents/MacOS/CopyPal"
-          "$app" --self-test > selftest.log 2>&1 &
-          pid=$!
-          # macOS only lets an app take the focus cooperatively; on the runner nobody
-          # hands it over, so bring the test app to the front via System Events
-          # (allowed for job steps) until it reports that it is active.
-          for _ in $(seq 1 30); do
-            grep -q "CopyPal ist aktiv\|CopyPal wurde nicht aktiv\|Event-Tap nicht verfügbar" selftest.log && break
-            # perl's alarm keeps a pending permission prompt from blocking the step.
-            perl -e 'alarm 5; exec @ARGV' osascript -e "tell application \"System Events\" to set frontmost of (first process whose unix id is $pid) to true" >/dev/null 2>&1 || true
-            sleep 0.5
-          done
-          set +e
-          wait "$pid"
-          status=$?
-          set -e
-          cat selftest.log
-          if [ "$status" -eq 2 ]; then
-            echo "::warning::Selbsttest nicht möglich: Event-Tap auf diesem Runner nicht verfügbar."
-            exit 0
-          fi
-          exit "$status"
+          sw_vers
+          ditto -x -k CopyPal.zip .
+          CopyPal/scripts/ci-self-test.sh CopyPal.app
