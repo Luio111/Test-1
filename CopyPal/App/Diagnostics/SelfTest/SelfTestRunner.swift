@@ -42,8 +42,18 @@ final class SelfTestRunner {
 
     private func runAll() async -> Int32 {
         Self.write("CopyPal Selbsttest – \(AppInfo.buildEnvironment) – macOS \(AppInfo.osVersion)")
+        // A regular app can be brought to the front (in CI by System Events); the
+        // simulated ⌘V must reach this app's text field, not another app.
+        NSApp.setActivationPolicy(.regular)
         setUpWindow()
-        await sleep(800)
+        let active = await waitUntil(timeout: 15_000) {
+            NSApp.activate()
+            return NSApp.isActive
+        }
+        Self.write(active ? "CopyPal ist aktiv." : "CopyPal wurde nicht aktiv – \(focusState)")
+        focusTextView()
+        await sleep(300)
+        Self.write("Fokus: \(focusState)")
 
         // InputCoordinator starts the tap as soon as Accessibility is granted (≤ 2 s).
         let tapReady = await waitUntil(timeout: 3_000) { self.input.tap.isRunning && self.input.tap.isEnabled }
@@ -192,7 +202,25 @@ final class SelfTestRunner {
         let matched = await waitUntil { self.textView.string == expected }
         await sleep(250) // a second, unwanted paste would show up now
         let text = textView.string
-        return (matched && text == expected, "Text: „\(text)“")
+        let passed = matched && text == expected
+        return (passed, passed ? "Text: „\(text)“" : "Text: „\(text)“ · \(focusState) · Tap: \(recentDecisions)")
+    }
+
+    /// Which app and window have the keyboard focus right now.
+    private var focusState: String {
+        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "?"
+        let keyWindow = window?.isKeyWindow == true ? "Testfenster" : (NSApp.keyWindow?.title ?? "keins")
+        let textFocused = window?.firstResponder === textView
+        return "vorne: \(front), CopyPal aktiv: \(NSApp.isActive), Key-Fenster: \(keyWindow), Textfeld fokussiert: \(textFocused)"
+    }
+
+    /// The tap's last decisions for the paste key, oldest first.
+    private var recentDecisions: String {
+        input.tap.diagnostics.snapshot().entries
+            .filter { $0.keyCode == pasteKey || $0.kind == "Pop-up" }
+            .suffix(4)
+            .map { "\($0.kind)\($0.isRepeat ? "(Wdh.)" : "") \($0.decision)" }
+            .joined(separator: ", ")
     }
 
     private func waitUntil(timeout milliseconds: Int = 2_000, _ condition: () -> Bool) async -> Bool {
