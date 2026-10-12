@@ -117,7 +117,7 @@ public enum PasteboardReader {
             }
             if types.contains(PasteboardTypeID.color), let data = item.data(forType: .color) {
                 representations.append(ClipRepresentation(type: PasteboardTypeID.color, data: data))
-                hints.color = color(from: item)
+                hints.color = color(from: data)
             }
         }
 
@@ -138,9 +138,11 @@ public enum PasteboardReader {
         return nil
     }
 
-    private static func color(from item: NSPasteboardItem) -> ColorValue? {
-        guard let plist = item.propertyList(forType: .color),
-              let color = NSColor(pasteboardPropertyList: plist, ofType: .color)?.usingColorSpace(.sRGB) else {
+    /// The color object is a keyed archive. Decoded with secure coding, which fails
+    /// with an error (never an exception) on unexpected data.
+    private static func color(from data: Data) -> ColorValue? {
+        guard let archived = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: data),
+              let color = archived.usingColorSpace(.sRGB) else {
             return nil
         }
         return ColorValue(

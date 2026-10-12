@@ -1,0 +1,81 @@
+name: CopyPal macOS 14
+
+# Smoke test on the oldest supported macOS (ROADMAP M8, D13). Manual only, because
+# macOS minutes are expensive in a private repository: Actions → "CopyPal macOS 14"
+# → Run workflow. Builds with the same Xcode as CI on macOS 15, then runs the
+# self-test on a macOS 14 runner.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build (macOS 15, Xcode 26.0)
+    runs-on: macos-15
+    timeout-minutes: 25
+    env:
+      XCODE_VERSION: "26.0"
+      XCODEGEN_VERSION: "2.46.0"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          xcode="$(ls -d /Applications/Xcode_"${XCODE_VERSION}"*.app 2>/dev/null | head -n 1)"
+          [ -n "$xcode" ] || { echo "::error::Xcode ${XCODE_VERSION} fehlt"; exit 1; }
+          echo "DEVELOPER_DIR=$xcode/Contents/Developer" >> "$GITHUB_ENV"
+      - name: Install XcodeGen ${{ env.XCODEGEN_VERSION }}
+        run: |
+          curl -fsSL "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip" -o "$RUNNER_TEMP/xcodegen.zip"
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/xcodegen/bin" >> "$GITHUB_PATH"
+      - name: Build app (Debug, unsigned like the main CI)
+        run: |
+          cd CopyPal && xcodegen generate && cd ..
+          xcodebuild build -project CopyPal/CopyPal.xcodeproj -scheme CopyPal -configuration Debug \
+            -destination 'platform=macOS' -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO | tail -n 5
+          ditto -c -k --keepParent build/DerivedData/Build/Products/Debug/CopyPal.app CopyPal.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CopyPal-debug
+          path: CopyPal.zip
+          retention-days: 3
+
+  smoke:
+    name: Self-test on macOS 14
+    needs: build
+    runs-on: macos-14
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: CopyPal-debug
+      - name: Self-test
+        timeout-minutes: 6
+        run: |
+          sw_vers
+          ditto -x -k CopyPal.zip .
+          app="CopyPal.app/Contents/MacOS/CopyPal"
+          "$app" --self-test > selftest.log 2>&1 &
+          pid=$!
+          for _ in $(seq 1 30); do
+            grep -q "CopyPal ist aktiv\|CopyPal wurde nicht aktiv\|Event-Tap nicht verfügbar" selftest.log && break
+            perl -e 'alarm 5; exec @ARGV' osascript -e "tell application \"System Events\" to set frontmost of (first process whose unix id is $pid) to true" >/dev/null 2>&1 || true
+            sleep 0.5
+          done
+          set +e
+          wait "$pid"
+          status=$?
+          set -e
+          cat selftest.log
+          if [ "$status" -eq 2 ]; then
+            echo "::warning::Event-Tap auf diesem Runner nicht verfügbar – nur Erfassen geprüft."
+            exit 0
+          fi
+          exit "$status"

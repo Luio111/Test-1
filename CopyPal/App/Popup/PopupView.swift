@@ -103,7 +103,7 @@ private struct PopupCard: View {
         .padding(2)
         .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.control))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(model.list == .history ? "Verlauf, ⇥ wechselt zu Favoriten" : "Favoriten, ⇥ wechselt zum Verlauf"))
+        .accessibilityLabel(model.list == .history ? Text("Verlauf, ⇥ wechselt zu Favoriten") : Text("Favoriten, ⇥ wechselt zum Verlauf"))
     }
 
     private func switchLabel(_ title: LocalizedStringKey, active: Bool) -> some View {

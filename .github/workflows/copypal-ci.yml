@@ -35,8 +35,10 @@ jobs:
     container: swift:6.2-noble
     steps:
       - uses: actions/checkout@v5
-      - name: Install SQLite headers (GRDB)
-        run: apt-get update -qq && apt-get install -y -qq libsqlite3-dev > /dev/null
+      - name: Install SQLite headers (GRDB) and Python
+        run: apt-get update -qq && apt-get install -y -qq libsqlite3-dev python3 > /dev/null
+      - name: Every UI text has an English translation
+        run: python3 CopyPal/scripts/check-localization.py
       # Ubuntu's SQLite is built without snapshots, which GRDB uses on Apple platforms.
       - name: Build and test CopyPalKit
         run: swift test --package-path CopyPal/Packages/CopyPalKit -Xswiftc -DSQLITE_DISABLE_SNAPSHOT 2>&1 | tee package.log
@@ -88,6 +90,12 @@ jobs:
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee app.log
       - name: No warnings in own sources
         run: CopyPal/scripts/ci-check-warnings.sh package.log app.log
+      - name: German and English in the app bundle
+        run: |
+          resources="build/DerivedData/Build/Products/Debug/CopyPal.app/Contents/Resources"
+          ls -d "$resources"/*.lproj
+          test -e "$resources/en.lproj/Localizable.strings" || test -e "$resources/en.lproj/Localizable.stringsdict" \
+            || { echo "::error::Englische Übersetzung fehlt im App-Bundle"; exit 1; }
       # Runs the app's end-to-end check of the ⌘V gesture with simulated key presses.
       # GitHub's macOS runners grant Accessibility to processes started from job steps.
       - name: Self-test (capture, history, ⌘V gesture, popup)

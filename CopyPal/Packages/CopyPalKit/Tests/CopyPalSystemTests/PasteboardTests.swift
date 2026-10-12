@@ -25,7 +25,8 @@ struct PasteboardTests {
         let types = PasteboardReader.types(of: pasteboard)
         #expect(types.contains(PasteboardTypeID.plainText))
         #expect(types.contains(PasteboardTypeID.rtf))
-        #expect(types.contains(PasteboardTypeID.source))
+        // The source marker carries the bundle ID; the test runner has none.
+        #expect(types.contains(PasteboardTypeID.source) == (Bundle.main.bundleIdentifier != nil))
 
         guard case let .content(content, _) = PasteboardReader.readNow(pasteboard, expectedChangeCount: changeCount, budget: budget) else {
             Issue.record("nothing read")

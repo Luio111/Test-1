@@ -1,6 +1,6 @@
 # CopyPal – Umsetzungsplan (Mac-Version)
 
-Stand: 11.10.2026 · Zielplattform: macOS 14 Sonoma und neuer · Vertrieb: direkt (außerhalb des App Stores), Preismodell noch offen.
+Stand: 12.10.2026 · Zielplattform: macOS 14 Sonoma und neuer · Vertrieb: direkt (außerhalb des App Stores), Preismodell noch offen.
 
 CopyPal ist ein nativer Clipboard-Manager für den Mac:
 
@@ -19,19 +19,19 @@ Schwerpunkte sind Datenschutz und Einfachheit. Die iPhone-App ist ausdrücklich 
 | Meilenstein | Inhalt | Status |
 |---|---|---|
 | M0 | Fundament: Projekt, Signierung, CI, Diagnose | erledigt (12.10.2026) |
-| M1 | Spike A: ⌘V halten, Einfügen, Fokus | in Arbeit |
-| M2 | Spike B: Zwischenablage, Datenschutz-Abfragen, Universal Clipboard | offen |
-| G1 | Go/No-Go-Entscheidung | offen |
-| M3 | Kern und Speicher (parallel zu M1/M2) | offen |
-| M4 | Alpha: echter Verlauf und Pop-up, Alltagsnutzung | offen |
+| M1 | Spike A: ⌘V halten, Einfügen, Fokus | umgesetzt, CI-Selbsttest grün · Handtest offen |
+| M2 | Spike B: Zwischenablage, Datenschutz-Abfragen, Universal Clipboard | umgesetzt, CI-Selbsttest · Handtest offen (Passwortmanager, iPhone, `accessBehavior`) |
+| G1 | Go/No-Go-Entscheidung | wartet auf die Handtests M1/M2 |
+| M3 | Kern und Speicher (parallel zu M1/M2) | umgesetzt, CI grün · Schlüsselbund-Test lokal offen |
+| M4 | Alpha: echter Verlauf und Pop-up, Alltagsnutzung | umgesetzt, CI-Selbsttest · Alltagsnutzung offen |
 | G2 | Rückblick nach einer Woche Alltagsnutzung | offen |
-| M5 | Datenschutz komplett | offen |
-| M6 | Vorschauen und Favoriten | offen |
-| M7 | Notch-Erlebnis, Onboarding, Einstellungen | offen |
-| M8 | Härtung, Performance, Kompatibilität | offen |
-| G3 | Bereit für die Beta | offen |
-| M9 | Beta-Vertrieb: Developer ID, Notarisierung, Sparkle | offen |
-| M10 | Release 1.0 | offen |
+| M5 | Datenschutz komplett | umgesetzt, Korpus 0 Fehler · Handtest offen |
+| M6 | Vorschauen und Favoriten | umgesetzt · Handtest offen |
+| M7 | Notch-Erlebnis, Onboarding, Einstellungen | umgesetzt (Deutsch + Englisch) · Handtest offen |
+| M8 | Härtung, Performance, Kompatibilität | umgesetzt, soweit automatisierbar · Messungen am Mac, Matrix, macOS 14 offen |
+| G3 | Bereit für die Beta | offen (D8, D10–D12) |
+| M9 | Beta-Vertrieb: Developer ID, Notarisierung, Sparkle | vorbereitet (Sparkle, `scripts/release.sh`, Anleitungen) · braucht Developer-Account (D10) |
+| M10 | Release 1.0 | vorbereitet (Website, Rechtstexte als Vorlage, Checkliste) · braucht D11 und deine Angaben |
 
 ### Reihenfolge (schwierigste Risiken zuerst)
 

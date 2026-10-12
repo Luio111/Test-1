@@ -10,6 +10,12 @@
 	<string>$(COPYPAL_FEED_URL)</string>
 	<key>SUPublicEDKey</key>
 	<string>$(COPYPAL_SPARKLE_PUBLIC_KEY)</string>
+	<!-- Languages of the String Catalog (App/Resources/Localizable.xcstrings, D9). -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>de</string>
+		<string>en</string>
+	</array>
 	<!-- No system profile is ever sent with update checks. -->
 	<key>SUEnableSystemProfiling</key>
 	<false/>
