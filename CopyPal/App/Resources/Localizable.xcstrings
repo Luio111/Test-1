@@ -491,6 +491,16 @@
         }
       }
     },
+    "Aus Favoriten entfernt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removed from favorites"
+          }
+        }
+      }
+    },
     "Aus: ⌘V bleibt völlig unverändert, der Verlauf öffnet sich nur mit dem Tastenkürzel." : {
       "localizations" : {
         "en" : {
@@ -2447,6 +2457,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add to Favorites"
+          }
+        }
+      }
+    },
+    "Zu Favoriten hinzugefügt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to favorites"
           }
         }
       }

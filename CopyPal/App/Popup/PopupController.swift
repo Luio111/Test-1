@@ -27,6 +27,7 @@ final class PopupController {
     private var mouseLocationAtOpen: CGPoint = .zero
     /// When the opening spring started (system uptime), nil while collapsed.
     private var openStartedAt: TimeInterval?
+    private var noticeTask: Task<Void, Never>?
 
     init(history: HistoryModel, visuals: ClipVisuals, paster: PasteController) {
         model = PopupModel(history: history)
@@ -127,6 +128,21 @@ final class PopupController {
         return shape
     }
 
+    /// A short confirmation in the footer ("Zu Favoriten hinzugefügt").
+    private func showNotice(_ notice: PopupNotice) {
+        noticeTask?.cancel()
+        withAnimation(Theme.Motion.quick) {
+            model.notice = notice
+        }
+        noticeTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(1_600))
+            guard !Task.isCancelled, let self else { return }
+            withAnimation(Theme.Motion.quick) {
+                self.model.notice = nil
+            }
+        }
+    }
+
     /// "Verlauf" or "Favoriten" clicked beside the notch (same as ⇥).
     func showList(_ list: PopupList) {
         guard model.list != list else { return }
@@ -215,9 +231,16 @@ final class PopupController {
         case .togglePin:
             guard let item = model.selectedItem else { return NSSound.beep() }
             let id = item.id
+            let notice: PopupNotice = item.isPinned ? .favoriteRemoved : .favoriteAdded
             Task {
                 await model.history.perform { try await $0.togglePin(id) }
-                contentChanged()
+                // Stay on the entry (it keeps its place in the history) and say what happened.
+                model.selectedIndex = model.visibleItems.firstIndex { $0.id == id } ?? model.selectedIndex
+                model.clampSelection()
+                withAnimation(PopupMotion.resize) {
+                    updateLayout()
+                }
+                showNotice(notice)
             }
         case .deleteItem:
             guard let item = model.selectedItem else { return NSSound.beep() }
@@ -294,7 +317,7 @@ final class PopupController {
             onHover: { [weak self] index in self?.hover(index) },
             onShowList: { [weak self] list in self?.showList(list) }
         )
-        return PopupPanel(contentView: NSHostingView(rootView: view))
+        return PopupPanel(contentView: FirstClickHostingView(rootView: view))
     }
 }
 

@@ -197,14 +197,34 @@ private struct PopupContent: View {
                 .fill(Theme.Notch.divider)
                 .frame(height: 1)
                 .padding(.horizontal, PopupMetrics.wingPadding)
-            Text(footerText)
-                .font(.system(size: 11))
-                .foregroundStyle(Theme.Notch.textSecondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-                .frame(maxWidth: .infinity)
-                .frame(height: PopupMetrics.footerHeight - 1)
+            Group {
+                if let notice = model.notice {
+                    noticeLabel(notice)
+                } else {
+                    Text(footerText)
+                        .foregroundStyle(Theme.Notch.textSecondary)
+                }
+            }
+            .font(.system(size: 11))
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
+            .frame(maxWidth: .infinity)
+            .frame(height: PopupMetrics.footerHeight - 1)
         }
+    }
+
+    private func noticeLabel(_ notice: PopupNotice) -> some View {
+        HStack(spacing: 5) {
+            switch notice {
+            case .favoriteAdded:
+                Image(systemName: "pin.fill").accessibilityHidden(true)
+                Text("Zu Favoriten hinzugefügt")
+            case .favoriteRemoved:
+                Image(systemName: "pin.slash").accessibilityHidden(true)
+                Text("Aus Favoriten entfernt")
+            }
+        }
+        .foregroundStyle(Theme.Notch.textPrimary)
     }
 
     /// ⌘P toggles: "add" for a normal entry, "remove" for a favorite (always in the

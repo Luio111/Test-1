@@ -1,4 +1,14 @@
 import AppKit
+import SwiftUI
+
+/// Takes the first click. The popup never activates CopyPal (the app being pasted
+/// into stays in front), so for macOS every click is the first click into an inactive
+/// app – which NSHostingView ignores by default: buttons and rows would not react.
+final class FirstClickHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+        true
+    }
+}
 
 /// Borderless, non-activating panel: it can take keyboard input while the app the
 /// user is working in stays active, so focus returns there when it closes.

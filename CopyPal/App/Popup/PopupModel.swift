@@ -9,6 +9,12 @@ enum PopupList: Equatable {
     case favorites
 }
 
+/// Short confirmation shown in the footer after ⌘P.
+enum PopupNotice: Equatable {
+    case favoriteAdded
+    case favoriteRemoved
+}
+
 /// Fixed metrics, so the popup's size is known before SwiftUI lays it out.
 enum PopupMetrics {
     /// Body width (without the flares at the top edge); wider on screens whose notch
@@ -115,6 +121,7 @@ final class PopupModel {
     /// false = the shape sits in the notch, true = the popup has dropped down.
     var expanded = false
     var contentVisible = false
+    var notice: PopupNotice?
 
     @ObservationIgnored let history: HistoryModel
 
@@ -137,6 +144,7 @@ final class PopupModel {
         list = .history
         query = ""
         selectedIndex = 0
+        notice = nil
     }
 
     func clampSelection() {
