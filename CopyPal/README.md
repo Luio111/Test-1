@@ -2,7 +2,7 @@
 
 Nativer Clipboard-Manager für den Mac: **⌘V tippen** fügt wie gewohnt ein, **⌘V halten** öffnet den Verlauf aus der Notch.
 
-- **1–8** fügt den Eintrag ein, **⇧** ohne Formatierung, Tippen sucht, **⇥** zeigt die Favoriten, **⌘P** pinnt an.
+- **1–8** fügt den Eintrag ein, **⇧** ohne Formatierung, Tippen sucht, **⇥** zeigt die Favoriten, **⌘P** macht ihn zum Favoriten.
 - Alles bleibt **verschlüsselt auf diesem Mac**: AES-GCM, der Schlüssel liegt im Schlüsselbund. Kein Netz, keine Statistik.
 - Passwortmanager werden nie gespeichert. IBAN, Kartennummern, API-Schlüssel und Einmalcodes werden verdeckt und nach einer Minute gelöscht.
 - **⌃⌥V** öffnet den Verlauf auch ohne Bedienungshilfen-Freigabe.
@@ -39,17 +39,28 @@ cd CopyPal
 
 Das Skript legt `Config/Signing.local.xcconfig` an (bleibt lokal, wird nie eingecheckt), trägt deine Team-ID ein, wenn sie eindeutig ist, und erzeugt `CopyPal.xcodeproj`. Danach in Xcode **⌘R**.
 
-## Einen Pull Request testen
+## Neuesten Stand holen
 
-Im Ordner `Test-1` (z. B. `cd ~/Developer/Test-1`):
+Ein Befehl, egal in welchem Ordner du gerade bist:
 
 ```sh
-git fetch origin
-git switch <branch-aus-dem-PR>
-cd CopyPal && ./scripts/bootstrap.sh
+copypal-update
 ```
 
-`CopyPal.xcodeproj` wird erzeugt und nie eingecheckt – nach jedem Branch-Wechsel oder `git pull` erneut `./scripts/bootstrap.sh` ausführen. Die Checkliste steht im PR bzw. in `Docs/Testplaene/`.
+Er holt den CopyPal-Branch von GitHub (nach dem Merge `main`) und legt lokale Änderungen, meist von Xcode, beiseite (`git stash`). Dann erzeugt er `CopyPal.xcodeproj` neu und öffnet Xcode. Dort **⌘R** drücken. Eigene Commits sichert er vorher im Branch `copypal-sicherung-…`.
+
+Einmalig einrichten: Diese Zeile ins Terminal kopieren. Sie sucht das Repository in `~/Developer/Test-1`, sonst in `~/Test-1`:
+
+```sh
+d=~/Developer/Test-1; [ -d "$d" ] || d=~/Test-1; b=claude/amazing-volta-1uce5i; git -C "$d" fetch origin "+refs/heads/${b}:refs/remotes/origin/${b}" && COPYPAL_REPO="$d" bash -c "$(git -C "$d" show "origin/${b}:CopyPal/scripts/update.sh")" update.sh --install
+```
+
+Danach ein neues Terminal-Fenster öffnen. Ohne eingerichteten Befehl geht es auch direkt: `~/Developer/Test-1/CopyPal/scripts/update.sh`.
+
+- **Anderen Branch testen:** `COPYPAL_BRANCH=<branch> copypal-update`
+- **Xcode nicht öffnen:** `copypal-update --no-open`
+
+`CopyPal.xcodeproj` wird erzeugt und nie eingecheckt. Wer von Hand pullt oder den Branch wechselt, muss danach `./scripts/bootstrap.sh` ausführen. Die Checkliste steht im PR bzw. in `Docs/Testplaene/`.
 
 ## Aufbau
 
@@ -58,7 +69,7 @@ cd CopyPal && ./scripts/bootstrap.sh
 | `App/` | App-Target: Menüleiste, Fenster, SwiftUI-Ansichten, Design-System |
 | `Packages/CopyPalKit/` | Logik als Swift-Package: `CopyPalCore` (plattformneutral), `CopyPalStorage`, `CopyPalSystem` (macOS-Adapter), `CopyPalServices` |
 | `Config/` | Build-Einstellungen (`.xcconfig`) |
-| `scripts/` | `bootstrap.sh`, `reset-dev-state.sh`, `ci-check-warnings.sh` |
+| `scripts/` | `update.sh` (`copypal-update`), `bootstrap.sh`, `reset-dev-state.sh`, `ci-check-warnings.sh` |
 | `Docs/` | Roadmap, Design, Entscheidungen (ADR), Testpläne, Troubleshooting |
 
 ## Tests
