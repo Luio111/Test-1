@@ -124,4 +124,78 @@ public enum ScreenshotGeometry {
         if moved.maxY > bounds.maxY { moved.origin.y = bounds.maxY - moved.height }
         return moved
     }
+
+    // MARK: Editing a selection
+
+    /// Pointer travel that turns a click into a drag.
+    public static let dragThreshold: CGFloat = 4
+    /// Smaller selections are dropped.
+    public static let minimumSelection = CGSize(width: 4, height: 4)
+    /// How close to a corner a press must be to grab its handle.
+    public static let handleHitRadius: CGFloat = 8
+
+    /// The corner handle under `point`, if any (AppKit coordinates: `top` means `maxY`).
+    public static func handle(at point: CGPoint, in rect: CGRect, radius: CGFloat = handleHitRadius) -> SelectionHandle? {
+        let rect = rect.standardized
+        for handle in SelectionHandle.allCases {
+            let corner = handle.corner(of: rect)
+            if abs(point.x - corner.x) <= radius, abs(point.y - corner.y) <= radius {
+                return handle
+            }
+        }
+        return nil
+    }
+
+    /// `rect` with `handle`'s corner moved to `point`; the opposite corner stays.
+    public static func resized(_ rect: CGRect, handle: SelectionHandle, to point: CGPoint, within bounds: CGRect) -> CGRect {
+        let rect = rect.standardized
+        let anchor = handle.opposite.corner(of: rect)
+        return clamp(CGRect(x: anchor.x, y: anchor.y, width: point.x - anchor.x, height: point.y - anchor.y), to: bounds)
+    }
+
+    /// `rect` moved by `step` in the arrow key's direction, kept inside `bounds`.
+    public static func nudged(_ rect: CGRect, key: ScreenshotKey, step: CGFloat, within bounds: CGRect) -> CGRect {
+        switch key {
+        case .left: moved(rect, dx: -step, dy: 0, within: bounds)
+        case .right: moved(rect, dx: step, dy: 0, within: bounds)
+        case .up: moved(rect, dx: 0, dy: step, within: bounds)
+        case .down: moved(rect, dx: 0, dy: -step, within: bounds)
+        default: rect
+        }
+    }
+
+    /// The screen (frame) that contains `point`, else the one nearest to it.
+    public static func screen(containing point: CGPoint, in screens: [CGRect]) -> CGRect? {
+        if let hit = screens.first(where: { $0.contains(point) }) { return hit }
+        return screens.min { distance(from: point, to: $0) < distance(from: point, to: $1) }
+    }
+
+    private static func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {
+        let dx = max(rect.minX - point.x, 0, point.x - rect.maxX)
+        let dy = max(rect.minY - point.y, 0, point.y - rect.maxY)
+        return dx * dx + dy * dy
+    }
+}
+
+/// A corner of the selection the user can drag (AppKit: top = larger y).
+public enum SelectionHandle: Sendable, CaseIterable, Equatable {
+    case topLeft, topRight, bottomLeft, bottomRight
+
+    public var opposite: SelectionHandle {
+        switch self {
+        case .topLeft: .bottomRight
+        case .topRight: .bottomLeft
+        case .bottomLeft: .topRight
+        case .bottomRight: .topLeft
+        }
+    }
+
+    public func corner(of rect: CGRect) -> CGPoint {
+        switch self {
+        case .topLeft: CGPoint(x: rect.minX, y: rect.maxY)
+        case .topRight: CGPoint(x: rect.maxX, y: rect.maxY)
+        case .bottomLeft: CGPoint(x: rect.minX, y: rect.minY)
+        case .bottomRight: CGPoint(x: rect.maxX, y: rect.minY)
+        }
+    }
 }

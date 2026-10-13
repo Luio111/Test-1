@@ -9,6 +9,15 @@ public enum ScreenshotKey: Sendable, Equatable {
     case down
     case left
     case right
+    /// ⌫: removes the last stitched section.
+    case delete
+
+    public var isArrow: Bool {
+        switch self {
+        case .up, .down, .left, .right: true
+        default: false
+        }
+    }
 }
 
 /// Physical keys, matched by key code like `PopupKeyMap`, so layouts do not matter.
@@ -23,6 +32,7 @@ public enum ScreenshotKeyMap {
         case PopupKeyMap.downArrow: .down
         case PopupKeyMap.leftArrow: .left
         case PopupKeyMap.rightArrow: .right
+        case PopupKeyMap.delete: .delete
         default: nil
         }
     }
