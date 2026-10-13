@@ -183,20 +183,11 @@ final class SelfTestRunner {
     /// M1: the gesture itself.
     private func gestureChecks() async {
         await check("Tippen fügt genau einmal ein") {
-            await self.prepare(clipboard: "Selbsttest A")
-            await self.press(self.pasteKey, flags: .maskCommand, holdFor: 60)
-            return await self.expectText("Selbsttest A")
+            await self.quickTap(repeats: 0, clipboard: "Selbsttest A")
         }
 
         await check("Tastenwiederholung während des Tippens fügt nur einmal ein") {
-            await self.prepare(clipboard: "Selbsttest B")
-            let key = self.pasteKey
-            await Self.postTimed(
-                [TimedKey(keyCode: key, down: true, flags: .maskCommand)]
-                    + (0..<3).map { _ in TimedKey(keyCode: key, down: true, flags: .maskCommand, autorepeat: true, delay: 30) }
-                    + [TimedKey(keyCode: key, down: false, flags: .maskCommand, delay: 30)]
-            )
-            return await self.expectText("Selbsttest B")
+            await self.quickTap(repeats: 3, clipboard: "Selbsttest B")
         }
 
         for (name, flags) in [("⌘⇧V", CGEventFlags([.maskCommand, .maskShift])), ("⌥⌘V", CGEventFlags([.maskCommand, .maskAlternate]))] {
@@ -520,6 +511,57 @@ final class SelfTestRunner {
             TimedKey(keyCode: keyCode, down: false, flags: flags, delay: milliseconds),
         ])
         await sleep(30)
+    }
+
+    /// A quick ⌘V (with `repeats` autorepeats, 20 ms apart) must paste `clipboard`
+    /// exactly once. The events are posted with exact gaps, but a stalled CI machine can
+    /// still deliver the ↑ to the tap after the hold threshold: that trial is a hold, not
+    /// a tap, and says nothing about the gesture, so it is repeated (at most three tries).
+    private func quickTap(repeats: Int, clipboard: String) async -> (Bool, String) {
+        let threshold = AppSettings.holdThreshold * 1_000
+        var stretched: [String] = []
+        for _ in 0..<3 {
+            await prepare(clipboard: clipboard)
+            let held = await tapPasteKey(repeats: repeats)
+            let result = await expectText(clipboard)
+            let note = stretched.isEmpty ? "" : " · \(stretched.count)× wiederholt, Runner streckte den Tipp auf \(stretched.joined(separator: ", "))"
+            if result.0 {
+                return (true, result.1 + note)
+            }
+            guard let held, held >= threshold * 0.8 else {
+                return (false, result.1 + note)
+            }
+            stretched.append(String(format: "%.0f ms", held))
+            if app.popup.isVisible {
+                app.popup.close()
+            }
+            await sleep(300)
+        }
+        return (false, "Runner zu langsam: jeder Tipp wurde zum Halten (\(stretched.joined(separator: ", ")), Schwelle \(Int(threshold)) ms)")
+    }
+
+    /// Posts ⌘V down, `repeats` autorepeats and up, then returns how long the tap saw
+    /// the key held (milliseconds), or nil when it did not log the ↑ within a second.
+    private func tapPasteKey(repeats: Int) async -> Double? {
+        let lastID = app.input.tap.diagnostics.snapshot().entries.last?.id ?? 0
+        var keys = [TimedKey(keyCode: pasteKey, down: true, flags: .maskCommand)]
+        keys += (0..<repeats).map { _ in TimedKey(keyCode: pasteKey, down: true, flags: .maskCommand, autorepeat: true, delay: 20) }
+        keys.append(TimedKey(keyCode: pasteKey, down: false, flags: .maskCommand, delay: 20))
+        await Self.postTimed(keys)
+        let seen = await waitUntil(timeout: 1_000) { self.heldMilliseconds(after: lastID) != nil }
+        return seen ? heldMilliseconds(after: lastID) : nil
+    }
+
+    /// Milliseconds between the paste key's first ↓ and its ↑ as the tap logged them,
+    /// looking only at entries newer than `id`.
+    private func heldMilliseconds(after id: Int) -> Double? {
+        let entries = app.input.tap.diagnostics.snapshot().entries.filter { $0.id > id && $0.keyCode == pasteKey }
+        guard let down = entries.first(where: { $0.kind == "↓" && !$0.isRepeat }),
+              let up = entries.last(where: { $0.kind == "↑" }),
+              up.uptime >= down.uptime else {
+            return nil
+        }
+        return (up.uptime - down.uptime) * 1_000
     }
 
     /// One key event of a timed sequence, posted `delay` milliseconds after the previous one.
