@@ -190,13 +190,12 @@ final class SelfTestRunner {
 
         await check("Tastenwiederholung während des Tippens fügt nur einmal ein") {
             await self.prepare(clipboard: "Selbsttest B")
-            self.post(self.pasteKey, down: true, flags: .maskCommand)
-            for _ in 0..<3 {
-                await self.sleep(30)
-                self.post(self.pasteKey, down: true, flags: .maskCommand, autorepeat: true)
-            }
-            await self.sleep(30)
-            self.post(self.pasteKey, down: false, flags: .maskCommand)
+            let key = self.pasteKey
+            await Self.postTimed(
+                [TimedKey(keyCode: key, down: true, flags: .maskCommand)]
+                    + (0..<3).map { _ in TimedKey(keyCode: key, down: true, flags: .maskCommand, autorepeat: true, delay: 30) }
+                    + [TimedKey(keyCode: key, down: false, flags: .maskCommand, delay: 30)]
+            )
             return await self.expectText("Selbsttest B")
         }
 
@@ -467,9 +466,9 @@ final class SelfTestRunner {
     }
 
     private func openPopup() async {
-        post(pasteKey, down: true, flags: .maskCommand)
+        Self.post(pasteKey, down: true, flags: .maskCommand)
         await sleep(Int(AppSettings.holdThreshold * 1000) + 250)
-        post(pasteKey, down: false, flags: .maskCommand)
+        Self.post(pasteKey, down: false, flags: .maskCommand)
     }
 
     private var isBold: Bool {
@@ -516,14 +515,49 @@ final class SelfTestRunner {
     }
 
     private func press(_ keyCode: UInt16, flags: CGEventFlags, holdFor milliseconds: Int = 40) async {
-        post(keyCode, down: true, flags: flags)
-        await sleep(milliseconds)
-        post(keyCode, down: false, flags: flags)
+        await Self.postTimed([
+            TimedKey(keyCode: keyCode, down: true, flags: flags),
+            TimedKey(keyCode: keyCode, down: false, flags: flags, delay: milliseconds),
+        ])
         await sleep(30)
     }
 
+    /// One key event of a timed sequence, posted `delay` milliseconds after the previous one.
+    struct TimedKey: Sendable {
+        var keyCode: UInt16
+        var down: Bool
+        var flags: UInt64
+        var autorepeat = false
+        var delay = 0
+
+        init(keyCode: UInt16, down: Bool, flags: CGEventFlags, autorepeat: Bool = false, delay: Int = 0) {
+            self.keyCode = keyCode
+            self.down = down
+            self.flags = flags.rawValue
+            self.autorepeat = autorepeat
+            self.delay = delay
+        }
+    }
+
+    /// Posts the events with exact gaps from a background thread. Sleeping on the main
+    /// actor overshoots whenever it is busy (layout, the store), and on a slow CI
+    /// machine that once stretched a quick tap past the hold threshold.
+    private static func postTimed(_ keys: [TimedKey]) async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global(qos: .userInteractive).async {
+                for key in keys {
+                    if key.delay > 0 {
+                        usleep(useconds_t(key.delay * 1_000))
+                    }
+                    post(key.keyCode, down: key.down, flags: CGEventFlags(rawValue: key.flags), autorepeat: key.autorepeat)
+                }
+                continuation.resume()
+            }
+        }
+    }
+
     /// Posts like a keyboard would: no CopyPal marker, so the tap handles it.
-    private func post(_ keyCode: UInt16, down: Bool, flags: CGEventFlags, autorepeat: Bool = false) {
+    nonisolated private static func post(_ keyCode: UInt16, down: Bool, flags: CGEventFlags, autorepeat: Bool = false) {
         let source = CGEventSource(stateID: .hidSystemState)
         guard let event = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: down) else {
             return
