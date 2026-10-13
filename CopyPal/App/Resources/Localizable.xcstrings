@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
+    "%lld Abschnitte · %@ px" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld sections · %@ px"
+          }
+        }
+      }
+    },
     "%lld Dateien: %@" : {
       "localizations" : {
         "en" : {
@@ -197,6 +207,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "Abschnitt %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Section %lld"
           }
         }
       }
@@ -521,6 +541,16 @@
         }
       }
     },
+    "Auswahl %lld × %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selection %lld × %lld"
+          }
+        }
+      }
+    },
     "Bearbeiten" : {
       "localizations" : {
         "en" : {
@@ -721,12 +751,82 @@
         }
       }
     },
+    "Bildschirmfoto fehlgeschlagen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot failed"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto in der Zwischenablage (App wird ignoriert)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot on the clipboard (app is ignored)"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto in der Zwischenablage (Aufzeichnung pausiert)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot on the clipboard (recording paused)"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto kopiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot copied"
+          }
+        }
+      }
+    },
     "Bildschirmfoto mit Tastenkürzel" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Screenshot with keyboard shortcut"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto verkleinert (zu groß für den Verlauf)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot scaled down (too large for the history)"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto zu groß für den Verlauf – in der Zwischenablage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot too large for the history – on the clipboard"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto-Auswahl" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot selection"
           }
         }
       }
@@ -1131,6 +1231,16 @@
         }
       }
     },
+    "Ende erreicht" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End reached"
+          }
+        }
+      }
+    },
     "Entfernen" : {
       "localizations" : {
         "en" : {
@@ -1187,6 +1297,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Granted"
+          }
+        }
+      }
+    },
+    "Erweitert …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extending …"
+          }
+        }
+      }
+    },
+    "Esc erneut verwirft %lld Abschnitte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esc again discards %lld sections"
           }
         }
       }
@@ -1471,6 +1601,16 @@
         }
       }
     },
+    "Inhalt scrollt nicht" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Content does not scroll"
+          }
+        }
+      }
+    },
     "Jetzt testen" : {
       "localizations" : {
         "en" : {
@@ -1497,6 +1637,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Card"
+          }
+        }
+      }
+    },
+    "Kein Übergang gefunden – bisheriger Teil bleibt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No overlap found – keeping what was captured"
+          }
+        }
+      }
+    },
+    "Kein Übergang gefunden – ↓ versucht es erneut" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No overlap found – ↓ tries again"
           }
         }
       }
@@ -1547,6 +1707,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "None"
+          }
+        }
+      }
+    },
+    "Klick nimmt auf · Ziehen wählt frei · ⇥ größer · Leertaste nur Fenster · ↓ erweitern · Esc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click captures · drag selects · ⇥ larger · Space windows only · ↓ extend · Esc"
           }
         }
       }
@@ -1727,6 +1897,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete"
+          }
+        }
+      }
+    },
+    "Maximale Höhe erreicht" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximum height reached"
           }
         }
       }
@@ -1931,6 +2111,16 @@
         }
       }
     },
+    "Nur Fenster · Leertaste zurück" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows only · Space back"
+          }
+        }
+      }
+    },
     "OK" : {
       "localizations" : {
         "en" : {
@@ -2067,6 +2257,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Step %lld of %lld"
+          }
+        }
+      }
+    },
+    "Scroll-Aufnahme braucht Bedienungshilfen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrolling capture needs Accessibility"
           }
         }
       }
@@ -2861,12 +3061,32 @@
         }
       }
     },
+    "↓ halten für mehr · ⌥↓ bis zum Ende · Esc stoppt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold ↓ for more · ⌥↓ to the end · Esc stops"
+          }
+        }
+      }
+    },
     "↩ einfügen · ⌘1–8 Eintrag · ⇧↩ ohne Formatierung · esc Suche leeren" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "↩ paste · ⌘1–8 entry · ⇧↩ without formatting · esc clear search"
+          }
+        }
+      }
+    },
+    "⇧ Quadrat · ⌥ von der Mitte · Leertaste verschieben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧ square · ⌥ from the center · Space moves"
           }
         }
       }
@@ -2927,6 +3147,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tapping ⌘V pastes as usual. Holding ⌘V opens the history at the notch."
+          }
+        }
+      }
+    },
+    "⏎ aufnehmen · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⏎ capture · ↓ ↑ extend · ⌘ arrows move · Esc"
+          }
+        }
+      }
+    },
+    "⏎ aufnehmen · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⏎ capture · ↓ ↑ continue · ⌫ remove section · Esc"
           }
         }
       }

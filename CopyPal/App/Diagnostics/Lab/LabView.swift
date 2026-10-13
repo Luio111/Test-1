@@ -21,6 +21,8 @@ struct LabView: View {
                 Hairline()
                 pasteboardSection
                 Hairline()
+                screenshotSection
+                Hairline()
                 footer
             }
             .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
@@ -32,6 +34,34 @@ struct LabView: View {
         .onChange(of: model.holdThreshold) { model.applyHoldThreshold() }
         .onChange(of: model.pasteDelay) { model.applyPasteDelay() }
         .onChange(of: model.remoteMode) { model.applyRemoteMode() }
+        .onChange(of: model.showsDetectedRegions) { model.applyScreenshotOptions() }
+        .onChange(of: model.scrollsWithoutCursorWarp) { model.applyScreenshotOptions() }
+    }
+
+    private var screenshotSection: some View {
+        SectionBlock(verbatim: "Bildschirmfoto (M11)") {
+            PropertyRow(verbatim: "Erkannte Bereiche", systemImage: "square.dashed") {
+                Toggle(isOn: $model.showsDetectedRegions) {
+                    Text(verbatim: "Im Overlay zeigen")
+                }
+                .toggleStyle(.switch)
+            }
+            PropertyRow(verbatim: "Scroll-Aufnahme", systemImage: "arrow.down.to.line") {
+                Toggle(isOn: $model.scrollsWithoutCursorWarp) {
+                    Text(verbatim: "Ohne Zeiger-Sprung scrollen")
+                }
+                .toggleStyle(.switch)
+            }
+            PropertyRow(verbatim: "Einfrieren", systemImage: "snowflake") {
+                Text(verbatim: model.screenshotFreeze.map { String(format: "%.0f ms", $0) } ?? "Noch keine Aufnahme")
+                    .font(Theme.Typography.mono)
+            }
+            PropertyRow(verbatim: "Letzter Schritt", systemImage: "list.bullet.rectangle") {
+                Text(verbatim: model.screenshotStep ?? "Noch kein Erweitern")
+                    .font(Theme.Typography.mono)
+                    .lineLimit(2)
+            }
+        }
     }
 
     private var header: some View {

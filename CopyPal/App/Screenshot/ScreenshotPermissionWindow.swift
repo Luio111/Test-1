@@ -40,7 +40,7 @@ final class ScreenshotPermissionWindowController: NSObject, NSWindowDelegate {
         }
         self.model = model
         let hosting = NSHostingController(rootView: ScreenshotPermissionView(model: model))
-        let window = NSWindow(contentViewController: hosting)
+        let window = EscapeClosingWindow(contentViewController: hosting)
         window.title = String(localized: "Bildschirmaufnahme erlauben")
         window.styleMask = [.titled, .closable, .fullSizeContentView]
         window.titlebarAppearsTransparent = true
@@ -52,6 +52,13 @@ final class ScreenshotPermissionWindowController: NSObject, NSWindowDelegate {
         window.center()
         window.delegate = self
         return window
+    }
+}
+
+/// Esc closes it like „Später“, also when no button has the focus.
+final class EscapeClosingWindow: NSWindow {
+    override func cancelOperation(_ sender: Any?) {
+        close()
     }
 }
 

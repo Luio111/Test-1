@@ -28,6 +28,12 @@ final class LabModel {
     var pasteDelay: Double
     var remoteMode: RemoteClipboardMode
 
+    /// Screenshot (M11): tuning aids, not persisted.
+    var showsDetectedRegions = false
+    var scrollsWithoutCursorWarp = false
+    private(set) var screenshotFreeze: Double?
+    private(set) var screenshotStep: String?
+
     @ObservationIgnored private let app: AppController
     private var input: InputCoordinator { app.input }
     @ObservationIgnored private var timer: Timer?
@@ -72,6 +78,11 @@ final class LabModel {
         AppSettings.remoteClipboardMode = remoteMode
     }
 
+    func applyScreenshotOptions() {
+        app.screenshot.showsDetectedRegions = showsDetectedRegions
+        app.screenshot.scrollsWithoutCursorWarp = scrollsWithoutCursorWarp
+    }
+
     /// M2 test: writes a sample normally (reaches the iPhone) or "this Mac only".
     func writeTest(localOnly: Bool) {
         let text = localOnly
@@ -114,6 +125,8 @@ final class LabModel {
         captureLog = app.capture.log
         historyCount = app.history.items.count
         diskUsage = app.engine.store.diskUsage()
+        screenshotFreeze = app.screenshot.lastFreezeMilliseconds
+        screenshotStep = app.screenshot.lastStepDescription
     }
 
     /// Plain-text summary for the PR comment. Key codes only, no typed characters.

@@ -91,14 +91,103 @@ final class SelfTestRunner {
         return skipped > 0 ? "Alle Prüfungen bestanden (\(skipped) übersprungen)." : "Alle Prüfungen bestanden."
     }
 
-    /// M11: the screenshot hot key and its gate. Capture checks follow once the overlay
-    /// exists; they are skipped with a warning where Screen Recording is not granted.
+    /// M11: the screenshot hot key, its permission gate, the ⌘V gesture afterwards and
+    /// the capture into the history. Capture checks need Screen Recording; without it
+    /// they are skipped with a warning, never passed silently.
     private func screenshotChecks() async {
         await check("Tastenkürzel ⌘⇧A ist registriert") {
             let registered = self.app.screenshotHotKey.shortcut == AppSettings.screenshotHotKey
             let available = self.app.screenshot.hotKeyAvailable
             return (registered && available, "registriert: \(registered), frei: \(available)")
         }
+
+        await prepare(clipboard: nil)
+        let askedBefore = AppSettings.screenshotPermissionAsked
+        await press(0, flags: [.maskCommand, .maskShift])
+        let appeared = await waitUntil(timeout: 5_000) {
+            self.app.screenshot.isOverlayVisible || self.app.screenshot.isShowingPermissionHint
+        }
+        if !appeared, app.screenshot.isActive {
+            // The frozen capture is still waiting – on macOS 15 a system dialog about
+            // Screen Recording can hold it; nothing the runner can answer.
+            app.screenshot.cancel()
+            skip("⌘⇧A öffnet die Aufnahme oder den Berechtigungshinweis, Esc schließt", reason: "Aufnahme wartet nach 5 s noch auf macOS (Systemdialog?)")
+            focusTextView()
+        } else {
+            await check("⌘⇧A öffnet die Aufnahme oder den Berechtigungshinweis, Esc schließt") {
+                let shown = self.app.screenshot.isOverlayVisible ? "Overlay" : (self.app.screenshot.isShowingPermissionHint ? "Berechtigungsfenster" : "nichts")
+                await self.sleep(200)
+                await self.press(53, flags: [])
+                let closed = await self.waitUntil(timeout: 3_000) {
+                    !self.app.screenshot.isActive && !self.app.screenshot.isShowingPermissionHint
+                }
+                // Never asks macOS for the permission on its own.
+                let notAsked = AppSettings.screenshotPermissionAsked == askedBefore
+                if !closed {
+                    self.app.screenshot.cancel()
+                    self.app.screenshot.closePermissionWindow()
+                }
+                self.focusTextView()
+                await self.sleep(300)
+                let untouched = self.textView.string.isEmpty
+                return (appeared && closed && notAsked && untouched, "gezeigt: \(shown), geschlossen: \(closed), nicht selbst angefragt: \(notAsked), Text unverändert: \(untouched)")
+            }
+        }
+
+        await check("Nach dem Bildschirmfoto fügt ⌘V kurz genau einmal ein") {
+            await self.quickTap(repeats: 1, clipboard: "Nach dem Bildschirmfoto")
+        }
+
+        await check("Scroll-Zusammenfügen auf synthetischen Bildern") {
+            let document = Self.syntheticDocument(width: 240, height: 900)
+            let frames = [0, 180, 360].map { document.cropped(PixelRect(x: 0, y: $0, width: 240, height: 360)) }
+            var session = ScrollSession(firstFrame: frames[0], scale: 1)
+            let first = session.accept(frames[1], direction: .down)
+            let second = session.accept(frames[2], direction: .down)
+            let height = session.composite().height
+            return (height == 720 && session.info.sections == 2, "Höhe \(height) px (erwartet 720), Schritte: \(first), \(second)")
+        }
+
+        guard ScreenCapturePermission.state == .granted else {
+            skip("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage", reason: "Bildschirmaufnahme auf diesem Rechner nicht erlaubt")
+            return
+        }
+        guard let window else { return }
+        let rect = window.frame.insetBy(dx: 20, dy: 20)
+        let result = await app.screenshot.captureForSelfTest(rect: rect)
+        switch result {
+        case .permissionDenied:
+            skip("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage", reason: "ScreenCaptureKit verweigert die Aufnahme trotz Freigabe")
+        case let .stored(item):
+            await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
+                let scale = self.window?.backingScaleFactor ?? 2
+                let expectedWidth = Int((rect.width * scale).rounded())
+                let width = item.preview.imageSize?.width ?? 0
+                let types = NSPasteboard.general.types?.map(\.rawValue) ?? []
+                let onPasteboard = types.contains(PasteboardTypeID.png) && types.contains(PasteboardTypeID.tiff)
+                let isTop = self.app.history.items.first?.id == item.id
+                let passed = item.kind == .image && abs(width - expectedWidth) <= 2 && onPasteboard && isTop
+                return (passed, "Art: \(item.kind.rawValue), Breite \(width) px (erwartet \(expectedWidth)), PNG+TIFF: \(onPasteboard), oben im Verlauf: \(isTop)")
+            }
+        case let .pasteboardOnly(reason):
+            await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
+                (false, "nur in der Zwischenablage: \(reason)")
+            }
+        case let .failed(message):
+            await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
+                (false, "fehlgeschlagen: \(message)")
+            }
+        }
+    }
+
+    /// Rows of random pixels: every row unique, like text that never repeats.
+    private static func syntheticDocument(width: Int, height: Int) -> PixelBuffer {
+        var generator = SystemRandomNumberGenerator()
+        var bytes = [UInt8](repeating: 255, count: width * height * PixelBuffer.bytesPerPixel)
+        for index in bytes.indices where index % PixelBuffer.bytesPerPixel != 3 {
+            bytes[index] = UInt8.random(in: 0...255, using: &generator)
+        }
+        return PixelBuffer(width: width, height: height, bgra: bytes)
     }
 
     /// M2–M5: what gets recorded, and how.
