@@ -10,6 +10,7 @@ struct PopupRootView: View {
     let visuals: ClipVisuals
     let onSelect: @MainActor (Int) -> Void
     let onHover: @MainActor (Int) -> Void
+    let onShowList: @MainActor (PopupList) -> Void
 
     private var layout: PopupLayout { model.layout }
 
@@ -19,7 +20,7 @@ struct PopupRootView: View {
             silhouette
                 .fill(Theme.Notch.fill)
                 .shadow(color: .black.opacity(model.expanded ? 0.28 : 0), radius: 14, y: 6)
-            PopupContent(model: model, visuals: visuals, onSelect: onSelect, onHover: onHover)
+            PopupContent(model: model, visuals: visuals, onSelect: onSelect, onHover: onHover, onShowList: onShowList)
                 .frame(width: layout.bodySize.width, height: layout.bodySize.height, alignment: .top)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .mask { silhouette }
@@ -55,6 +56,7 @@ private struct PopupContent: View {
     let visuals: ClipVisuals
     let onSelect: @MainActor (Int) -> Void
     let onHover: @MainActor (Int) -> Void
+    let onShowList: @MainActor (PopupList) -> Void
 
     var body: some View {
         let items = model.visibleItems
@@ -136,25 +138,32 @@ private struct PopupContent: View {
         }
     }
 
+    /// Click or ⇥ switches between history and favorites.
     private var listSwitch: some View {
         HStack(spacing: 2) {
-            switchLabel("Verlauf", active: model.list == .history)
-            switchLabel("Favoriten", active: model.list == .favorites)
+            switchLabel("Verlauf", list: .history)
+            switchLabel("Favoriten", list: .favorites)
         }
         .padding(2)
         .background(Theme.Notch.control, in: Capsule())
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(model.list == .history ? Text("Verlauf, ⇥ wechselt zu Favoriten") : Text("Favoriten, ⇥ wechselt zum Verlauf"))
     }
 
-    private func switchLabel(_ title: LocalizedStringKey, active: Bool) -> some View {
-        Text(title)
-            .font(.system(size: 11.5, weight: .medium))
-            .foregroundStyle(active ? Theme.Notch.textPrimary : Theme.Notch.textSecondary)
-            .lineLimit(1)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 2)
-            .background(active ? Theme.Notch.selection : .clear, in: Capsule())
+    private func switchLabel(_ title: LocalizedStringKey, list: PopupList) -> some View {
+        let active = model.list == list
+        return Button {
+            onShowList(list)
+        } label: {
+            Text(title)
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundStyle(active ? Theme.Notch.textPrimary : Theme.Notch.textSecondary)
+                .lineLimit(1)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 2)
+                .background(active ? Theme.Notch.selection : .clear, in: Capsule())
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(active ? .isSelected : [])
     }
 
     // MARK: List and footer
@@ -198,12 +207,18 @@ private struct PopupContent: View {
         }
     }
 
+    /// ⌘P toggles: "add" for a normal entry, "remove" for a favorite (always in the
+    /// favorites list).
     private var footerText: LocalizedStringKey {
-        if model.query.isEmpty {
-            "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P anpinnen"
-        } else {
-            "↩ einfügen · ⌘1–8 Eintrag · ⇧↩ ohne Formatierung · esc Suche leeren"
+        if !model.query.isEmpty {
+            return "↩ einfügen · ⌘1–8 Eintrag · ⇧↩ ohne Formatierung · esc Suche leeren"
         }
+        if model.list == .favorites {
+            return "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Verlauf · ⌘P Favorit entfernen"
+        }
+        return model.selectedItem?.isPinned == true
+            ? "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit entfernen"
+            : "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit hinzufügen"
     }
 }
 

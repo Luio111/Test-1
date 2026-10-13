@@ -111,12 +111,32 @@
         }
       }
     },
-    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P anpinnen" : {
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit entfernen" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P pin"
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P remove favorite"
+          }
+        }
+      }
+    },
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit hinzufügen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P add favorite"
+          }
+        }
+      }
+    },
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Verlauf · ⌘P Favorit entfernen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ history · ⌘P remove favorite"
           }
         }
       }
@@ -1127,16 +1147,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Favorites are exempt from all limits."
-          }
-        }
-      }
-    },
-    "Favoriten, ⇥ wechselt zum Verlauf" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Favorites, ⇥ switches to the history"
           }
         }
       }
@@ -2267,16 +2277,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open History"
-          }
-        }
-      }
-    },
-    "Verlauf, ⇥ wechselt zu Favoriten" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "History, ⇥ switches to favorites"
           }
         }
       }

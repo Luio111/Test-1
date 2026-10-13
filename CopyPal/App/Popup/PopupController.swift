@@ -127,6 +127,13 @@ final class PopupController {
         return shape
     }
 
+    /// "Verlauf" or "Favoriten" clicked beside the notch (same as ⇥).
+    func showList(_ list: PopupList) {
+        guard model.list != list else { return }
+        model.list = list
+        contentChanged()
+    }
+
     /// The mouse moved onto row `index`: select it, so ⌘P, ⌘⌫ and ↩ act on it.
     func hover(_ index: Int) {
         guard NSEvent.mouseLocation != mouseLocationAtOpen else { return }
@@ -284,7 +291,8 @@ final class PopupController {
             model: model,
             visuals: visuals,
             onSelect: { [weak self] index in self?.paste(at: index, plainText: false) },
-            onHover: { [weak self] index in self?.hover(index) }
+            onHover: { [weak self] index in self?.hover(index) },
+            onShowList: { [weak self] list in self?.showList(list) }
         )
         return PopupPanel(contentView: NSHostingView(rootView: view))
     }

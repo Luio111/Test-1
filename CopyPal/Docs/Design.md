@@ -59,7 +59,8 @@ Entschieden (12.10.2026): **Variante A „dunkel wie die Notch“.** Das Pop-up 
 - **Aufbau, flach:** In der Höhe der Notch links die Suche, rechts „Verlauf | Favoriten“, die Mitte bleibt frei für die Kamera. Darunter bis zu 8 Zeilen à 28 pt, unten eine Hinweiszeile (26 pt). Breite 520 pt (breiter, wenn die Notch es verlangt).
 - **Farben** (`Theme.Notch`): Weiß 92 % Text, 60 % sekundär (6,3:1), 40 % nur dekorativ, Auswahl 14 %, Flächen 10 %.
 - **Bewegung** (`PopupMotion`): Öffnen als Feder 0,42 s mit leichtem Nachfedern („fällt“ aus der Notch), die Form deckt den Inhalt dabei auf, Zeilen folgen mit 18 ms Versatz. Schließen: Inhalt sofort weg, die schwarze Form zieht sich in 0,26 s zurück (eigenes, passives Fenster, damit Fokus und Einfügen sofort bei der App sind). „Bewegung reduzieren“ oder die Einstellung schaltet alles ab.
-- **Maus:** Darüberfahren wählt eine Zeile aus (erst nach einer echten Mausbewegung), Klick fügt ein.
+- **Maus:** Darüberfahren wählt eine Zeile aus (erst nach einer echten Mausbewegung), Klick fügt ein. „Verlauf“ und „Favoriten“ neben der Notch sind anklickbar (wie ⇥).
+- **Hinweiszeile:** ⌘P heißt „Favorit hinzufügen“ bzw. „Favorit entfernen“, je nach ausgewähltem Eintrag.
 
 ## Offen
 
