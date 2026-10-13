@@ -109,20 +109,6 @@ jobs:
       - name: Self-test (capture, history, ⌘V gesture, popup)
         timeout-minutes: 4
         run: CopyPal/scripts/ci-self-test.sh build/DerivedData/Build/Products/Debug/CopyPal.app
-      # Xcode (the IDE, not xcodebuild) syncs the String Catalog with the strings the
-      # compiler found after every build and rewrites it in its own order. The same sync
-      # runs here: the checked-in file must already be what Xcode writes, otherwise
-      # every local build changes it and `git pull` stops.
-      - name: String Catalog as Xcode writes it
-        run: CopyPal/scripts/ci-sync-string-catalog.sh build/DerivedData
-      - name: Keep the synced String Catalog
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: string-catalog
-          path: Localizable.synced.xcstrings
-          if-no-files-found: ignore
-          retention-days: 7
       - name: Keep the app for the macOS 14 smoke test
         if: inputs.macos14
         run: ditto -c -k --keepParent build/DerivedData/Build/Products/Debug/CopyPal.app CopyPal.zip

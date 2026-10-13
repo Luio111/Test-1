@@ -2,8 +2,19 @@ import SwiftUI
 
 /// A page section: small gray label above its content, like Notion's sidebar groups.
 struct SectionBlock<Content: View>: View {
-    let title: LocalizedStringKey
-    @ViewBuilder let content: Content
+    private let title: Text
+    private let content: Content
+
+    init(title: LocalizedStringKey, @ViewBuilder content: () -> Content) {
+        self.title = Text(title)
+        self.content = content()
+    }
+
+    /// Not translated and kept out of the String Catalog (debug-only views).
+    init(verbatim title: String, @ViewBuilder content: () -> Content) {
+        self.title = Text(verbatim: title)
+        self.content = content()
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
@@ -18,9 +29,22 @@ struct SectionBlock<Content: View>: View {
 
 /// Label/value row in the style of Notion page properties.
 struct PropertyRow<Value: View>: View {
-    let label: LocalizedStringKey
-    var systemImage: String?
-    @ViewBuilder let value: Value
+    private let label: Text
+    private let systemImage: String?
+    private let value: Value
+
+    init(label: LocalizedStringKey, systemImage: String? = nil, @ViewBuilder value: () -> Value) {
+        self.label = Text(label)
+        self.systemImage = systemImage
+        self.value = value()
+    }
+
+    /// Not translated and kept out of the String Catalog (debug-only views).
+    init(verbatim label: String, systemImage: String? = nil, @ViewBuilder value: () -> Value) {
+        self.label = Text(verbatim: label)
+        self.systemImage = systemImage
+        self.value = value()
+    }
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.m) {

@@ -6,6 +6,7 @@ turns interpolations into format specifiers (%lld for counts, %@ otherwise).
 
 Usage: scripts/check-localization.py            (from the CopyPal folder)
        scripts/check-localization.py --list     print the extracted keys
+       scripts/check-localization.py --fix      sort and format the catalog like Xcode
 """
 
 import re, sys, json, pathlib
@@ -113,7 +114,10 @@ if "--list" in sys.argv:
         print(json.dumps(k, ensure_ascii=False))
     sys.exit(0)
 
-catalog = json.loads((root / "Resources" / "Localizable.xcstrings").read_text())["strings"]
+catalog_path = root / "Resources" / "Localizable.xcstrings"
+catalog_text = catalog_path.read_text()
+catalog_data = json.loads(catalog_text)
+catalog = catalog_data["strings"]
 missing = sorted(k for k in keys if not catalog.get(k, {}).get("localizations", {}).get("en"))
 unused = sorted(k for k in catalog if k not in keys)
 for key in missing:
@@ -123,4 +127,18 @@ for key in unused:
 if missing:
     print(f"::error::{len(missing)} Text(e) ohne englische Übersetzung in App/Resources/Localizable.xcstrings")
     sys.exit(1)
+
+# The file is kept exactly as Xcode's xcstringstool writes it: keys in code point
+# order, 2-space indent, " : ", no newline at the end. Xcode itself does not rewrite
+# it (SWIFT_EMIT_LOC_STRINGS = NO, see Config/Base.xcconfig), so a pull never
+# collides with a local build.
+canonical = dict(catalog_data, strings=dict(sorted(catalog.items())))
+expected = json.dumps(canonical, indent=2, separators=(",", " : "), ensure_ascii=False)
+if catalog_text != expected:
+    if "--fix" in sys.argv:
+        catalog_path.write_text(expected)
+        print("Localizable.xcstrings neu geschrieben (Reihenfolge und Format wie Xcode).")
+    else:
+        print("::error::Localizable.xcstrings ist nicht sortiert oder anders formatiert – scripts/check-localization.py --fix")
+        sys.exit(1)
 print(f"Alle {len(keys)} Texte übersetzt.")
