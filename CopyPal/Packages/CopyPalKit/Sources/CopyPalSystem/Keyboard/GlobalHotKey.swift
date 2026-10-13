@@ -79,7 +79,7 @@ public final class GlobalHotKey {
                     EventParamName(kEventParamDirectObject),
                     EventParamType(typeEventHotKeyID),
                     nil,
-                    ByteCount(MemoryLayout<EventHotKeyID>.size),
+                    MemoryLayout<EventHotKeyID>.size,
                     nil,
                     &hotKeyID
                 )
