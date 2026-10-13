@@ -180,10 +180,10 @@ private struct GeneralSettings: View {
             }
             VStack(alignment: .leading, spacing: Theme.Spacing.s) {
                 SettingRow(title: "Tastenkürzel") {
-                    HotKeyRecorder(shortcut: $settings.hotKey) { candidate in
+                    HotKeyRecorder(shortcut: $settings.hotKey, isAllowed: { candidate in
                         popupShortcutTaken = candidate == settings.screenshotHotKey
                         return !popupShortcutTaken
-                    }
+                    })
                     .disabled(!settings.hotKeyEnabled)
                 }
                 if popupShortcutTaken {
@@ -200,10 +200,10 @@ private struct GeneralSettings: View {
             }
             VStack(alignment: .leading, spacing: Theme.Spacing.s) {
                 SettingRow(title: "Tastenkürzel", detail: "Voreingestellt ⌘⇧A. Chrome („Tabs durchsuchen“) und der Finder nutzen die Kombination ebenfalls – hier lässt sie sich ändern.") {
-                    HotKeyRecorder(shortcut: $settings.screenshotHotKey) { candidate in
+                    HotKeyRecorder(shortcut: $settings.screenshotHotKey, isAllowed: { candidate in
                         screenshotShortcutTaken = candidate == settings.hotKey
                         return !screenshotShortcutTaken
-                    }
+                    })
                     .disabled(!settings.screenshotEnabled)
                 }
                 if screenshotShortcutTaken {

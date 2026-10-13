@@ -74,6 +74,10 @@ public enum ScreenCaptureEngine {
         }
         let excluded = content.windows.filter { excludingWindowIDs.contains($0.windowID) }
         let filter = SCContentFilter(display: scDisplay, excludingWindows: excluded)
+        if #available(macOS 14.2, *) {
+            // Without this the menu bar is missing from display captures (R25).
+            filter.includeMenuBar = true
+        }
         let image = try await captureImage(filter: filter, pixels: pixels, scale: display.scale)
         if image.width == pixels.width, image.height == pixels.height {
             return ImageBox(image)
@@ -96,9 +100,6 @@ public enum ScreenCaptureEngine {
         configuration.captureResolution = .best
         configuration.pixelFormat = kCVPixelFormatType_32BGRA
         configuration.ignoreShadowsDisplay = true
-        if #available(macOS 14.2, *) {
-            configuration.includeMenuBar = true
-        }
         do {
             return try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration)
         } catch {

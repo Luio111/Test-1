@@ -1,4 +1,5 @@
 import AppKit
+import CopyPalCore
 import CopyPalSystem
 
 /// The menu bar icon and its menu. Kept short: CopyPal is used through ⌘V; the menu
