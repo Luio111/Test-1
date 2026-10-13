@@ -951,6 +951,16 @@
         }
       }
     },
+    "Die Bildschirmaufnahme ist nicht erteilt. Bildschirmfotos (⌘⇧A) sind so nicht möglich." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen Recording is not granted. Screenshots (⌘⇧A) are not possible without it."
+          }
+        }
+      }
+    },
     "Drei Beispiele kopieren" : {
       "localizations" : {
         "en" : {

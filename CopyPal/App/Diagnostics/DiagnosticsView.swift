@@ -85,6 +85,8 @@ struct DiagnosticsView: View {
             "Der Zugriff auf die Zwischenablage ist verboten. CopyPal kann nichts mitlesen."
         case .pasteboardStatusUnknown:
             "Der Zugriff auf die Zwischenablage lässt sich nicht auslesen. Baue die App mit Xcode 16.3 oder neuer."
+        case .screenCaptureDenied:
+            "Die Bildschirmaufnahme ist nicht erteilt. Bildschirmfotos (⌘⇧A) sind so nicht möglich."
         }
     }
 
