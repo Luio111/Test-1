@@ -18,7 +18,7 @@ struct SectionBlock<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            Text(title)
+            title
                 .font(Theme.Typography.label)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .padding(.bottom, Theme.Spacing.xs)
@@ -55,7 +55,7 @@ struct PropertyRow<Value: View>: View {
                         .frame(width: 16)
                         .accessibilityHidden(true)
                 }
-                Text(label)
+                label
             }
             .font(Theme.Typography.body)
             .foregroundStyle(Theme.Colors.textSecondary)
