@@ -105,7 +105,7 @@ expect_on() {
 
 publish "CopyPal 2"
 echo "export SOMETHING=1" > "$rc"
-oneliner="$(grep -m 1 '^d=~/Developer/Test-1;' "$scripts/../README.md")"
+oneliner="$(grep -m 1 '^d=; for c in ~/Developer/Test-1 ' "$scripts/../README.md")"
 [ -n "$oneliner" ] || fail "Einrichtungszeile fehlt in README.md"
 (cd "$HOME" && "$user_shell" -c "$oneliner") > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "Einrichtung"; }
 expect_on "Einrichtung mit der Zeile aus der README"
@@ -123,11 +123,32 @@ expect_on "Xcode hat Localizable.xcstrings verändert"
 [ "$(git -C "$repo" stash list | wc -l | tr -d ' ')" = 1 ] || fail "Änderung nicht im Stash"
 [ -z "$(tail -n 1 "$HOME/bootstrap.log" | cut -d ' ' -f 2)" ] || fail "--no-open nicht beachtet"
 grep -q "CopyPal 3" "$root/out.txt" || fail "neue Commits nicht angezeigt"
-pass "Änderung liegt im Stash, neue Commits werden angezeigt"
+grep -q "git -C " "$root/out.txt" || fail "Stash-Hinweis nennt den Ordner nicht (git -C …)"
+pass "Änderung liegt im Stash, neue Commits werden angezeigt, Hinweis klappt aus jedem Ordner"
 
 run_command > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "zweiter Lauf"; }
 grep -q "Schon aktuell" "$root/out.txt" || fail "zweiter Lauf meldet nicht „Schon aktuell“"
 pass "zweiter Lauf: schon aktuell"
+
+publish "CopyPal 3b"
+echo "staged" >> "$repo/CopyPal/version.txt"
+git -C "$repo" add CopyPal/version.txt
+git -C "$repo" show HEAD:CopyPal/version.txt > "$repo/CopyPal/version.txt"
+run_command > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "nur vorgemerkte Änderung"; }
+expect_on "nur im Index vorgemerkte Änderung"
+
+echo "lokal erzeugt" > "$repo/CopyPal/Package.resolved"
+git -C "$seed" switch -q "$branch"
+echo "von GitHub" > "$seed/CopyPal/Package.resolved"
+git -C "$seed" add -A
+git -C "$seed" commit -qm "Package.resolved eingecheckt"
+git -C "$seed" push -q origin "$branch"
+run_command > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "Datei im Weg"; }
+expect_on "unversionierte Datei im Weg der neuen Version"
+[ "$(cat "$repo/CopyPal/Package.resolved")" = "von GitHub" ] || fail "Datei im Weg: Stand von GitHub fehlt"
+grep -q "lokal erzeugt" "$(git -C "$repo" rev-parse --absolute-git-dir)"/copypal-backups/*-im-weg/CopyPal/Package.resolved \
+    || fail "Datei im Weg nicht gesichert"
+pass "Datei im Weg liegt in .git/copypal-backups"
 
 publish "CopyPal 4"
 git -C "$repo" switch -q main
@@ -140,6 +161,17 @@ git -C "$repo" checkout -q HEAD~1
 run_command > /dev/null 2>&1 || fail "losgelöster HEAD"
 expect_on "losgelöster HEAD auf älterem Commit"
 
+publish "CopyPal 5b"
+git -C "$repo" checkout -q --detach HEAD
+echo "losgelöst" >> "$repo/CopyPal/version.txt"
+git -C "$repo" commit -qam "Commit auf losgelöstem HEAD"
+own="$(git -C "$repo" rev-parse HEAD)"
+run_command > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "losgelöster HEAD mit Commit"; }
+expect_on "losgelöster HEAD mit eigenem Commit"
+git -C "$repo" for-each-ref --format='%(objectname)' 'refs/heads/copypal-sicherung-*' | grep -q "$own" \
+    || fail "Commit vom losgelösten HEAD nicht gesichert"
+pass "Commit vom losgelösten HEAD liegt im Sicherungs-Branch"
+
 # --- Interrupted git operations ------------------------------------------------------
 
 publish "CopyPal 6"
@@ -151,6 +183,14 @@ expect_on "eigener Commit, GitHub ist weiter"
 git -C "$repo" for-each-ref --format='%(objectname)' 'refs/heads/copypal-sicherung-*' | grep -q "$own" \
     || fail "eigener Commit nicht gesichert"
 pass "eigener Commit liegt im Sicherungs-Branch"
+
+git -C "$seed" switch -q "$branch"
+git -C "$seed" commit -q --amend -m "CopyPal 6 (auf GitHub umgeschrieben)"
+git -C "$seed" push -q -f origin "$branch"
+run_command > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "umgeschriebener Branch"; }
+expect_on "GitHub hat den Branch umgeschrieben (force-push)"
+grep -q "Eigene Commits" "$root/out.txt" && fail "GitHubs alte Commits werden als eigene gemeldet"
+pass "umgeschriebener Branch: keine falsche Sicherungsmeldung"
 
 publish "CopyPal 7"
 echo "lokal 2" >> "$repo/CopyPal/version.txt"
@@ -205,12 +245,30 @@ publish "Feature" feature/test
     || fail "COPYPAL_BRANCH"
 expect_on "COPYPAL_BRANCH=feature/test" feature/test
 
+if (cd / && COPYPAL_BRANCH=feature/tset "$user_shell" -c '. "$HOME/'"$(basename "$rc")"'"; copypal-update --no-open') > "$root/out.txt" 2>&1; then
+    fail "Tippfehler in COPYPAL_BRANCH wird nicht gemeldet"
+fi
+grep -q "gibt es auf GitHub nicht" "$root/out.txt" || { cat "$root/out.txt"; fail "Tippfehler in COPYPAL_BRANCH: unklare Meldung"; }
+[ "$(git -C "$repo" symbolic-ref -q --short HEAD)" = feature/test ] || fail "Tippfehler in COPYPAL_BRANCH wechselt den Branch"
+pass "Tippfehler in COPYPAL_BRANCH: Abbruch mit Meldung, nichts verändert"
+
 git -C "$seed" switch -q main
 git -C "$seed" merge -q --no-ff -m "Merge CopyPal" "$branch"
 git -C "$seed" push -q origin main
+run_command > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "nach dem Merge (Branch noch da)"; }
+expect_on "Branch gemergt, auf GitHub noch vorhanden: weiter mit main" main
+
 git -C "$seed" push -q origin --delete "$branch"
 run_command > /dev/null 2>&1 || fail "nach dem Merge"
 expect_on "Branch gemergt und gelöscht: weiter mit main" main
+
+rm -rf "$repo"
+git clone -q "$origin" "$repo"
+echo "export SOMETHING=1" > "$rc"
+(cd "$HOME" && "$user_shell" -c "$oneliner") > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "Einrichtung nach dem Merge"; }
+expect_on "Einrichtungszeile aus der README nach Merge und Löschen des Branches" main
+grep -q "copypal-update()" "$rc" || fail "Einrichtung nach dem Merge: Befehl fehlt"
+pass "Einrichtungszeile fällt auf main zurück"
 
 # --- Installing again, a symlinked startup file ------------------------------------------
 
@@ -225,9 +283,22 @@ done
 grep -q '^export SOMETHING=1$' "$rc" || fail "bestehende Zeilen verloren"
 pass "erneutes Einrichten: einmal eingetragen, Symlink bleibt"
 
+if [ "$(basename "$user_shell")" = bash ]; then
+    rm -f "$HOME/.bash_profile" "$HOME/.bash_login"
+    echo 'export FROM_PROFILE=yes' > "$HOME/.profile"
+    COPYPAL_REPO="$repo" bash "$repo/CopyPal/scripts/update.sh" --install --no-open > /dev/null 2>&1 || fail "Einrichtung für bash"
+    [ "$(bash -l -c 'echo "$FROM_PROFILE"')" = yes ] || fail "neue .bash_profile überdeckt .profile"
+    bash -l -c 'type copypal-update' > /dev/null 2>&1 || fail "copypal-update fehlt in der Login-Shell"
+    pass "bash: neue .bash_profile liest .profile weiter"
+fi
+
 mv "$repo" "$root/moved"
 if run_command > "$root/out.txt" 2>&1; then fail "fehlender Ordner meldet keinen Fehler"; fi
 grep -q "kein Git-Ordner" "$root/out.txt" || fail "fehlender Ordner: unklare Meldung"
 pass "fehlender Ordner: verständliche Meldung"
+mv "$root/moved" "$repo"
+(cd / && COPYPAL_REPO="$repo" "$user_shell" -c '. "$HOME/'"$(basename "$rc")"'"; copypal-update --no-open') > "$root/out.txt" 2>&1 \
+    || { cat "$root/out.txt"; fail "COPYPAL_REPO im eingerichteten Befehl"; }
+pass "eingerichteter Befehl beachtet COPYPAL_REPO"
 
 echo "Alle Prüfungen von copypal-update bestanden."

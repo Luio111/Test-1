@@ -47,17 +47,17 @@ Ein Befehl, egal in welchem Ordner du gerade bist:
 copypal-update
 ```
 
-Er holt den CopyPal-Branch von GitHub (nach dem Merge `main`) und legt lokale Änderungen, meist von Xcode, beiseite (`git stash`). Dann erzeugt er `CopyPal.xcodeproj` neu und öffnet Xcode. Dort **⌘R** drücken. Eigene Commits sichert er vorher im Branch `copypal-sicherung-…`.
+Er holt den CopyPal-Branch von GitHub (sobald der in `main` gemergt ist: `main`) und legt lokale Änderungen, meist von Xcode, beiseite (`git stash`). Dann erzeugt er `CopyPal.xcodeproj` neu und öffnet Xcode. Dort **⌘R** drücken. Eigene Commits sichert er vorher im Branch `copypal-sicherung-…`.
 
-Einmalig einrichten: Diese Zeile ins Terminal kopieren. Sie sucht das Repository in `~/Developer/Test-1`, sonst in `~/Test-1`:
+Einmalig einrichten: Diese Zeile ins Terminal kopieren. Sie sucht das Repository in `~/Developer/Test-1`, `~/Test-1`, `~/Documents/Test-1` und `~/Desktop/Test-1`:
 
 ```sh
-d=~/Developer/Test-1; [ -d "$d" ] || d=~/Test-1; b=claude/amazing-volta-1uce5i; git -C "$d" fetch origin "+refs/heads/${b}:refs/remotes/origin/${b}" && COPYPAL_REPO="$d" bash -c "$(git -C "$d" show "origin/${b}:CopyPal/scripts/update.sh")" update.sh --install
+d=; for c in ~/Developer/Test-1 ~/Test-1 ~/Documents/Test-1 ~/Desktop/Test-1; do [ -d "$c/.git" ] && d=$c && break; done; s=; for b in claude/amazing-volta-1uce5i main; do git -C "$d" fetch -q origin "+refs/heads/${b}:refs/copypal/${b}" 2>/dev/null && s="$(git -C "$d" show "refs/copypal/${b}:CopyPal/scripts/update.sh")" && break; done; if [ -n "$s" ]; then COPYPAL_REPO="$d" bash -c "$s" update.sh --install; else echo "Ordner Test-1 nicht gefunden oder GitHub nicht erreichbar (angemeldet? gh auth login)"; fi
 ```
 
-Danach ein neues Terminal-Fenster öffnen. Ohne eingerichteten Befehl geht es auch direkt: `~/Developer/Test-1/CopyPal/scripts/update.sh`.
+Danach ein neues Terminal-Fenster öffnen. Fehlt der Befehl später einmal (neuer Mac, verschobener Ordner), einfach die Zeile erneut einfügen – sie aktualisiert ebenfalls.
 
-- **Anderen Branch testen:** `COPYPAL_BRANCH=<branch> copypal-update`
+- **Anderen Branch testen:** `COPYPAL_BRANCH=<branch> copypal-update` (gibt es den Branch nicht, bricht der Befehl ab)
 - **Xcode nicht öffnen:** `copypal-update --no-open`
 
 `CopyPal.xcodeproj` wird erzeugt und nie eingecheckt. Wer von Hand pullt oder den Branch wechselt, muss danach `./scripts/bootstrap.sh` ausführen. Die Checkliste steht im PR bzw. in `Docs/Testplaene/`.
