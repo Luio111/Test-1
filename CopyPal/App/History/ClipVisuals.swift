@@ -194,10 +194,14 @@ struct ClipLeadingVisual: View {
                     .fill(Color(.sRGB, red: color.red, green: color.green, blue: color.blue, opacity: color.alpha))
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Theme.Colors.divider))
             } else if let thumbnail = visuals.thumbnail(for: item) {
+                // Square crop in the icon column: framed before clipping, so wide
+                // screenshots do not spill over the number and the title.
                 Image(nsImage: thumbnail)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
+                    .frame(width: size, height: size)
                     .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Theme.Colors.divider))
             } else if let favicon = visuals.favicon(for: item) {
                 Image(nsImage: favicon)
                     .resizable()
