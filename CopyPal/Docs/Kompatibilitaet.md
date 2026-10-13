@@ -60,6 +60,24 @@ Runden laut ROADMAP §4.3: M1 (Gruppe A: Tippen, Halten, Fokus) · M4 (Gruppe A 
 | Japanische/chinesische Eingabe | Suche im Pop-up nimmt nur direkt getippte Zeichen (keine Kandidatenauswahl). | Suchen mit lateinischen Buchstaben oder im Verlaufsfenster |
 | Diktat | | |
 
+## Bildschirmfoto (M11)
+
+**Einrasten**: Klick auf Button, Bild, Absatz und Fenster liefert den passenden Ausschnitt. **Erweitern**: ↓ setzt die Seite ohne doppelte oder fehlende Zeilen zusammen. **Einfügen**: Das Ergebnis lässt sich dort einfügen.
+
+| App | Einrasten | Erweitern | Einfügen | Bemerkung |
+|---|---|---|---|---|
+| Safari | | | | Einfügen nutzt TIFF |
+| Chrome | | | | ⌘⇧A ist dort „Tabs durchsuchen“ – CopyPal hat Vorrang |
+| Firefox | | | | |
+| Arc | | | | |
+| Notion | | | | fester Header: erscheint einmal |
+| Slack | | | | |
+| Mail | | | | Einfügen nutzt TIFF |
+| Finder | | | – | ⌘⇧A ist dort „Programme“ – CopyPal hat Vorrang |
+| Terminal / iTerm2 | | | – | Erweitern erwartet „Kein Übergang gefunden“ bei gleichen Zeilen |
+| VS Code | | | – | |
+| Nachrichten | | | | Hintergrundbild kann das Erweitern stoppen |
+
 ## Tool-Konflikte
 
 | Tool | Verhalten | Umgehung |
@@ -68,4 +86,6 @@ Runden laut ROADMAP §4.3: M1 (Gruppe A: Tippen, Halten, Fokus) · M4 (Gruppe A 
 | BetterTouchTool | | |
 | Keyboard Maestro | | |
 | TextExpander | | |
+| Mos / Scroll Reverser | Drehen auch CopyPals Scroll-Ereignisse um: Erweitern läuft nach oben. | Einstellungen → Bildschirmfoto → „Scrollrichtung umkehren“ |
+| CleanShot X / Shottr (eigenes ⌘⇧A o. Ä.) | Wer das Kürzel zuerst belegt, bekommt es; CopyPal zeigt dann „Von einer anderen App belegt“. | Kürzel in einer der Apps ändern |
 | Raycast / Alfred (eigener Clipboard-Verlauf) | Beide Verläufe laufen parallel. CopyPals Einfügungen tragen `org.nspasteboard.source`; sensible tragen `ConcealedType`. | Den Verlauf des anderen Tools abschalten |

@@ -6,6 +6,7 @@ Nativer Clipboard-Manager für den Mac: **⌘V tippen** fügt wie gewohnt ein, *
 - Alles bleibt **verschlüsselt auf diesem Mac**: AES-GCM, der Schlüssel liegt im Schlüsselbund. Kein Netz, keine Statistik.
 - Passwortmanager werden nie gespeichert. IBAN, Kartennummern, API-Schlüssel und Einmalcodes werden verdeckt und nach einer Minute gelöscht.
 - **⌃⌥V** öffnet den Verlauf auch ohne Bedienungshilfen-Freigabe.
+- **⌘⇧A** macht ein Bildschirmfoto: Klick nimmt Fenster oder Bereich auf, Ziehen wählt frei, **↓** nimmt auch auf, was unterhalb noch nicht sichtbar ist.
 
 Plan und Stand: [Docs/ROADMAP.md](Docs/ROADMAP.md) · Design: [Docs/Design.md](Docs/Design.md) · Probleme: [Docs/Troubleshooting.md](Docs/Troubleshooting.md)
 

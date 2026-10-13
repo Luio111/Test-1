@@ -72,6 +72,25 @@ Das Pop-up ist ein eigenes Fenster, das beim Öffnen auf den gerade sichtbaren S
 - Umgehung: Vollbild kurz verlassen und wieder betreten, dann ⌘V halten.
 - Bitte melden mit macOS-Version, der App im Vollbild und ob CopyPal kurz vorher neu gestartet wurde.
 
+## Bildschirmaufnahme: Häkchen gesetzt, aber ⌘⇧A zeigt weiter das Berechtigungsfenster
+
+macOS übernimmt die Freigabe „Bildschirmaufnahme“ oft erst nach einem Neustart der App. Das Berechtigungsfenster erkennt das und zeigt „CopyPal neu starten“.
+
+- Hilft das nicht: CopyPal beenden, `tccutil reset ScreenCapture <bundle-id>`, CopyPal starten, ⌘⇧A, „Freigabe anfordern“.
+- Ein Eintrag, der in den Systemeinstellungen entfernt und neu hinzugefügt wurde, greift manchmal erst nach einem Neustart des Macs.
+- Ad-hoc-signierte Builds („Sign to Run Locally“) bekommen die Freigabe nie dauerhaft – wie bei den Bedienungshilfen die Apple-Development-Signierung verwenden.
+
+## macOS 15 fragt monatlich nach der Bildschirmaufnahme
+
+Ab macOS 15 fragt das System etwa einmal im Monat, ob CopyPal den Bildschirm weiter aufnehmen darf. Das ist so gewollt. Der Dialog erscheint vor dem Overlay; nach „Erlauben“ läuft die Aufnahme weiter.
+
+## Erweitern (↓) scrollt in die falsche Richtung oder gar nicht
+
+- Falsche Richtung: Tools wie Mos oder Scroll Reverser drehen auch CopyPals Scroll-Ereignisse um. Einstellungen → Allgemein → Bildschirmfoto → „Scrollrichtung umkehren“.
+- Gar nicht, Status „Inhalt scrollt nicht“: Ein anderes Fenster liegt über der Auswahl, oder die App scrollt nicht mit dem Mausrad. Das Erweitern braucht die Bedienungshilfen-Freigabe (wie ⌘V).
+- „Kein Übergang gefunden“: Die App verändert beim Scrollen mehr als den Inhalt (Animationen, Hintergrundbilder, sich wiederholende Zeilen). Der bisherige Teil bleibt erhalten; ⏎ nimmt ihn auf.
+- Labor (Debug-Build) → „Ohne Zeiger-Sprung scrollen“ hilft beim Eingrenzen.
+
 ## Weitere Befehle
 
 | Zweck | Befehl |

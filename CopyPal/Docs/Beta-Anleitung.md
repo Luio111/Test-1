@@ -22,6 +22,7 @@ Danke fürs Testen! CopyPal ist ein Clipboard-Manager für den Mac:
 - `⇥` zeigt die Favoriten, `⌘P` pinnt den ausgewählten Eintrag an.
 - Menüleiste → Verlauf öffnen: alle Einträge, Favoriten benennen und sortieren.
 - Passwörter aus deinem Passwortmanager landen nie im Verlauf. IBAN, Kartennummern und Schlüssel erscheinen verdeckt und verschwinden nach einer Minute.
+- `⌘⇧A` macht ein Bildschirmfoto: Maus über ein Fenster oder einen Bereich, Klick nimmt auf, Ziehen wählt frei. `↓` scrollt weiter und setzt alles zu einem langen Bild zusammen. Beim ersten Mal fragt CopyPal nach der Freigabe „Bildschirmaufnahme“; ab macOS 15 fragt macOS etwa einmal im Monat erneut nach – das ist normal.
 
 ## Datenschutz
 
