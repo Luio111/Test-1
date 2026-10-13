@@ -146,7 +146,7 @@ private struct GeneralSettings: View {
 
         SectionBlock(title: "⌘V halten") {
             SettingRow(title: "⌘V halten öffnet den Verlauf", detail: "Aus: ⌘V bleibt völlig unverändert, der Verlauf öffnet sich nur mit dem Tastenkürzel.") {
-                Toggle("", isOn: $settings.holdGestureEnabled).labelsHidden().toggleStyle(.switch)
+                RowSwitch(isOn: $settings.holdGestureEnabled)
             }
             SettingRow(title: "Halteschwelle", detail: "So lange musst du ⌘V halten. Kürzer wirkt schneller, länger verhindert Versehen.") {
                 HStack(spacing: Theme.Spacing.m) {
@@ -176,7 +176,7 @@ private struct GeneralSettings: View {
 
         SectionBlock(title: "Tastenkürzel") {
             SettingRow(title: "Verlauf mit Tastenkürzel öffnen", detail: "Funktioniert auch ohne Bedienungshilfen-Freigabe.") {
-                Toggle("", isOn: $settings.hotKeyEnabled).labelsHidden().toggleStyle(.switch)
+                RowSwitch(isOn: $settings.hotKeyEnabled)
             }
             SettingRow(title: "Tastenkürzel") {
                 HotKeyRecorder(shortcut: $settings.hotKey)
@@ -188,10 +188,10 @@ private struct GeneralSettings: View {
 
         SectionBlock(title: "Darstellung") {
             SettingRow(title: "Animation aus der Notch", detail: "Folgt automatisch „Bewegung reduzieren“ in den Bedienungshilfen.") {
-                Toggle("", isOn: $settings.animatePopup).labelsHidden().toggleStyle(.switch)
+                RowSwitch(isOn: $settings.animatePopup)
             }
             SettingRow(title: "„Kopiert“ an der Notch zeigen") {
-                Toggle("", isOn: $settings.showCopyFeedback).labelsHidden().toggleStyle(.switch)
+                RowSwitch(isOn: $settings.showCopyFeedback)
             }
         }
 
@@ -272,19 +272,23 @@ private struct HistorySettings: View {
 
         SectionBlock(title: "Umfang") {
             SettingRow(title: "Einträge im Verlauf", detail: "Ältere Einträge werden automatisch gelöscht.") {
-                Picker("", selection: $settings.historyLimit) {
+                Picker(selection: $settings.historyLimit) {
                     ForEach(AppSettings.historyLimitOptions, id: \.self) { value in
                         Text(verbatim: "\(value)").tag(value)
                     }
+                } label: {
+                    EmptyView()
                 }
                 .labelsHidden()
                 .frame(width: 120)
             }
             SettingRow(title: "Aufbewahren", detail: "Einträge, die so lange nicht benutzt wurden, verschwinden.") {
-                Picker("", selection: $settings.retentionDays) {
+                Picker(selection: $settings.retentionDays) {
                     ForEach(AppSettings.retentionDayOptions, id: \.self) { days in
                         Text(Self.retentionLabel(days)).tag(days)
                     }
+                } label: {
+                    EmptyView()
                 }
                 .labelsHidden()
                 .frame(width: 120)
@@ -295,10 +299,12 @@ private struct HistorySettings: View {
 
         SectionBlock(title: "iPhone (Universelle Zwischenablage)") {
             SettingRow(title: "Kopien vom iPhone", detail: remoteDetail) {
-                Picker("", selection: $settings.remoteClipboardMode) {
+                Picker(selection: $settings.remoteClipboardMode) {
                     Text("Erst bei Auswahl laden").tag(RemoteClipboardMode.onDemand)
                     Text("Sofort übernehmen").tag(RemoteClipboardMode.readImmediately)
                     Text("Ignorieren").tag(RemoteClipboardMode.ignore)
+                } label: {
+                    EmptyView()
                 }
                 .labelsHidden()
                 .frame(width: 200)
@@ -309,7 +315,7 @@ private struct HistorySettings: View {
 
         SectionBlock(title: "Vorschauen") {
             SettingRow(title: "Website-Symbole laden", detail: "Lädt das Symbol einer kopierten Website aus dem Netz. Aus: CopyPal stellt nie eine Verbindung her.") {
-                Toggle("", isOn: $settings.loadFavicons).labelsHidden().toggleStyle(.switch)
+                RowSwitch(isOn: $settings.loadFavicons)
             }
         }
 
@@ -360,19 +366,21 @@ private struct PrivacySettingsPage: View {
 
         SectionBlock(title: "Sensible Inhalte") {
             SettingRow(title: "Sensible Einträge löschen nach", detail: "IBAN, Kartennummern, API-Schlüssel und Einmalcodes werden verdeckt angezeigt, sind nicht durchsuchbar und gehen nie ans iPhone.") {
-                Picker("", selection: $settings.sensitiveLifetimeSeconds) {
+                Picker(selection: $settings.sensitiveLifetimeSeconds) {
                     ForEach(AppSettings.sensitiveLifetimeOptions, id: \.self) { seconds in
                         Text(Self.lifetimeLabel(seconds)).tag(seconds)
                     }
+                } label: {
+                    EmptyView()
                 }
                 .labelsHidden()
                 .frame(width: 120)
             }
             SettingRow(title: "Einmalcodes erkennen", detail: "Sechsstellige Zahlen wie „123 456“ gelten als sensibel.") {
-                Toggle("", isOn: $settings.detectOneTimeCodes).labelsHidden().toggleStyle(.switch)
+                RowSwitch(isOn: $settings.detectOneTimeCodes)
             }
             SettingRow(title: "Zwischenablage danach leeren", detail: "Liegt ein sensibler Eintrag beim Ablauf noch in der Zwischenablage, wird sie geleert.") {
-                Toggle("", isOn: $settings.clearPasteboardAfterSensitive).labelsHidden().toggleStyle(.switch)
+                RowSwitch(isOn: $settings.clearPasteboardAfterSensitive)
             }
         }
 
@@ -634,7 +642,7 @@ private struct AboutPage: View {
             }
             if updates.isAvailable {
                 SettingRow(title: "Beta-Versionen erhalten", detail: "Neue Funktionen früher – mit kleinem Risiko.") {
-                    Toggle("", isOn: $settings.betaUpdates).labelsHidden().toggleStyle(.switch)
+                    RowSwitch(isOn: $settings.betaUpdates)
                 }
                 Button("Nach Updates suchen …") { updates.checkForUpdates() }
                     .buttonStyle(SubtleButtonStyle())

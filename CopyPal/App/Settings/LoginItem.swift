@@ -91,12 +91,10 @@ struct LoginItemSetting: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.s) {
             SettingRow(title: "Bei der Anmeldung starten", detail: currentDetail) {
-                Toggle("", isOn: Binding(
+                RowSwitch(isOn: Binding(
                     get: { loginItem.isOn },
                     set: { loginItem.setEnabled($0) }
                 ))
-                .labelsHidden()
-                .toggleStyle(.switch)
             }
             if let error = loginItem.lastError {
                 Label {

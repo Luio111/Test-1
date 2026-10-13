@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
+    "„Kopiert“ an der Notch zeigen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show “Copied” at the notch"
+          }
+        }
+      }
+    },
     "%lld Dateien: %@" : {
       "localizations" : {
         "en" : {
@@ -37,6 +47,76 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld days"
+          }
+        }
+      }
+    },
+    "↩ einfügen · ⌘1–8 Eintrag · ⇧↩ ohne Formatierung · esc Suche leeren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↩ paste · ⌘1–8 entry · ⇧↩ without formatting · esc clear search"
+          }
+        }
+      }
+    },
+    "⌘C kopiert wie immer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘C copies as always"
+          }
+        }
+      }
+    },
+    "⌘P im Verlauf macht einen Eintrag zum Favoriten." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘P in the history makes an entry a favorite."
+          }
+        }
+      }
+    },
+    "⌘V halten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Holding ⌘V"
+          }
+        }
+      }
+    },
+    "⌘V halten öffnet den Verlauf" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Holding ⌘V opens the history"
+          }
+        }
+      }
+    },
+    "⌘V kurz drücken fügt ein" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tapping ⌘V pastes"
+          }
+        }
+      }
+    },
+    "⌘V kurz drücken fügt wie gewohnt ein. ⌘V halten öffnet den Verlauf an der Notch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tapping ⌘V pastes as usual. Holding ⌘V opens the history at the notch."
           }
         }
       }
@@ -91,6 +171,16 @@
         }
       }
     },
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P anpinnen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P pin"
+          }
+        }
+      }
+    },
     "1. Beispiele kopieren · 2. ins Feld klicken · 3. ⌘V halten und 2 drücken." : {
       "localizations" : {
         "en" : {
@@ -101,22 +191,22 @@
         }
       }
     },
+    "5 Minuten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minutes"
+          }
+        }
+      }
+    },
     "15 Minuten" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "15 minutes"
-          }
-        }
-      }
-    },
-    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P anpinnen" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P pin"
           }
         }
       }
@@ -137,16 +227,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "30 days"
-          }
-        }
-      }
-    },
-    "5 Minuten" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5 minutes"
           }
         }
       }
@@ -307,6 +387,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copy as Plain Text"
+          }
+        }
+      }
+    },
+    "Ältere Einträge werden automatisch gelöscht." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Older entries are deleted automatically."
           }
         }
       }
@@ -681,6 +771,26 @@
         }
       }
     },
+    "CopyPal – Aufzeichnung pausiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal – recording paused"
+          }
+        }
+      }
+    },
+    "CopyPal – Berechtigung fehlt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal – permission missing"
+          }
+        }
+      }
+    },
     "CopyPal %@" : {
       "localizations" : {
         "en" : {
@@ -737,26 +847,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "CopyPal uses GRDB (MIT license) and Sparkle (MIT license); swift-crypto (Apache 2.0) for tests only."
-          }
-        }
-      }
-    },
-    "CopyPal – Aufzeichnung pausiert" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CopyPal – recording paused"
-          }
-        }
-      }
-    },
-    "CopyPal – Berechtigung fehlt" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CopyPal – permission missing"
           }
         }
       }
@@ -1391,22 +1481,22 @@
         }
       }
     },
-    "Jetzt testen" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Test Now"
-          }
-        }
-      }
-    },
     "Jetzt ⌘V drücken" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Press ⌘V now"
+          }
+        }
+      }
+    },
+    "Jetzt testen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test Now"
           }
         }
       }
@@ -1561,6 +1651,16 @@
         }
       }
     },
+    "Lädt das Symbol einer kopierten Website aus dem Netz. Aus: CopyPal stellt nie eine Verbindung her." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loads the icon of a copied website from the internet. Off: CopyPal never connects."
+          }
+        }
+      }
+    },
     "Lesetest" : {
       "localizations" : {
         "en" : {
@@ -1617,16 +1717,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Let’s Go"
-          }
-        }
-      }
-    },
-    "Lädt das Symbol einer kopierten Website aus dem Netz. Aus: CopyPal stellt nie eine Verbindung her." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loads the icon of a copied website from the internet. Off: CopyPal never connects."
           }
         }
       }
@@ -1901,22 +1991,22 @@
         }
       }
     },
-    "Passwortmanager und markierte Inhalte werden nie gespeichert." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password managers and marked content are never stored."
-          }
-        }
-      }
-    },
     "Passwörter bleiben draußen" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Passwords stay out"
+          }
+        }
+      }
+    },
+    "Passwortmanager und markierte Inhalte werden nie gespeichert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password managers and marked content are never stored."
           }
         }
       }
@@ -2121,22 +2211,22 @@
         }
       }
     },
-    "Systemeinstellungen öffnen" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open System Settings"
-          }
-        }
-      }
-    },
     "Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen → CopyPal einschalten. Diese Seite erkennt die Freigabe automatisch." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "System Settings → Privacy & Security → Accessibility → turn on CopyPal. This page notices the permission automatically."
+          }
+        }
+      }
+    },
+    "Systemeinstellungen öffnen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
           }
         }
       }
@@ -2197,6 +2287,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Type to search"
+          }
+        }
+      }
+    },
+    "Über" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        }
+      }
+    },
+    "Übungsfeld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Practice field"
           }
         }
       }
@@ -2411,6 +2521,16 @@
         }
       }
     },
+    "Während der Pause speichert CopyPal nichts. Das Menüleisten-Symbol zeigt die Pause." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "While paused, CopyPal stores nothing. The menu bar icon shows the pause."
+          }
+        }
+      }
+    },
     "Website-Symbole laden" : {
       "localizations" : {
         "en" : {
@@ -2447,16 +2567,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stored like a copy on the Mac. macOS may briefly show “Pasting from iPhone”."
-          }
-        }
-      }
-    },
-    "Während der Pause speichert CopyPal nichts. Das Menüleisten-Symbol zeigt die Pause." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "While paused, CopyPal stores nothing. The menu bar icon shows the pause."
           }
         }
       }
@@ -2587,116 +2697,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clear the clipboard afterwards"
-          }
-        }
-      }
-    },
-    "Ältere Einträge werden automatisch gelöscht." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Older entries are deleted automatically."
-          }
-        }
-      }
-    },
-    "Über" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "About"
-          }
-        }
-      }
-    },
-    "Übungsfeld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Practice field"
-          }
-        }
-      }
-    },
-    "„Kopiert“ an der Notch zeigen" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show “Copied” at the notch"
-          }
-        }
-      }
-    },
-    "↩ einfügen · ⌘1–8 Eintrag · ⇧↩ ohne Formatierung · esc Suche leeren" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "↩ paste · ⌘1–8 entry · ⇧↩ without formatting · esc clear search"
-          }
-        }
-      }
-    },
-    "⌘C kopiert wie immer" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⌘C copies as always"
-          }
-        }
-      }
-    },
-    "⌘P im Verlauf macht einen Eintrag zum Favoriten." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⌘P in the history makes an entry a favorite."
-          }
-        }
-      }
-    },
-    "⌘V halten" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Holding ⌘V"
-          }
-        }
-      }
-    },
-    "⌘V halten öffnet den Verlauf" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Holding ⌘V opens the history"
-          }
-        }
-      }
-    },
-    "⌘V kurz drücken fügt ein" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tapping ⌘V pastes"
-          }
-        }
-      }
-    },
-    "⌘V kurz drücken fügt wie gewohnt ein. ⌘V halten öffnet den Verlauf an der Notch." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tapping ⌘V pastes as usual. Holding ⌘V opens the history at the notch."
           }
         }
       }

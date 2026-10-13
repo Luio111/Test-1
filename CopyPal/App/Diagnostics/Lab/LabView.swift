@@ -159,10 +159,12 @@ struct LabView: View {
     private var pasteboardSection: some View {
         SectionBlock(title: "Zwischenablage (M2)") {
             PropertyRow(label: "iPhone-Kopien", systemImage: "iphone") {
-                Picker("", selection: $model.remoteMode) {
+                Picker(selection: $model.remoteMode) {
                     Text("Erst bei Auswahl laden").tag(RemoteClipboardMode.onDemand)
                     Text("Sofort lesen").tag(RemoteClipboardMode.readImmediately)
                     Text("Nur Typen (ignorieren)").tag(RemoteClipboardMode.ignore)
+                } label: {
+                    EmptyView()
                 }
                 .labelsHidden()
                 .frame(width: 220)

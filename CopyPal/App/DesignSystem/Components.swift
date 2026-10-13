@@ -128,6 +128,18 @@ private struct HoverableLabel: View {
     }
 }
 
+/// The switch of a `SettingRow`. The row's title names it (also for VoiceOver), so
+/// it has no own label – and no empty string that would land in the String Catalog.
+struct RowSwitch: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Toggle(isOn: $isOn) { EmptyView() }
+            .labelsHidden()
+            .toggleStyle(.switch)
+    }
+}
+
 /// One setting: title and optional explanation on the left, the control on the right.
 struct SettingRow<Control: View>: View {
     let title: LocalizedStringKey
