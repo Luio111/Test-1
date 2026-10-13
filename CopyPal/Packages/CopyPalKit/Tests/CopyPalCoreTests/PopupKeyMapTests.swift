@@ -71,5 +71,17 @@ struct HotKeyShortcutTests {
         #expect(!HotKeyShortcut(keyCode: 9, modifiers: .shift).isValid)
         #expect(!HotKeyShortcut(keyCode: 9, modifiers: .command).isValid)
         #expect(HotKeyShortcut(keyCode: 9, modifiers: [.command, .shift]).isValid)
+        #expect(HotKeyShortcut.screenshotStandard.isValid)
+    }
+
+    @Test func standardCommandsAreRefused() {
+        let command = HotKeyShortcut(keyCode: 6, modifiers: .command)
+        for name in ["C", "x", "V", "Z", "A", "Q", "W", "H", "M", "⇥", "Space"] {
+            #expect(command.isStandardCommand(keyName: name), "⌘\(name)")
+        }
+        #expect(!command.isStandardCommand(keyName: "K"))
+        #expect(HotKeyShortcut(keyCode: 6, modifiers: [.command, .shift]).isStandardCommand(keyName: "Z"))
+        #expect(!HotKeyShortcut.screenshotStandard.isStandardCommand(keyName: "A"))
+        #expect(!HotKeyShortcut.standard.isStandardCommand(keyName: "V"))
     }
 }

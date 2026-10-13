@@ -20,7 +20,8 @@ enum ScreenshotResultWriter {
         case failed(String)
     }
 
-    /// `sourceBundleID` is the app whose window the selection covers (ignore list).
+    /// `sourceBundleID` is the app whose window the selection covers (ignore list,
+    /// history icon).
     static func publish(_ image: ImageBox, scale: CGFloat, sourceBundleID: String?, app: AppController) async -> Outcome {
         let maxBytes = AppSettings.retentionPolicy.maxImageBytes
         let encoded = await Task.detached(priority: .userInitiated) { () -> (ImageConversion.FittedPNG, Data)? in
@@ -35,18 +36,22 @@ enum ScreenshotResultWriter {
         }
         let (fitted, tiff) = encoded
 
+        // An ignored app (a password manager) in the picture: this Mac only, marked
+        // concealed for other clipboard tools, never in the history.
+        let fromIgnoredApp = sourceBundleID.map { AppSettings.ignoredBundleIDs.contains($0) } ?? false
         let representations = [
             ClipRepresentation(type: PasteboardTypeID.png, data: fitted.data),
             ClipRepresentation(type: PasteboardTypeID.tiff, data: tiff),
         ]
-        let changeCount = PasteboardWriter.write(representations, to: app.capture.monitor.pasteboard)
+        let options = PasteboardWriter.Options(localOnly: fromIgnoredApp, concealed: fromIgnoredApp)
+        let changeCount = PasteboardWriter.write(representations, to: app.capture.monitor.pasteboard, options: options)
         app.capture.registerOwnWrite(changeCount: changeCount)
         Log.app.info("Bildschirmfoto: \(fitted.image.width, privacy: .public) × \(fitted.image.height, privacy: .public) px, PNG \(fitted.data.count, privacy: .public) B\(fitted.downscaled ? ", verkleinert" : "", privacy: .public)")
 
         if app.capture.isPaused {
             return .pasteboardOnly(.paused)
         }
-        if let sourceBundleID, AppSettings.ignoredBundleIDs.contains(sourceBundleID) {
+        if fromIgnoredApp {
             return .pasteboardOnly(.ignoredApp)
         }
         if fitted.data.count > maxBytes {
@@ -55,7 +60,8 @@ enum ScreenshotResultWriter {
 
         let content = CapturedContent(
             representations: [ClipRepresentation(type: PasteboardTypeID.png, data: fitted.data)],
-            sourceBundleID: Bundle.main.bundleIdentifier
+            // The captured app, so the history shows its icon (CopyPal when unknown).
+            sourceBundleID: sourceBundleID ?? Bundle.main.bundleIdentifier
         )
         do {
             switch try await app.engine.capture(content) {

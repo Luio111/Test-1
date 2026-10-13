@@ -36,6 +36,9 @@ final class ScreenshotController {
     @ObservationIgnored private var permissionWindow: ScreenshotPermissionWindowController?
     /// A start that waits for the permission window to report the grant.
     @ObservationIgnored private var startPending = false
+    /// The grant arrived; the capture starts when the permission window has closed.
+    @ObservationIgnored private var startAfterPermissionWindow = false
+    @ObservationIgnored private var appBeforePermissionWindow: NSRunningApplication?
     @ObservationIgnored private var didWarmUp = false
     /// Bumped whenever a session ends: late results of an old session are dropped.
     @ObservationIgnored private var generation = 0
@@ -98,6 +101,9 @@ final class ScreenshotController {
         }
         refreshPermission()
         guard permissionState == .granted else {
+            // The window activates CopyPal; the app in front now gets the focus back
+            // before a capture that starts after the grant.
+            appBeforePermissionWindow = NSWorkspace.shared.frontmostApplication
             startPending = true
             showPermissionWindow()
             return
@@ -161,20 +167,40 @@ final class ScreenshotController {
         }
     }
 
+    /// „Kürzel ändern …“ in the permission window.
+    func openShortcutSettings() {
+        app.showSettings()
+    }
+
+    /// Called by the permission window once ScreenCaptureKit confirmed the grant: the
+    /// waiting capture starts after the window is gone, so it neither shows up in the
+    /// frozen frame nor counts as the app being captured.
+    func permissionWindowDidVerify() {
+        refreshPermission()
+        if startPending {
+            startAfterPermissionWindow = true
+        }
+        startPending = false
+    }
+
     /// Called by the permission window.
     func permissionWindowDidClose() {
         isShowingPermissionHint = false
         startPending = false
         refreshPermission()
-    }
-
-    /// Called by the permission window once ScreenCaptureKit confirmed the grant.
-    func permissionWindowDidVerify() {
-        refreshPermission()
-        guard startPending else { return }
-        startPending = false
-        if permissionState == .granted, AppSettings.screenshotEnabled, !isActive {
-            beginSession()
+        let previous = appBeforePermissionWindow
+        appBeforePermissionWindow = nil
+        guard startAfterPermissionWindow else { return }
+        startAfterPermissionWindow = false
+        guard permissionState == .granted, AppSettings.screenshotEnabled, !isActive else { return }
+        if let previous, previous.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+            _ = previous.activate()
+        }
+        Task { [weak self] in
+            // Time for the window to fade and the other app to come to the front.
+            try? await Task.sleep(for: .milliseconds(300))
+            guard let self, !self.isActive, AppSettings.screenshotEnabled else { return }
+            self.beginSession()
         }
     }
 
@@ -263,6 +289,9 @@ final class ScreenshotController {
         apply(machine.start())
         handle(.mouseMoved(pointer))
         analyzeRegions(generation: current)
+        if let hint = hintText() {
+            speak(hint)
+        }
         Log.app.info("Bildschirmfoto: Overlay auf \(self.screens.count, privacy: .public) Bildschirm(en), eingefroren in \(self.lastFreezeMilliseconds ?? 0, privacy: .public) ms")
     }
 
@@ -301,6 +330,7 @@ final class ScreenshotController {
                 permissionState = .denied
                 app.attentionDidChange()
             }
+            appBeforePermissionWindow = sourceApp
             startPending = true
             showPermissionWindow()
         default:
@@ -369,6 +399,9 @@ final class ScreenshotController {
             case .undoSlice:
                 undoSlice()
             case let .status(newStatus):
+                if newStatus != status {
+                    announceStatus(newStatus)
+                }
                 status = newStatus
                 needsRedraw = true
             case let .announce(announcement):
@@ -587,27 +620,42 @@ final class ScreenshotController {
         let symbol = "camera.viewfinder"
         switch outcome {
         case let .stored(_, downscaled: downscaled):
+            // The halved image is also what lies on the pasteboard: say so.
             app.toast.show(
-                downscaled ? String(localized: "Bildschirmfoto verkleinert (zu groß für den Verlauf)") : String(localized: "Bildschirmfoto kopiert"),
+                downscaled ? String(localized: "Bildschirmfoto kopiert – auf halbe Auflösung verkleinert") : String(localized: "Bildschirmfoto kopiert"),
                 systemImage: symbol
             )
         case .pasteboardOnly(.paused):
             app.toast.show(String(localized: "Bildschirmfoto in der Zwischenablage (Aufzeichnung pausiert)"), systemImage: symbol)
         case .pasteboardOnly(.ignoredApp):
-            app.toast.show(String(localized: "Bildschirmfoto in der Zwischenablage (App wird ignoriert)"), systemImage: symbol)
+            app.toast.show(String(localized: "Bildschirmfoto nur auf diesem Mac (App wird ignoriert)"), systemImage: symbol)
         case .pasteboardOnly(.tooLarge):
-            app.toast.show(String(localized: "Bildschirmfoto zu groß für den Verlauf – in der Zwischenablage"), systemImage: symbol)
+            app.toast.show(String(localized: "Bildschirmfoto verkleinert kopiert – zu groß für den Verlauf"), systemImage: symbol)
         case let .failed(message):
             Log.app.error("Bildschirmfoto nicht gespeichert: \(message, privacy: .public)")
             app.toast.show(String(localized: "Bildschirmfoto fehlgeschlagen"), systemImage: "exclamationmark.triangle")
         }
     }
 
-    /// The app whose window the selection covers, for the ignore list.
+    /// The app whose window the selection covers, for the ignore list. An ignored app
+    /// visible anywhere in the selection (centre or a corner) wins, so a password
+    /// manager next to a browser window still keeps the result off the history and
+    /// off other devices.
     private func sourceBundleID(for rect: CGRect) -> String? {
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        if let window = WindowGeometry.window(at: center, in: windows),
-           let bundleID = NSRunningApplication(processIdentifier: window.ownerPID)?.bundleIdentifier {
+        let inner = rect.insetBy(dx: min(2, rect.width / 4), dy: min(2, rect.height / 4))
+        let points = [
+            CGPoint(x: rect.midX, y: rect.midY),
+            CGPoint(x: inner.minX, y: inner.minY), CGPoint(x: inner.maxX, y: inner.minY),
+            CGPoint(x: inner.minX, y: inner.maxY), CGPoint(x: inner.maxX, y: inner.maxY),
+        ]
+        let bundleIDs = points.compactMap { point in
+            WindowGeometry.window(at: point, in: windows).flatMap { NSRunningApplication(processIdentifier: $0.ownerPID)?.bundleIdentifier }
+        }
+        let ignored = AppSettings.ignoredBundleIDs
+        if let hit = bundleIDs.first(where: { ignored.contains($0) }) {
+            return hit
+        }
+        if let bundleID = bundleIDs.first {
             return bundleID
         }
         return sourceApp?.bundleIdentifier
@@ -856,6 +904,10 @@ final class ScreenshotController {
     }
 
     private func statusText() -> String? {
+        statusText(for: status)
+    }
+
+    private func statusText(for status: ScreenshotStatus) -> String? {
         switch status {
         case .none:
             return nil
@@ -893,12 +945,28 @@ final class ScreenshotController {
             let sectionCount = count
             message = String(localized: "Abschnitt \(sectionCount)")
         }
+        speak(message)
+    }
+
+    /// Status lines VoiceOver should hear; the running count is announced per section.
+    private func announceStatus(_ newStatus: ScreenshotStatus) {
+        switch newStatus {
+        case .none, .extending, .sections:
+            return
+        case .escArmed:
+            if let text = statusText(for: newStatus) { speak(text, high: true) }
+        default:
+            if let text = statusText(for: newStatus) { speak(text) }
+        }
+    }
+
+    private func speak(_ message: String, high: Bool = false) {
         NSAccessibility.post(
             element: NSApp as Any,
             notification: .announcementRequested,
             userInfo: [
                 .announcement: message,
-                .priority: NSAccessibilityPriorityLevel.medium.rawValue,
+                .priority: (high ? NSAccessibilityPriorityLevel.high : .medium).rawValue,
             ]
         )
     }

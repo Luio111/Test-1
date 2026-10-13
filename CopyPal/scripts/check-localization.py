@@ -15,7 +15,7 @@ root = pathlib.Path(__file__).resolve().parent.parent / "App"
 files = sorted(root.rglob("*.swift"))
 
 # Calls whose first (unlabeled) string literal argument is a LocalizedStringKey.
-positional = r"(?:Text|Button|Toggle|Picker|Label|TextField|Menu|SectionBlock|StatusTag|switchLabel|LocalizedStringKey|\.alert|\.help|explanationRow\(\"[^\"]*\",)"
+positional = r"(?:Text|Button|Toggle|Picker|Label|TextField|Menu|SectionBlock|StatusTag|switchLabel|LocalizedStringKey|\.alert|\.help|explanationRow\(\"[^\"]*\",|shortcutCaption)"
 labeled = r"(?:title|subtitle|detail|label|text|help)"
 
 def literal_at(src, i):

@@ -113,6 +113,16 @@ final class ScreenshotPermissionModel {
         onFinish()
     }
 
+    func changeShortcut() {
+        onFinish()
+        controller.openShortcutSettings()
+    }
+
+    /// The shortcut that opened this window, as the menu bar writes it.
+    var shortcutText: String {
+        KeyboardLayout.displayString(for: AppSettings.screenshotHotKey)
+    }
+
     private func refresh() {
         let current = ScreenCapturePermission.state
         if current != state {
@@ -131,13 +141,32 @@ final class ScreenshotPermissionModel {
             let result = await ScreenCapturePermission.verify()
             guard let self else { return }
             self.verifying = false
+            guard result != self.verified else { return }
             self.verified = result
-            if result == .granted {
+            switch result {
+            case .granted:
+                Self.announce(String(localized: "Bildschirmaufnahme erteilt"))
+                // The capture starts once this window is gone (see the controller).
                 self.controller.permissionWindowDidVerify()
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .milliseconds(800))
                 self.onFinish()
+            case .needsRelaunch:
+                Self.announce(String(localized: "macOS übernimmt die Freigabe erst nach einem Neustart von CopyPal."))
+            case .denied, .failed:
+                break
             }
         }
+    }
+
+    private static func announce(_ message: String) {
+        NSAccessibility.post(
+            element: NSApp as Any,
+            notification: .announcementRequested,
+            userInfo: [
+                .announcement: message,
+                .priority: NSAccessibilityPriorityLevel.high.rawValue,
+            ]
+        )
     }
 }
 
@@ -145,47 +174,68 @@ struct ScreenshotPermissionView: View {
     let model: ScreenshotPermissionModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-            PageHeader(
-                systemImage: "camera.viewfinder",
-                title: "Bildschirmaufnahme erlauben",
-                subtitle: "Für Bildschirmfotos braucht CopyPal die Freigabe „Bildschirmaufnahme“. CopyPal nimmt nur auf, wenn du das Tastenkürzel drückst – nie im Hintergrund. Jedes Bildschirmfoto bleibt verschlüsselt auf diesem Mac."
-            )
-            HStack(spacing: Theme.Spacing.m) {
-                switch (model.state, model.verified) {
-                case (.granted, .granted):
-                    StatusTag(text: "Erteilt", style: .green)
-                    Text("Alles bereit.").font(Theme.Typography.body)
-                case (.granted, .needsRelaunch):
-                    StatusTag(text: "Erteilt", style: .green)
-                    Button("CopyPal neu starten") { model.relaunch() }
-                        .buttonStyle(PrimaryButtonStyle())
-                case (.granted, _):
-                    StatusTag(text: "Erteilt", style: .green)
-                default:
-                    StatusTag(text: "Noch nicht erteilt", style: .orange)
-                    if model.asked {
-                        Button("Systemeinstellungen öffnen") { model.openSystemSettings() }
-                            .buttonStyle(PrimaryButtonStyle())
-                    } else {
-                        Button("Freigabe anfordern") { model.request() }
-                            .buttonStyle(PrimaryButtonStyle())
-                    }
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+                PageHeader(
+                    systemImage: "camera.viewfinder",
+                    title: "Bildschirmaufnahme erlauben",
+                    subtitle: "Für Bildschirmfotos braucht CopyPal die Freigabe „Bildschirmaufnahme“. CopyPal nimmt nur auf, wenn du das Tastenkürzel drückst – nie im Hintergrund. Im Verlauf werden Bildschirmfotos verschlüsselt gespeichert; wie jede Kopie kann macOS sie per Universal Clipboard an dein iPhone oder iPad geben."
+                )
+                HStack(spacing: Theme.Spacing.m) {
+                    status
                 }
+                caption
             }
-            caption
-            HStack {
+            .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
+            .padding(.top, Theme.Layout.pageTopPadding)
+            .padding(.bottom, Theme.Spacing.xl)
+
+            Hairline()
+
+            HStack(spacing: Theme.Spacing.s) {
+                Text("Geöffnet mit \(model.shortcutText)")
+                    .font(Theme.Typography.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                Button("Kürzel ändern …") { model.changeShortcut() }
+                    .buttonStyle(SubtleButtonStyle())
                 Spacer()
                 Button("Später") { model.later() }
                     .buttonStyle(SubtleButtonStyle())
                     .keyboardShortcut(.cancelAction)
             }
+            .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
+            .padding(.vertical, Theme.Spacing.l)
         }
-        .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
-        .padding(.top, Theme.Layout.pageTopPadding)
-        .padding(.bottom, Theme.Spacing.xl)
         .frame(width: 560)
         .background(Theme.Colors.background)
+    }
+
+    @ViewBuilder
+    private var status: some View {
+        switch (model.state, model.verified) {
+        case (.granted, .granted):
+            StatusTag(text: "Erteilt", style: .green)
+            Text("Alles bereit.")
+                .font(Theme.Typography.body)
+                .foregroundStyle(Theme.Colors.textPrimary)
+        case (.granted, .needsRelaunch):
+            StatusTag(text: "Erteilt", style: .green)
+            Button("CopyPal neu starten") { model.relaunch() }
+                .buttonStyle(PrimaryButtonStyle())
+        case (.granted, .failed):
+            StatusTag(text: "Prüfung fehlgeschlagen", style: .orange)
+        case (.granted, _):
+            StatusTag(text: "Erteilt", style: .green)
+        default:
+            StatusTag(text: "Noch nicht erteilt", style: .orange)
+            if model.asked {
+                Button("Systemeinstellungen öffnen") { model.openSystemSettings() }
+                    .buttonStyle(PrimaryButtonStyle())
+            } else {
+                Button("Freigabe anfordern") { model.request() }
+                    .buttonStyle(PrimaryButtonStyle())
+            }
+        }
     }
 
     @ViewBuilder

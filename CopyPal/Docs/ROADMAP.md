@@ -713,7 +713,7 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 | R26 | Scroll-Ereignisse erreichen den Inhalt nicht (Routing, Scroll-Tools, Terminal, Electron) | Overlay lässt die Maus während des Schritts durch, Zeiger kurz über der Auswahl, Fensterprüfung vor jedem Schritt, Zeilen-Wiederholung, „Scrollrichtung umkehren“, sauberer Stopp mit Hinweis | M11 |
 | R27 | Falsche Nähte (feste Kopfzeilen, Animationen, Wiederholmuster) | Eindeutigkeitsprüfung verwirft statt zu raten; feste Bänder nur mit Inhalt; ⌫; Grenzen dokumentiert | M11 |
 | R28 | Speicher bei hohen Aufnahmen | Grenzen 20.000 px, 200 MB, 200 Schritte; Verkleinerung auf die Hälfte mit Hinweis | M11 |
-| R29 | Bildschirmaufnahme auf den GitHub-Runnern unbekannt | Selbsttest überspringt die Aufnahme-Prüfung mit `::warning::`; die Logik ist auf Linux getestet | M11 |
+| R29 | Bildschirmaufnahme auf den GitHub-Runnern | Stand 13.10.2026 auf macOS 15.7: freigegeben, der Selbsttest nimmt wirklich auf. Fehlt sie auf einem Runner, überspringt der Selbsttest die Aufnahme-Prüfung mit `::warning::`; die Logik ist auf Linux getestet | M11 |
 
 ---
 
@@ -740,6 +740,8 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 ---
 
 ## 7. Backlog nach 1.0
+
+Ideen mit Bewertung und das Design-Review vom 13.10.2026: [`Docs/Ideen-und-Design-Review.md`](Ideen-und-Design-Review.md).
 
 - **v1.x:**
   - „Sammeln“-Modus: jedes ⌘V fügt den nächsten Eintrag aus einer Warteschlange ein

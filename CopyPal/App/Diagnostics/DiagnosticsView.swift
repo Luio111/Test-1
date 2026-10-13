@@ -86,7 +86,7 @@ struct DiagnosticsView: View {
         case .pasteboardStatusUnknown:
             "Der Zugriff auf die Zwischenablage lässt sich nicht auslesen. Baue die App mit Xcode 16.3 oder neuer."
         case .screenCaptureDenied:
-            "Die Bildschirmaufnahme ist nicht erteilt. Bildschirmfotos (⌘⇧A) sind so nicht möglich."
+            "Die Bildschirmaufnahme ist nicht erteilt. Bildschirmfotos sind so nicht möglich."
         }
     }
 

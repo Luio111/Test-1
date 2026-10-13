@@ -22,4 +22,22 @@ public struct HotKeyShortcut: Sendable, Equatable, Codable {
         !modifiers.isDisjoint(with: [.command, .option, .control])
             && !(keyCode == 9 && modifiers.isExactlyCommand)
     }
+
+    /// Standard macOS commands no app may take over globally (⌘C, ⌘V, ⌘Z, ⌘Q …).
+    /// Judged by `keyName`, the character the key types in the current layout
+    /// (`KeyboardLayout.keyName`): ⌘Z sits on another physical key with QWERTZ.
+    public func isStandardCommand(keyName: String) -> Bool {
+        let name = keyName.uppercased()
+        if modifiers == [.command] {
+            return Self.commandOnly.contains(name)
+        }
+        if modifiers == [.command, .shift] {
+            return name == "Z"
+        }
+        return false
+    }
+
+    /// Copy, cut, paste, undo, select all, quit, close, hide, minimise, app switcher,
+    /// Spotlight.
+    private static let commandOnly: Set<String> = ["C", "X", "V", "Z", "A", "Q", "W", "H", "M", "⇥", "SPACE"]
 }

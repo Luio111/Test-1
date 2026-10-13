@@ -202,7 +202,10 @@ final class ScreenshotOverlayView: NSView {
 
     func apply(_ newScene: OverlayScene) {
         guard newScene != scene else { return }
-        let candidateChanged = newScene.candidate != scene.candidate
+        // The candidate frame and the undimmed hole slide together from one rung to
+        // the next; a frame that appears or follows a selection does not fly in.
+        let slides = animates && newScene.selection == nil && scene.selection == nil
+            && scene.candidate != nil && newScene.candidate != nil && newScene.candidate != scene.candidate
         scene = newScene
         let bounds = self.bounds
 
@@ -222,7 +225,9 @@ final class ScreenshotOverlayView: NSView {
         if let hole, !hole.isEmpty {
             dimPath.addRect(hole)
         }
-        dimLayer.path = dimPath
+        if !slides {
+            dimLayer.path = dimPath
+        }
 
         let debugPath = CGMutablePath()
         for box in newScene.debugBoxes {
@@ -252,11 +257,14 @@ final class ScreenshotOverlayView: NSView {
         }
         CATransaction.commit()
 
-        // The candidate frame slides to its new place; nothing else animates.
+        // Only the candidate frame and its hole move (150 ms ease-out); nothing else animates.
         CATransaction.begin()
-        CATransaction.setDisableActions(!(animates && candidateChanged))
+        CATransaction.setDisableActions(!slides)
         CATransaction.setAnimationDuration(0.15)
         CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeOut))
+        if slides {
+            dimLayer.path = dimPath
+        }
         if let candidate = newScene.candidate, newScene.selection == nil {
             let rect = candidate.insetBy(dx: 0.75, dy: 0.75)
             // CGPath traps when a corner radius exceeds half a side.
@@ -311,6 +319,7 @@ struct OverlayChrome: View {
                 capsule(sizeText, font: Theme.Typography.mono, color: Theme.Notch.textPrimary)
                     .position(x: selection.midX, y: sizeLabelY(for: selection))
             }
+            // Anchored at the bottom: the hint stays put when a status line appears.
             VStack(spacing: Theme.Spacing.s) {
                 if let statusText = scene.statusText {
                     capsule(statusText, font: Theme.Typography.label, color: Theme.Notch.textPrimary)
@@ -319,7 +328,8 @@ struct OverlayChrome: View {
                     capsule(hintText, font: Theme.Typography.label, color: Theme.Notch.textSecondary)
                 }
             }
-            .position(x: scene.size.width / 2, y: scene.size.height - 56)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .padding(.bottom, 43)
             if let coordinatesText = scene.coordinatesText, let pointer = scene.pointer {
                 capsule(coordinatesText, font: Theme.Typography.mono, color: Theme.Notch.textSecondary)
                     .position(x: min(pointer.x + 56, scene.size.width - 60), y: min(flipped(pointer.y) + 28, scene.size.height - 20))

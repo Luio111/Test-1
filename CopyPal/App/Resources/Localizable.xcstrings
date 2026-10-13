@@ -731,6 +731,16 @@
         }
       }
     },
+    "Bildschirmaufnahme erteilt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen Recording granted"
+          }
+        }
+      }
+    },
     "Bildschirmfoto" : {
       "localizations" : {
         "en" : {
@@ -761,16 +771,6 @@
         }
       }
     },
-    "Bildschirmfoto in der Zwischenablage (App wird ignoriert)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Screenshot on the clipboard (app is ignored)"
-          }
-        }
-      }
-    },
     "Bildschirmfoto in der Zwischenablage (Aufzeichnung pausiert)" : {
       "localizations" : {
         "en" : {
@@ -791,6 +791,16 @@
         }
       }
     },
+    "Bildschirmfoto kopiert – auf halbe Auflösung verkleinert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot copied – scaled down to half resolution"
+          }
+        }
+      }
+    },
     "Bildschirmfoto mit Tastenkürzel" : {
       "localizations" : {
         "en" : {
@@ -801,22 +811,22 @@
         }
       }
     },
-    "Bildschirmfoto verkleinert (zu groß für den Verlauf)" : {
+    "Bildschirmfoto nur auf diesem Mac (App wird ignoriert)" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Screenshot scaled down (too large for the history)"
+            "value" : "Screenshot on this Mac only (app is ignored)"
           }
         }
       }
     },
-    "Bildschirmfoto zu groß für den Verlauf – in der Zwischenablage" : {
+    "Bildschirmfoto verkleinert kopiert – zu groß für den Verlauf" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Screenshot too large for the history – on the clipboard"
+            "value" : "Screenshot copied scaled down – too large for the history"
           }
         }
       }
@@ -1121,12 +1131,12 @@
         }
       }
     },
-    "Die Bildschirmaufnahme ist nicht erteilt. Bildschirmfotos (⌘⇧A) sind so nicht möglich." : {
+    "Die Bildschirmaufnahme ist nicht erteilt. Bildschirmfotos sind so nicht möglich." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Screen Recording is not granted. Screenshots (⌘⇧A) are not possible without it."
+            "value" : "Screen Recording is not granted. Screenshots are not possible without it."
           }
         }
       }
@@ -1461,12 +1471,12 @@
         }
       }
     },
-    "Für Bildschirmfotos braucht CopyPal die Freigabe „Bildschirmaufnahme“. CopyPal nimmt nur auf, wenn du das Tastenkürzel drückst – nie im Hintergrund. Jedes Bildschirmfoto bleibt verschlüsselt auf diesem Mac." : {
+    "Für Bildschirmfotos braucht CopyPal die Freigabe „Bildschirmaufnahme“. CopyPal nimmt nur auf, wenn du das Tastenkürzel drückst – nie im Hintergrund. Im Verlauf werden Bildschirmfotos verschlüsselt gespeichert; wie jede Kopie kann macOS sie per Universal Clipboard an dein iPhone oder iPad geben." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "For screenshots CopyPal needs the “Screen Recording” permission. CopyPal only captures when you press the shortcut – never in the background. Every screenshot stays encrypted on this Mac."
+            "value" : "For screenshots CopyPal needs the “Screen Recording” permission. CopyPal only captures when you press the shortcut – never in the background. In the history, screenshots are stored encrypted; like any copy, macOS can hand them to your iPhone or iPad via Universal Clipboard."
           }
         }
       }
@@ -1497,6 +1507,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You did it!"
+          }
+        }
+      }
+    },
+    "Geöffnet mit %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opened with %@"
           }
         }
       }
@@ -1807,6 +1827,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copied ✓"
+          }
+        }
+      }
+    },
+    "Kürzel ändern …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change Shortcut …"
           }
         }
       }
@@ -2197,6 +2227,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Try it"
+          }
+        }
+      }
+    },
+    "Prüfung fehlgeschlagen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check failed"
           }
         }
       }

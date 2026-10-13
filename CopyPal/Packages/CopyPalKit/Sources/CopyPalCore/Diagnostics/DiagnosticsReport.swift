@@ -41,7 +41,7 @@ public enum DiagnosticsReport {
         case .pasteboardStatusUnknown:
             "Zugriff auf die Zwischenablage nicht auslesbar – App mit Xcode 16.3 oder neuer bauen."
         case .screenCaptureDenied:
-            "Bildschirmaufnahme nicht erteilt – Bildschirmfotos (⌘⇧A) sind nicht möglich."
+            "Bildschirmaufnahme nicht erteilt – Bildschirmfotos sind nicht möglich."
         }
     }
 

@@ -50,6 +50,7 @@ final class AppController {
     private var observers: [(NotificationCenter, NSObjectProtocol)] = []
     private var storageOutcome: OpenOutcome = .created
     private var holdSignpost: OSSignpostIntervalState?
+    private var hotKeysSuspended = false
 
     init() {
         AppSettings.registerDefaults()
@@ -235,7 +236,21 @@ final class AppController {
         runMaintenance()
     }
 
+    /// Off while a shortcut recorder listens in the settings: pressing one of CopyPal's
+    /// own shortcuts there must reach the recorder, not open the popup or the overlay.
+    func setHotKeysSuspended(_ suspended: Bool) {
+        guard hotKeysSuspended != suspended else { return }
+        hotKeysSuspended = suspended
+        if suspended {
+            hotKey.register(nil)
+            screenshotHotKey.register(nil)
+        } else {
+            applyHotKey()
+        }
+    }
+
     private func applyHotKey() {
+        guard !hotKeysSuspended else { return }
         if AppSettings.hotKeyEnabled {
             let shortcut = AppSettings.hotKey
             if hotKey.shortcut != shortcut {

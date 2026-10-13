@@ -183,6 +183,8 @@ private struct GeneralSettings: View {
                     HotKeyRecorder(shortcut: $settings.hotKey, isAllowed: { candidate in
                         popupShortcutTaken = candidate == settings.screenshotHotKey
                         return !popupShortcutTaken
+                    }, onRecordingChange: { recording in
+                        app.setHotKeysSuspended(recording)
                     })
                     .disabled(!settings.hotKeyEnabled)
                 }
@@ -203,6 +205,8 @@ private struct GeneralSettings: View {
                     HotKeyRecorder(shortcut: $settings.screenshotHotKey, isAllowed: { candidate in
                         screenshotShortcutTaken = candidate == settings.hotKey
                         return !screenshotShortcutTaken
+                    }, onRecordingChange: { recording in
+                        app.setHotKeysSuspended(recording)
                     })
                     .disabled(!settings.screenshotEnabled)
                 }
@@ -269,10 +273,14 @@ private struct GeneralSettings: View {
 }
 
 /// Click, then press the new combination (with ⌘, ⌥ or ⌃). Esc cancels. `isAllowed`
-/// can refuse a combination that is in use elsewhere (the other CopyPal shortcut).
+/// can refuse a combination that is in use elsewhere (the other CopyPal shortcut);
+/// standard commands such as ⌘C are always refused. While recording, CopyPal's own
+/// global shortcuts are off (`onRecordingChange`), or pressing one would trigger it
+/// instead of being recorded.
 private struct HotKeyRecorder: View {
     @Binding var shortcut: HotKeyShortcut
     var isAllowed: (HotKeyShortcut) -> Bool = { _ in true }
+    var onRecordingChange: (Bool) -> Void = { _ in }
     @State private var recording = false
     @State private var monitor: Any?
 
@@ -291,12 +299,13 @@ private struct HotKeyRecorder: View {
             .frame(minWidth: 110)
         }
         .buttonStyle(SubtleButtonStyle())
-        .accessibilityLabel(Text("Tastenkürzel: \(KeyboardLayout.displayString(for: shortcut))"))
+        .accessibilityLabel(recording ? Text("Tasten drücken …") : Text("Tastenkürzel: \(KeyboardLayout.displayString(for: shortcut))"))
         .onDisappear { stop() }
     }
 
     private func start() {
         recording = true
+        onRecordingChange(true)
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             let keyCode = event.keyCode
             let modifiers = KeyModifiers(event.modifierFlags)
@@ -306,7 +315,8 @@ private struct HotKeyRecorder: View {
                     return
                 }
                 let candidate = HotKeyShortcut(keyCode: keyCode, modifiers: modifiers.intersection([.command, .option, .control, .shift]))
-                if candidate.isValid, isAllowed(candidate) {
+                let keyName = KeyboardLayout.keyName(for: keyCode)
+                if candidate.isValid, !candidate.isStandardCommand(keyName: keyName), isAllowed(candidate) {
                     shortcut = candidate
                     stop()
                 } else {
@@ -322,7 +332,10 @@ private struct HotKeyRecorder: View {
             NSEvent.removeMonitor(monitor)
         }
         monitor = nil
-        recording = false
+        if recording {
+            recording = false
+            onRecordingChange(false)
+        }
     }
 }
 
