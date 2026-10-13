@@ -67,7 +67,10 @@ target_branch() {
                 default="$(default_branch)" || return 1
                 git fetch -q origin "+refs/heads/$branch:refs/remotes/origin/$branch" \
                     "+refs/heads/$default:refs/remotes/origin/$default" || return 1
-                if git merge-base --is-ancestor "origin/$branch" "origin/$default"; then
+                # Merged as a merge commit, or squashed/rebased: then the branch's tree is
+                # one of the default branch's recent trees.
+                if git merge-base --is-ancestor "origin/$branch" "origin/$default" \
+                    || git log -n 50 --format=%T "origin/$default" | grep -qx "$(git rev-parse "origin/$branch^{tree}")"; then
                     printf '%s\n' "$default"
                     return 0
                 fi
@@ -192,11 +195,17 @@ install_command() {
                 [ -f "$HOME/.profile" ] && first_line='[ -f ~/.profile ] && . ~/.profile'
             fi
             ;;
-        *) rc="$HOME/.zshrc" ;;
+        *) rc="${ZDOTDIR:-$HOME}/.zshrc" ;;
     esac
     tmp="$(mktemp)"
     if [ -f "$rc" ]; then
-        awk -v s="$marker_start" -v e="$marker_end" '$0 == s { skip = 1 } !skip { print } $0 == e { skip = 0 }' "$rc" > "$tmp"
+        # An earlier block is replaced only while both markers are there; one whose end
+        # was deleted by hand stays, so nothing after it can be lost.
+        if grep -qxF -- "$marker_start" "$rc" && grep -qxF -- "$marker_end" "$rc"; then
+            awk -v s="$marker_start" -v e="$marker_end" '$0 == s { skip = 1 } !skip { print } $0 == e { skip = 0 }' "$rc" > "$tmp"
+        else
+            cat "$rc" > "$tmp"
+        fi
     elif [ -n "$first_line" ]; then
         printf '%s\n' "$first_line" > "$tmp"
     fi
@@ -231,8 +240,11 @@ copypal-update() {
         return 1
     fi
     # Into its own ref: origin/* must stay as it is until the script has looked at it.
-    git -C "\$repo" fetch -q origin "+refs/heads/\${ref}:refs/copypal/\${ref}" || return 1
-    script="\$(git -C "\$repo" show "refs/copypal/\${ref}:CopyPal/scripts/update.sh")" || return 1
+    GIT_TERMINAL_PROMPT=0 git -C "\$repo" fetch -q origin "+refs/heads/\${ref}:refs/copypal/\${ref}" || return 1
+    if ! script="\$(git -C "\$repo" show "refs/copypal/\${ref}:CopyPal/scripts/update.sh" 2> /dev/null)"; then
+        echo "copypal-update: Der Branch \$ref hat kein copypal-update – der CopyPal-Branch wurde wohl umbenannt. Bitte nachfragen oder COPYPAL_BRANCH=<Branch> copypal-update" >&2
+        return 1
+    fi
     COPYPAL_REPO="\$repo" bash -c "\$script" copypal-update "\$@"
 }
 $marker_end
@@ -240,7 +252,7 @@ EOF
     # Writing through keeps a symlinked startup file (dotfile managers) intact.
     cat "$tmp" > "$rc"
     rm -f "$tmp"
-    echo "Eingerichtet in $rc: Ab dem nächsten Terminal-Fenster reicht der Befehl copypal-update"
+    printf '%s\n' "$rc"
 }
 
 main() {
@@ -294,7 +306,7 @@ main() {
     set_aside_changes
     move_blocking_files
 
-    local before
+    local before count
     before="$(git rev-parse -q --verify HEAD || true)"
     back_up_own_commits "$old_remote_tips"
     git switch -q -C "$target" --no-track "origin/$target"
@@ -308,13 +320,21 @@ main() {
         echo "Aktualisiert auf $target:"
         if [ -n "$before" ] && git merge-base --is-ancestor "$before" HEAD; then
             git log --format='  %h %s' -n 10 "$before..HEAD"
+            count="$(git rev-list --count "$before..HEAD")"
+            if [ "$count" -gt 10 ]; then
+                echo "  … und $((count - 10)) weitere"
+            fi
         else
             git log --format='  %h %s' -n 1
         fi
     fi
 
+    # The command is set up before the Xcode project, so it exists even if that fails;
+    # the shell only knows it in a new window, which the messages below say.
+    local installed_in="" again="copypal-update"
     if [ "$install" = 1 ]; then
-        install_command "$repo"
+        installed_in="$(install_command "$repo")"
+        again="in einem neuen Terminal-Fenster copypal-update (oder die Einrichtungszeile aus der README erneut einfügen)"
     fi
 
     echo
@@ -327,10 +347,13 @@ main() {
     if [ "$bootstrap_status" -ne 0 ]; then
         bootstrap_failed=1
         echo
-        echo "Der Code ist aktuell, aber das Xcode-Projekt wurde nicht neu erzeugt. Bitte das Problem oben beheben und copypal-update erneut ausführen." >&2
+        echo "Der Code ist aktuell, aber das Xcode-Projekt wurde nicht neu erzeugt. Bitte das Problem oben beheben und dann erneut ausführen: $again" >&2
         exit 1
     fi
     echo
+    if [ -n "$installed_in" ]; then
+        echo "Eingerichtet in $installed_in: Ab dem nächsten Terminal-Fenster reicht der Befehl copypal-update."
+    fi
     if [ "$open_xcode" = 1 ]; then
         echo "Fertig. In Xcode jetzt ⌘R drücken."
     else

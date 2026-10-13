@@ -49,10 +49,10 @@ copypal-update
 
 Er holt den CopyPal-Branch von GitHub (sobald der in `main` gemergt ist: `main`) und legt lokale Änderungen, meist von Xcode, beiseite (`git stash`). Dann erzeugt er `CopyPal.xcodeproj` neu und öffnet Xcode. Dort **⌘R** drücken. Eigene Commits sichert er vorher im Branch `copypal-sicherung-…`.
 
-Einmalig einrichten: Diese Zeile ins Terminal kopieren. Sie sucht das Repository in `~/Developer/Test-1`, `~/Test-1`, `~/Documents/Test-1` und `~/Desktop/Test-1`:
+Einmalig einrichten: Diese Zeile ins Terminal kopieren. Sie sucht das Repository in `~/Developer/Test-1`, `~/Test-1`, `~/Documents/Test-1` und `~/Desktop/Test-1`, sonst im Ordner, in dem du gerade stehst:
 
 ```sh
-d=; for c in ~/Developer/Test-1 ~/Test-1 ~/Documents/Test-1 ~/Desktop/Test-1; do [ -d "$c/.git" ] && d=$c && break; done; s=; for b in claude/amazing-volta-1uce5i main; do git -C "$d" fetch -q origin "+refs/heads/${b}:refs/copypal/${b}" 2>/dev/null && s="$(git -C "$d" show "refs/copypal/${b}:CopyPal/scripts/update.sh")" && break; done; if [ -n "$s" ]; then COPYPAL_REPO="$d" bash -c "$s" update.sh --install; else echo "Ordner Test-1 nicht gefunden oder GitHub nicht erreichbar (angemeldet? gh auth login)"; fi
+d=; for c in ~/Developer/Test-1 ~/Test-1 ~/Documents/Test-1 ~/Desktop/Test-1; do [ -d "$c/.git" ] && d=$c && break; done; [ -n "$d" ] || d="$(git rev-parse --show-toplevel 2>/dev/null)"; s=; if [ -n "$d" ]; then for b in claude/amazing-volta-1uce5i main; do GIT_TERMINAL_PROMPT=0 git -C "$d" fetch -q origin "+refs/heads/${b}:refs/copypal/${b}" 2>/dev/null && s="$(git -C "$d" show "refs/copypal/${b}:CopyPal/scripts/update.sh" 2>/dev/null)" && break; done; fi; if [ -n "$s" ]; then COPYPAL_REPO="$d" bash -c "$s" update.sh --install; elif [ -z "$d" ]; then echo "Ordner Test-1 nicht gefunden (gesucht: ~/Developer, ~, ~/Documents, ~/Desktop und der aktuelle Ordner)"; else echo "GitHub nicht erreichbar, nicht angemeldet (gh auth login) oder der Branch wurde umbenannt"; fi
 ```
 
 Danach ein neues Terminal-Fenster öffnen. Fehlt der Befehl später einmal (neuer Mac, verschobener Ordner), einfach die Zeile erneut einfügen – sie aktualisiert ebenfalls.

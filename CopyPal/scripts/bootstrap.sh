@@ -41,8 +41,8 @@ So findest du deine Team-ID (kostenloses „Personal Team“ reicht):
   1. Xcode → Settings… → Accounts → „+“ → Apple ID (falls noch nicht angemeldet)
   2. Team „… (Personal Team)“ auswählen → Manage Certificates… → „+“ → Apple Development
   3. copypal-update (oder ./scripts/bootstrap.sh im Ordner CopyPal) erneut ausführen – die Team-ID wird dann erkannt.
-Oder von Hand eintragen in $PWD/$signing (siehe Docs/Troubleshooting.md).
 HELP
+    echo "Oder von Hand eintragen in $PWD/$signing (siehe Docs/Troubleshooting.md)."
 }
 
 if ! command -v xcodegen >/dev/null 2>&1; then

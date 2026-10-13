@@ -253,7 +253,19 @@ grep -q "gibt es auf GitHub nicht" "$root/out.txt" || { cat "$root/out.txt"; fai
 pass "Tippfehler in COPYPAL_BRANCH: Abbruch mit Meldung, nichts verändert"
 
 git -C "$seed" switch -q main
-git -C "$seed" merge -q --no-ff -m "Merge CopyPal" "$branch"
+git -C "$seed" merge -q --squash "$branch" > /dev/null
+git -C "$seed" commit -qm "Squash CopyPal"
+git -C "$seed" push -q origin main
+run_command > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "nach dem Squash-Merge"; }
+expect_on "Branch per Squash gemergt, auf GitHub noch vorhanden: weiter mit main" main
+
+publish "CopyPal 10"
+run_command > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "Branch nach dem Merge weiterentwickelt"; }
+expect_on "Branch nach dem Merge weiterentwickelt: zurück auf den Branch"
+
+git -C "$seed" switch -q main
+# The squash commit and the branch both add version.txt: the branch's content wins.
+git -C "$seed" merge -q --no-ff -X theirs -m "Merge CopyPal" "$branch" > /dev/null
 git -C "$seed" push -q origin main
 run_command > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "nach dem Merge (Branch noch da)"; }
 expect_on "Branch gemergt, auf GitHub noch vorhanden: weiter mit main" main
@@ -283,6 +295,14 @@ done
 grep -q '^export SOMETHING=1$' "$rc" || fail "bestehende Zeilen verloren"
 pass "erneutes Einrichten: einmal eingetragen, Symlink bleibt"
 
+# A block whose end marker the user deleted by hand must not swallow what follows it.
+printf '%s\n' 'export A=1' '# >>> copypal-update >>>' 'copypal-update() { echo alt; }' 'export B=2' 'alias ll="ls -l"' > "$HOME/dotfiles/rc"
+COPYPAL_REPO="$repo" bash "$repo/CopyPal/scripts/update.sh" --install --no-open > /dev/null 2>&1 || fail "Einrichtung ohne Endmarke"
+grep -q '^export B=2$' "$rc" && grep -q '^alias ll=' "$rc" || fail "Zeilen nach einer Endmarken-losen Einrichtung verloren"
+[ "$(grep -c '^# <<< copypal-update <<<$' "$rc")" = 1 ] || fail "neue Einrichtung fehlt"
+(cd / && "$user_shell" -c '. "$HOME/'"$(basename "$rc")"'"; copypal-update --no-open') > /dev/null 2>&1 || fail "Befehl nach Einrichtung ohne Endmarke"
+pass "fehlende Endmarke: nichts geht verloren, der neue Befehl gilt"
+
 if [ "$(basename "$user_shell")" = bash ]; then
     rm -f "$HOME/.bash_profile" "$HOME/.bash_login"
     echo 'export FROM_PROFILE=yes' > "$HOME/.profile"
@@ -300,5 +320,16 @@ mv "$root/moved" "$repo"
 (cd / && COPYPAL_REPO="$repo" "$user_shell" -c '. "$HOME/'"$(basename "$rc")"'"; copypal-update --no-open') > "$root/out.txt" 2>&1 \
     || { cat "$root/out.txt"; fail "COPYPAL_REPO im eingerichteten Befehl"; }
 pass "eingerichteter Befehl beachtet COPYPAL_REPO"
+
+# The clone lives somewhere unexpected and the user pastes the README line inside it.
+mkdir -p "$HOME/Projects"
+mv "$repo" "$HOME/Projects/Test-1"
+repo="$HOME/Projects/Test-1"
+echo "export SOMETHING=1" > "$rc"
+(cd "$repo/CopyPal" && "$user_shell" -c "$oneliner") > "$root/out.txt" 2>&1 || { cat "$root/out.txt"; fail "Einrichtung aus dem Klon heraus"; }
+expect_on "Einrichtungszeile im Klon an ungewöhnlichem Ort" main
+grep -q "Projects/Test-1" "$rc" || fail "Einrichtung merkt sich den ungewöhnlichen Ort nicht"
+(cd / && "$user_shell" -c '. "$HOME/'"$(basename "$rc")"'"; copypal-update --no-open') > /dev/null 2>&1 || fail "Befehl nach Einrichtung im Klon"
+pass "eingerichteter Befehl kennt den ungewöhnlichen Ort"
 
 echo "Alle Prüfungen von copypal-update bestanden."
