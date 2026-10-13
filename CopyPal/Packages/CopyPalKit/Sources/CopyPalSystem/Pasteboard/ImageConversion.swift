@@ -89,6 +89,80 @@ public enum ImageConversion {
         )
     }
 
+    /// Brightness per `cellPixels` × `cellPixels` block for the region detector, drawn
+    /// through a gray context that averages – no full BGRA copy of the display.
+    public static func lumaPlane(_ image: CGImage, cellPixels: Int) -> LumaPlane? {
+        let cell = max(cellPixels, 1)
+        let width = max((image.width + cell - 1) / cell, 1)
+        let height = max((image.height + cell - 1) / cell, 1)
+        var luma = [UInt8](repeating: 0, count: width * height)
+        let drawn = luma.withUnsafeMutableBytes { raw -> Bool in
+            guard let context = CGContext(
+                data: raw.baseAddress,
+                width: width,
+                height: height,
+                bitsPerComponent: 8,
+                bytesPerRow: width,
+                space: CGColorSpaceCreateDeviceGray(),
+                bitmapInfo: CGImageAlphaInfo.none.rawValue
+            ) else {
+                return false
+            }
+            context.interpolationQuality = .medium
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return true
+        }
+        return drawn ? LumaPlane(width: width, height: height, cell: cell, luma: luma) : nil
+    }
+
+    /// The image at `factor` of its size (½ for screenshots too large for the history).
+    public static func downscaled(_ image: CGImage, by factor: CGFloat) -> CGImage? {
+        let width = max(Int((CGFloat(image.width) * factor).rounded()), 1)
+        let height = max(Int((CGFloat(image.height) * factor).rounded()), 1)
+        guard let context = CGContext(
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: bgraBitmapInfo
+        ) else {
+            return nil
+        }
+        context.interpolationQuality = .high
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        return context.makeImage()
+    }
+
+    /// A PNG and the image it shows, halved until the PNG fits `maxBytes`.
+    public struct FittedPNG: Sendable {
+        public let data: Data
+        public let image: ImageBox
+        /// Device pixels per point of `image` (halved with it, so the DPI stays honest).
+        public let scale: CGFloat
+        public let downscaled: Bool
+    }
+
+    /// `image` as PNG of at most `maxBytes` (the history's limit), halving it up to
+    /// `maximumHalvings` times. The last attempt is returned even when it is still too
+    /// large, flagged `downscaled`, so the caller can decide to keep it off the history.
+    public static func pngFitting(_ image: CGImage, scale: CGFloat, maxBytes: Int, maximumHalvings: Int = 3) -> FittedPNG? {
+        var current = image
+        var currentScale = scale
+        var halvings = 0
+        while true {
+            guard let data = png(current, scale: currentScale) else { return nil }
+            if data.count <= maxBytes || halvings >= maximumHalvings {
+                return FittedPNG(data: data, image: ImageBox(current), scale: currentScale, downscaled: halvings > 0)
+            }
+            guard let smaller = downscaled(current, by: 0.5) else { return nil }
+            current = smaller
+            currentScale /= 2
+            halvings += 1
+        }
+    }
+
     /// Premultiplied BGRA, the byte order ScreenCaptureKit and the display use.
     private static var bgraBitmapInfo: UInt32 {
         CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
