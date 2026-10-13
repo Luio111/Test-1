@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 
 /// A window on screen as the window server lists it (`CGWindowListCopyWindowInfo`),
 /// with its frame already in AppKit coordinates.

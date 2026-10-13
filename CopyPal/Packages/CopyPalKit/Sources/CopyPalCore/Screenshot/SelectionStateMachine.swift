@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 
 /// Where a selection came from.
 public enum SelectionOrigin: Sendable, Equatable {

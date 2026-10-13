@@ -230,9 +230,12 @@ public struct VerticalStitcher: Sendable {
         let previous = lastSignatures
         let height = next.count
         guard height == previous.count, height > settings.minimumOverlapRows else { return nil }
-        let same: (RowSignature, RowSignature) -> Bool = tolerance == 0
-            ? { $0.hash == $1.hash }
-            : { $0.hash == $1.hash || $0.bandDistance(to: $1) <= tolerance }
+        // Spelled out as a function: a closure ternary here stalls the Xcode type checker.
+        func same(_ a: RowSignature, _ b: RowSignature) -> Bool {
+            if a.hash == b.hash { return true }
+            if tolerance == 0 { return false }
+            return a.bandDistance(to: b) <= tolerance
+        }
 
         // No movement: the informative rows agree at the same index.
         let unchanged = Self.score(previous: previous, next: next, nextInformative: nextInformative, shift: 0, same: same)

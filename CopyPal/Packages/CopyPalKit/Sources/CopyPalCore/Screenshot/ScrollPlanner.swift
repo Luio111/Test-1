@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 
 /// How much of a scrolling capture exists so far.
 public struct StitchInfo: Sendable, Equatable {

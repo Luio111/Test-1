@@ -1,4 +1,5 @@
 #if os(macOS)
+import CopyPalCore
 import CoreGraphics
 import Foundation
 import ImageIO

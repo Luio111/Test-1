@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 
 /// What the pointer is over, from the smallest thing outward (M11).
 public enum SnapKind: Sendable, Equatable {

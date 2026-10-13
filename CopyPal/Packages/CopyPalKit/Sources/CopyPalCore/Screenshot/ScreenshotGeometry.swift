@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 
 /// A rectangle in whole device pixels of one display, origin at the display's top-left
 /// corner: what ScreenCaptureKit returns and what the stitcher works on.
@@ -18,6 +21,26 @@ public struct PixelRect: Sendable, Hashable {
     public var maxX: Int { x + width }
     public var maxY: Int { y + height }
     public var isEmpty: Bool { width <= 0 || height <= 0 }
+    public var area: Int { max(width, 0) * max(height, 0) }
+
+    public func contains(_ px: Int, _ py: Int) -> Bool {
+        px >= x && py >= y && px < maxX && py < maxY
+    }
+
+    /// The overlap with `other`, or nil when they do not meet.
+    public func intersection(_ other: PixelRect) -> PixelRect? {
+        let x0 = max(x, other.x), y0 = max(y, other.y)
+        let x1 = min(maxX, other.maxX), y1 = min(maxY, other.maxY)
+        guard x1 > x0, y1 > y0 else { return nil }
+        return PixelRect(x: x0, y: y0, width: x1 - x0, height: y1 - y0)
+    }
+
+    /// The smallest rect holding both.
+    public func union(_ other: PixelRect) -> PixelRect {
+        let x0 = min(x, other.x), y0 = min(y, other.y)
+        let x1 = max(maxX, other.maxX), y1 = max(maxY, other.maxY)
+        return PixelRect(x: x0, y: y0, width: x1 - x0, height: y1 - y0)
+    }
 }
 
 /// Conversions between the coordinate systems a screenshot touches (ROADMAP M11):
