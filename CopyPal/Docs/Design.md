@@ -51,7 +51,30 @@ Quelle: `App/DesignSystem/Components.swift`.
 | `SubtleButtonStyle` | Sekundäraktion: Rahmen, Hover-Hintergrund |
 | `PrimaryButtonStyle` | Hauptaktion: Akzentfarbe gefüllt |
 
+## Pop-up an der Notch
+
+Entschieden (12.10.2026): **Variante A „dunkel wie die Notch“.** Das Pop-up ist die Notch selbst, die nach unten wächst – immer schwarz, ohne Rand, nahtlos an der Kamera.
+
+- **Form** (`App/Notch/NotchShape.swift`): bündig an der Oberkante, oben konkave Ausläufer (8 pt) wie bei der Notch, unten Radius 20. Ohne Notch dieselbe Form oben mittig, so hoch wie die Menüleiste.
+- **Aufbau, flach:** In der Höhe der Notch links die Suche, rechts „Verlauf | Favoriten“, die Mitte bleibt frei für die Kamera. Darunter bis zu 8 Zeilen à 28 pt, unten eine Hinweiszeile (26 pt). Breite 520 pt (breiter, wenn die Notch es verlangt).
+- **Farben** (`Theme.Notch`): Weiß 92 % Text, 60 % sekundär (6,3:1), 40 % nur dekorativ, Auswahl 14 %, Flächen 10 %.
+- **Bewegung** (`PopupMotion`): Öffnen als Feder 0,42 s mit leichtem Nachfedern („fällt“ aus der Notch), die Form deckt den Inhalt dabei auf, Zeilen folgen mit 18 ms Versatz. Schließen: Inhalt sofort weg, die schwarze Form zieht sich in 0,26 s zurück (eigenes, passives Fenster, damit Fokus und Einfügen sofort bei der App sind). „Bewegung reduzieren“ oder die Einstellung schaltet alles ab.
+- **Maus:** Darüberfahren wählt eine Zeile aus (erst nach einer echten Mausbewegung), Klick fügt ein. „Verlauf“ und „Favoriten“ neben der Notch sind anklickbar (wie ⇥).
+- **Hinweiszeile:** ⌘P heißt „Favorit hinzufügen“ bzw. „Favorit entfernen“, je nach ausgewähltem Eintrag.
+
+## Bildschirmfoto-Overlay (M11)
+
+Das Overlay gehört zur Notch-Welt: immer dunkel, eine Akzentfarbe, Werte in SF Mono.
+
+- **Abdunkeln:** Schwarz 45 % über dem eingefrorenen Bild – heller als übliche Screenshot-Tools, damit der Inhalt zum Einrasten lesbar bleibt. Markierter Kandidat und Auswahl bleiben ungedunkelt.
+- **Kandidat:** 1,5 pt `accent` (#2383E2) plus 8 % Füllung, Radius 4; die einzige Akzentfarbe im Overlay. 150 ms ease-out beim Wechsel, nichts bei „Bewegung reduzieren“ oder ausgeschalteter Animation.
+- **Auswahl:** 1 px Weiß 92 %; vier runde Ecken-Griffe 6 pt Weiß 92 % mit 0,5 pt schwarzem Ring, erst nach dem Loslassen.
+- **Kapseln:** Schwarz, Höhe 26, ganz gerundet. Größe „1.280 × 720“ in SF Mono 12 Weiß 92 % unter der Auswahl (darüber, wenn unten kein Platz ist). Status und Hinweiszeile unten mittig auf dem Bildschirm, an dem gearbeitet wird; Status Weiß 92 %, Hinweis Weiß 60 %. Keine farbigen Punkte, keine Symbole.
+- **Erweitern:** Das aktuelle Bild erscheint direkt in der Auswahl; keine zweite Vorschau.
+- **Zeiger:** Fadenkreuz, nie versteckt. Koordinaten „412, 318“ neben dem Zeiger, solange nichts markiert ist.
+- **Ergebnis:** die bekannte Kapsel an der Notch, „Bildschirmfoto kopiert“ mit `camera.viewfinder`.
+- **Berechtigungsfenster:** Aufbau wie das Onboarding (`PageHeader`, `StatusTag`, eine Hauptaktion), damit es als Teil von CopyPal erkennbar ist.
+
 ## Offen
 
-- **Pop-up aus der Notch (M4/M7):** Variante A „dunkel wie die Notch“ (nahtloser Übergang, immer dunkel) oder Variante B „folgt dem System“ (hell/dunkel, mit dunklem Übergang an der Notch). Entscheidung anhand eines klickbaren Entwurfs vor M4.
 - App-Icon und Menüleisten-Icon (nach der Namensprüfung, D8). Bis dahin SF Symbol `doc.on.clipboard`.

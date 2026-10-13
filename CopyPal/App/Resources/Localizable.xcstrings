@@ -1,0 +1,3216 @@
+{
+  "sourceLanguage" : "de",
+  "strings" : {
+    "%lld Abschnitte · %@ px" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld sections · %@ px"
+          }
+        }
+      }
+    },
+    "%lld Dateien: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld files: %@"
+          }
+        }
+      }
+    },
+    "%lld Einträge · %lld Favoriten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld entries · %lld favorites"
+          }
+        }
+      }
+    },
+    "%lld Sekunden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld seconds"
+          }
+        }
+      }
+    },
+    "%lld Tage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld days"
+          }
+        }
+      }
+    },
+    "1 Jahr" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 year"
+          }
+        }
+      }
+    },
+    "1 Minute" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 minute"
+          }
+        }
+      }
+    },
+    "1 Stunde" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 hour"
+          }
+        }
+      }
+    },
+    "1 Tag" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 day"
+          }
+        }
+      }
+    },
+    "1 Woche" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 week"
+          }
+        }
+      }
+    },
+    "1. Beispiele kopieren · 2. ins Feld klicken · 3. ⌘V halten und 2 drücken." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Copy the examples · 2. click into the field · 3. hold ⌘V and press 2."
+          }
+        }
+      }
+    },
+    "15 Minuten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minutes"
+          }
+        }
+      }
+    },
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit entfernen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P remove favorite"
+          }
+        }
+      }
+    },
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit hinzufügen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P add favorite"
+          }
+        }
+      }
+    },
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Verlauf · ⌘P Favorit entfernen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ history · ⌘P remove favorite"
+          }
+        }
+      }
+    },
+    "30 Sekunden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 seconds"
+          }
+        }
+      }
+    },
+    "30 Tage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 days"
+          }
+        }
+      }
+    },
+    "5 Minuten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minutes"
+          }
+        }
+      }
+    },
+    "90 Tage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "90 days"
+          }
+        }
+      }
+    },
+    "Ab macOS 15.4 fragt macOS, ob eine App die Zwischenablage lesen darf. Für CopyPal „Immer erlauben“ wählen, sonst erscheint bei jeder Kopie eine Rückfrage." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Since macOS 15.4, macOS asks whether an app may read the clipboard. Choose “Always Allow” for CopyPal, otherwise you get a prompt with every copy."
+          }
+        }
+      }
+    },
+    "Abbrechen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "Abschnitt %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Section %lld"
+          }
+        }
+      }
+    },
+    "Absturzbericht kopieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Crash Report"
+          }
+        }
+      }
+    },
+    "Absturzbericht kopiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crash report copied"
+          }
+        }
+      }
+    },
+    "Abstürze" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crashes"
+          }
+        }
+      }
+    },
+    "Ad hoc – nicht stabil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ad hoc – not stable"
+          }
+        }
+      }
+    },
+    "Alle Einträge außer den Favoriten werden endgültig gelöscht." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All entries except your favorites will be deleted permanently."
+          }
+        }
+      }
+    },
+    "Alle Einträge löschen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete all entries"
+          }
+        }
+      }
+    },
+    "Alles auswählen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select All"
+          }
+        }
+      }
+    },
+    "Alles bereit." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All set."
+          }
+        }
+      }
+    },
+    "Alles bleibt auf diesem Mac, verschlüsselt mit einem Schlüssel aus deinem Schlüsselbund." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything stays on this Mac, encrypted with a key from your keychain."
+          }
+        }
+      }
+    },
+    "Alles bleibt verschlüsselt auf diesem Mac. CopyPal sammelt keine Nutzungsdaten und geht nur für Updates und Website-Symbole ins Netz – beides nur mit deiner Zustimmung." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything stays encrypted on this Mac. CopyPal collects no usage data and only goes online for updates and website icons – both only with your consent."
+          }
+        }
+      }
+    },
+    "Alles bleibt verschlüsselt auf diesem Mac. Sensible Einträge sind verdeckt und verschwinden nach kurzer Zeit." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything stays encrypted on this Mac. Sensitive entries are hidden and disappear after a short time."
+          }
+        }
+      }
+    },
+    "Allgemein" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        }
+      }
+    },
+    "Als reinen Text kopieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy as Plain Text"
+          }
+        }
+      }
+    },
+    "An der Notch erscheinen deine letzten 8 Einträge. Eine Zahl von 1 bis 8 fügt den Eintrag ein, mit ⇧ ohne Formatierung." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your last 8 entries appear at the notch. A number from 1 to 8 pastes the entry; with ⇧ without formatting."
+          }
+        }
+      }
+    },
+    "Anfragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request"
+          }
+        }
+      }
+    },
+    "Animation aus der Notch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animation from the notch"
+          }
+        }
+      }
+    },
+    "Anmeldeobjekte öffnen …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Login Items…"
+          }
+        }
+      }
+    },
+    "Anzeigen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show"
+          }
+        }
+      }
+    },
+    "App" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        }
+      }
+    },
+    "App hinzufügen …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add App…"
+          }
+        }
+      }
+    },
+    "Apps ohne ⌘V halten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps without holding ⌘V"
+          }
+        }
+      }
+    },
+    "Aufbewahren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep"
+          }
+        }
+      }
+    },
+    "Aufzeichnung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording"
+          }
+        }
+      }
+    },
+    "Aufzeichnung fortsetzen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume Recording"
+          }
+        }
+      }
+    },
+    "Aufzeichnung fortsetzen (pausiert bis %@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume Recording (paused until %@)"
+          }
+        }
+      }
+    },
+    "Aufzeichnung läuft" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording is on"
+          }
+        }
+      }
+    },
+    "Aufzeichnung pausieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause Recording"
+          }
+        }
+      }
+    },
+    "Aufzeichnung pausiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording paused"
+          }
+        }
+      }
+    },
+    "Aus Favoriten entfernen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from Favorites"
+          }
+        }
+      }
+    },
+    "Aus Favoriten entfernt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removed from favorites"
+          }
+        }
+      }
+    },
+    "Aus: ⌘V bleibt völlig unverändert, der Verlauf öffnet sich nur mit dem Tastenkürzel." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off: ⌘V stays completely unchanged; the history opens only with the shortcut."
+          }
+        }
+      }
+    },
+    "Ausschneiden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cut"
+          }
+        }
+      }
+    },
+    "Auswahl %lld × %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selection %lld × %lld"
+          }
+        }
+      }
+    },
+    "Bearbeiten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
+    "Bearbeiten …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit…"
+          }
+        }
+      }
+    },
+    "Bedienungshilfen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility"
+          }
+        }
+      }
+    },
+    "Bedienungshilfen erlauben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Accessibility"
+          }
+        }
+      }
+    },
+    "Bedienungshilfen erneut erteilen …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grant Accessibility Again…"
+          }
+        }
+      }
+    },
+    "Bedienungshilfen sind nicht freigegeben. Ohne sie kann CopyPal ⌘V nicht erkennen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility is not granted. Without it, CopyPal cannot recognize ⌘V."
+          }
+        }
+      }
+    },
+    "Bei der Anmeldung starten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start at login"
+          }
+        }
+      }
+    },
+    "Beispiele kopiert ✓" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Examples copied ✓"
+          }
+        }
+      }
+    },
+    "Benennen, sortieren, löschen. Favoriten überstehen „Verlauf löschen“ und jede Aufbewahrungsfrist." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name, sort, delete. Favorites survive “Clear History” and every retention period."
+          }
+        }
+      }
+    },
+    "Berechtigungen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permissions"
+          }
+        }
+      }
+    },
+    "Bericht kopieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Report"
+          }
+        }
+      }
+    },
+    "Bericht kopiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report copied"
+          }
+        }
+      }
+    },
+    "Beta-Versionen erhalten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Receive beta versions"
+          }
+        }
+      }
+    },
+    "Bild" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image"
+          }
+        }
+      }
+    },
+    "Bild %lld × %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image %lld × %lld"
+          }
+        }
+      }
+    },
+    "Bildschirmaufnahme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen Recording"
+          }
+        }
+      }
+    },
+    "Bildschirmaufnahme erlauben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Screen Recording"
+          }
+        }
+      }
+    },
+    "Bildschirmaufnahme erlauben …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Screen Recording …"
+          }
+        }
+      }
+    },
+    "Bildschirmaufnahme erteilt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen Recording granted"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto aufnehmen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take Screenshot"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto fehlgeschlagen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot failed"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto in der Zwischenablage (Aufzeichnung pausiert)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot on the clipboard (recording paused)"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto kopiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot copied"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto kopiert – auf halbe Auflösung verkleinert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot copied – scaled down to half resolution"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto mit Tastenkürzel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot with keyboard shortcut"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto nur auf diesem Mac (App wird ignoriert)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot on this Mac only (app is ignored)"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto verkleinert kopiert – zu groß für den Verlauf" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot copied scaled down – too large for the history"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto-Auswahl" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot selection"
+          }
+        }
+      }
+    },
+    "Bis zur Reaktivierung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Until Resumed"
+          }
+        }
+      }
+    },
+    "Bundle-ID" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bundle ID"
+          }
+        }
+      }
+    },
+    "Code" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code"
+          }
+        }
+      }
+    },
+    "CopyPal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal"
+          }
+        }
+      }
+    },
+    "CopyPal %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal %@"
+          }
+        }
+      }
+    },
+    "CopyPal beenden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit CopyPal"
+          }
+        }
+      }
+    },
+    "CopyPal läuft in der Menüleiste. Dort findest du Verlauf, Pause und Einstellungen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal lives in the menu bar. That’s where you find the history, pause and settings."
+          }
+        }
+      }
+    },
+    "CopyPal merkt sich, was du kopierst." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal remembers what you copy."
+          }
+        }
+      }
+    },
+    "CopyPal neu starten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relaunch CopyPal"
+          }
+        }
+      }
+    },
+    "CopyPal startet unsichtbar in der Menüleiste." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal starts quietly in the menu bar."
+          }
+        }
+      }
+    },
+    "CopyPal verwendet GRDB (MIT-Lizenz) und Sparkle (MIT-Lizenz); swift-crypto (Apache 2.0) nur für Tests." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal uses GRDB (MIT license) and Sparkle (MIT license); swift-crypto (Apache 2.0) for tests only."
+          }
+        }
+      }
+    },
+    "CopyPal – Aufzeichnung pausiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal – recording paused"
+          }
+        }
+      }
+    },
+    "CopyPal – Berechtigung fehlt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal – permission missing"
+          }
+        }
+      }
+    },
+    "Damit CopyPal erkennt, ob du ⌘V kurz drückst oder hältst, und den gewählten Eintrag einfügen kann. CopyPal liest dabei keine Tastatureingaben mit." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So CopyPal can tell whether you tap or hold ⌘V, and paste the entry you choose. CopyPal does not record your typing."
+          }
+        }
+      }
+    },
+    "Darstellung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        }
+      }
+    },
+    "Datenschutz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy"
+          }
+        }
+      }
+    },
+    "Datenschutzversprechen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy promise"
+          }
+        }
+      }
+    },
+    "Dein Verlauf der Zwischenablage – ohne neue Tastenkombinationen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your clipboard history – without new keyboard shortcuts."
+          }
+        }
+      }
+    },
+    "Deine Daten bleiben bei dir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your data stays with you"
+          }
+        }
+      }
+    },
+    "Den Bericht kannst du in einen GitHub-Kommentar einfügen. Er enthält keine persönlichen Daten." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can paste the report into a GitHub comment. It contains no personal data."
+          }
+        }
+      }
+    },
+    "Der Schlüssel liegt in deinem Schlüsselbund. Ohne ihn ist der Verlauf unlesbar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key lives in your keychain. Without it, the history is unreadable."
+          }
+        }
+      }
+    },
+    "Der Verlauf deiner Zwischenablage – mit ⌘V." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your clipboard history – with ⌘V."
+          }
+        }
+      }
+    },
+    "Der Zugriff auf die Zwischenablage ist verboten. CopyPal kann nichts mitlesen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard access is denied. CopyPal cannot record anything."
+          }
+        }
+      }
+    },
+    "Der Zugriff auf die Zwischenablage lässt sich nicht auslesen. Baue die App mit Xcode 16.3 oder neuer." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard access cannot be read. Build the app with Xcode 16.3 or later."
+          }
+        }
+      }
+    },
+    "Der Zugriff auf die Zwischenablage steht nicht auf „Immer erlauben“. macOS kann beim Mitlesen nachfragen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard access is not set to “Always Allow”. macOS may ask while CopyPal records."
+          }
+        }
+      }
+    },
+    "Der bisherige Verlauf ließ sich nicht entschlüsseln (z. B. nach einem Wechsel der Signatur). Er wurde unverändert beiseitegelegt: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The previous history could not be decrypted (for example after a signing change). It was set aside unchanged: %@"
+          }
+        }
+      }
+    },
+    "Diagnose" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostics"
+          }
+        }
+      }
+    },
+    "Diagnose …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostics…"
+          }
+        }
+      }
+    },
+    "Die App ist nicht stabil signiert. Die Freigabe für Bedienungshilfen geht dadurch bei jedem Build verloren – siehe Docs/Troubleshooting.md." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app is not signed stably, so the Accessibility permission is lost with every build – see Docs/Troubleshooting.md."
+          }
+        }
+      }
+    },
+    "Die Bildschirmaufnahme ist nicht erteilt. Bildschirmfotos sind so nicht möglich." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen Recording is not granted. Screenshots are not possible without it."
+          }
+        }
+      }
+    },
+    "Drei Beispiele kopieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Three Examples"
+          }
+        }
+      }
+    },
+    "Dritter Beispieltext" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Third example text"
+          }
+        }
+      }
+    },
+    "Einmalcodes erkennen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detect one-time codes"
+          }
+        }
+      }
+    },
+    "Einsetzen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste"
+          }
+        }
+      }
+    },
+    "Einstellungen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
+    "Einstellungen …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings…"
+          }
+        }
+      }
+    },
+    "Eintrag nicht mehr verfügbar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry no longer available"
+          }
+        }
+      }
+    },
+    "Einträge im Verlauf" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entries in the history"
+          }
+        }
+      }
+    },
+    "Einträge, die so lange nicht benutzt wurden, verschwinden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entries not used for this long disappear."
+          }
+        }
+      }
+    },
+    "Empfohlen, damit dein Verlauf immer mitläuft." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended, so your history is always recorded."
+          }
+        }
+      }
+    },
+    "Ende erreicht" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End reached"
+          }
+        }
+      }
+    },
+    "Entfernen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        }
+      }
+    },
+    "Entwicklung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Development"
+          }
+        }
+      }
+    },
+    "Erscheint sofort im Verlauf; den Inhalt holt CopyPal erst, wenn du ihn auswählst – so zeigt macOS „Einfügen vom iPhone“ nur dann." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appears in the history right away; CopyPal fetches the content only when you choose it – so macOS shows “Pasting from iPhone” only then."
+          }
+        }
+      }
+    },
+    "Erst bei Auswahl laden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load when chosen"
+          }
+        }
+      }
+    },
+    "Erster Beispieltext aus CopyPal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First example text from CopyPal"
+          }
+        }
+      }
+    },
+    "Erteilt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Granted"
+          }
+        }
+      }
+    },
+    "Erweitert …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extending …"
+          }
+        }
+      }
+    },
+    "Esc erneut verwirft %lld Abschnitte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esc again discards %lld sections"
+          }
+        }
+      }
+    },
+    "Falls das Erweitern in die falsche Richtung läuft (z. B. mit Scroll-Tools wie Mos oder Scroll Reverser)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If extending scrolls the wrong way (e.g. with scroll tools such as Mos or Scroll Reverser)."
+          }
+        }
+      }
+    },
+    "Favorit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorite"
+          }
+        }
+      }
+    },
+    "Favorit benennen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name Favorite"
+          }
+        }
+      }
+    },
+    "Favoriten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites"
+          }
+        }
+      }
+    },
+    "Favoriten bleiben erhalten." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites are kept."
+          }
+        }
+      }
+    },
+    "Favoriten sind von allen Grenzen ausgenommen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites are exempt from all limits."
+          }
+        }
+      }
+    },
+    "Fenster" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window"
+          }
+        }
+      }
+    },
+    "Fertig" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
+    "Folgt automatisch „Bewegung reduzieren“ in den Bedienungshilfen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follows “Reduce motion” in Accessibility automatically."
+          }
+        }
+      }
+    },
+    "Formate: %lld · Änderungszähler: %lld · %@ ms" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formats: %lld · change count: %lld · %@ ms"
+          }
+        }
+      }
+    },
+    "Fortsetzen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        }
+      }
+    },
+    "Fragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask"
+          }
+        }
+      }
+    },
+    "Freigabe anfordern" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request Permission"
+          }
+        }
+      }
+    },
+    "Funktioniert auch ohne Bedienungshilfen-Freigabe." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Works without the Accessibility permission, too."
+          }
+        }
+      }
+    },
+    "Für Bildschirmfotos braucht CopyPal die Freigabe „Bildschirmaufnahme“. CopyPal nimmt nur auf, wenn du das Tastenkürzel drückst – nie im Hintergrund. Im Verlauf werden Bildschirmfotos verschlüsselt gespeichert; wie jede Kopie kann macOS sie per Universal Clipboard an dein iPhone oder iPad geben." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For screenshots CopyPal needs the “Screen Recording” permission. CopyPal only captures when you press the shortcut – never in the background. In the history, screenshots are stored encrypted; like any copy, macOS can hand them to your iPhone or iPad via Universal Clipboard."
+          }
+        }
+      }
+    },
+    "Gebaut mit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Built with"
+          }
+        }
+      }
+    },
+    "Genau wie bisher: der zuletzt kopierte Eintrag." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just like before: the last thing you copied."
+          }
+        }
+      }
+    },
+    "Geschafft!" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You did it!"
+          }
+        }
+      }
+    },
+    "Geöffnet mit %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opened with %@"
+          }
+        }
+      }
+    },
+    "Halteschwelle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold threshold"
+          }
+        }
+      }
+    },
+    "Hinzufügen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        }
+      }
+    },
+    "IBAN" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IBAN"
+          }
+        }
+      }
+    },
+    "IBAN, Kartennummern, API-Schlüssel und Einmalcodes werden verdeckt angezeigt, sind nicht durchsuchbar und gehen nie ans iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IBANs, card numbers, API keys and one-time codes are shown hidden, are not searchable and never go to the iPhone."
+          }
+        }
+      }
+    },
+    "IBAN, Kartennummern, Schlüssel und Einmalcodes werden verdeckt und nach einer Minute gelöscht." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IBANs, card numbers, keys and one-time codes are hidden and deleted after one minute."
+          }
+        }
+      }
+    },
+    "Ignorieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ignore"
+          }
+        }
+      }
+    },
+    "Ignorierte Apps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ignored Apps"
+          }
+        }
+      }
+    },
+    "Immer erlauben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always Allow"
+          }
+        }
+      }
+    },
+    "In der Zwischenablage – mit ⌘V einfügen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On the clipboard – paste with ⌘V"
+          }
+        }
+      }
+    },
+    "In diesen Apps kommt ⌘V immer unverändert an (z. B. virtuelle Maschinen, Fernzugriff)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In these apps ⌘V always arrives unchanged (e.g. virtual machines, remote access)."
+          }
+        }
+      }
+    },
+    "Inhalt scrollt nicht" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Content does not scroll"
+          }
+        }
+      }
+    },
+    "Jetzt testen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test Now"
+          }
+        }
+      }
+    },
+    "Jetzt ⌘V drücken" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press ⌘V now"
+          }
+        }
+      }
+    },
+    "Karte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Card"
+          }
+        }
+      }
+    },
+    "Kein Übergang gefunden – bisheriger Teil bleibt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No overlap found – keeping what was captured"
+          }
+        }
+      }
+    },
+    "Kein Übergang gefunden – ↓ versucht es erneut" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No overlap found – ↓ tries again"
+          }
+        }
+      }
+    },
+    "Keine Cloud, keine Statistik" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No cloud, no analytics"
+          }
+        }
+      }
+    },
+    "Keine Konten, keine Cloud, keine Nutzungsstatistik, keine Werbung. Ins Netz geht CopyPal nur für Updates und Website-Symbole – beides nur, wenn du es erlaubst." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No accounts, no cloud, no usage analytics, no ads. CopyPal goes online only for updates and website icons – both only if you allow it."
+          }
+        }
+      }
+    },
+    "Keine Konten, keine Nutzungsdaten. Ins Netz nur für Updates – und nur, wenn du zustimmst." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No accounts, no usage data. Online only for updates – and only if you agree."
+          }
+        }
+      }
+    },
+    "Keine Treffer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No matches"
+          }
+        }
+      }
+    },
+    "Keiner" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None"
+          }
+        }
+      }
+    },
+    "Klick nimmt auf · Ziehen wählt frei · ⇥ größer · Leertaste nur Fenster · ↓ erweitern · Esc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click captures · drag selects · ⇥ larger · Space windows only · ↓ extend · Esc"
+          }
+        }
+      }
+    },
+    "Klick nimmt ein Fenster oder einen Bereich auf, Ziehen wählt frei. ↓ erweitert die Aufnahme über den sichtbaren Teil hinaus." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click captures a window or an area, drag selects freely. ↓ extends the capture beyond the visible part."
+          }
+        }
+      }
+    },
+    "Kopien aus Passwortmanagern und als geheim markierte Inhalte speichert CopyPal nie." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal never stores copies from password managers or content marked as secret."
+          }
+        }
+      }
+    },
+    "Kopien aus diesen Apps nie speichern" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Never store copies from these apps"
+          }
+        }
+      }
+    },
+    "Kopien vom iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copies from iPhone"
+          }
+        }
+      }
+    },
+    "Kopien vom iPhone erscheinen nicht im Verlauf." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copies from your iPhone don’t appear in the history."
+          }
+        }
+      }
+    },
+    "Kopiere etwas mit ⌘C – es erscheint hier." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy something with ⌘C – it appears here."
+          }
+        }
+      }
+    },
+    "Kopieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
+    "Kopiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied"
+          }
+        }
+      }
+    },
+    "Kopiert ✓" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied ✓"
+          }
+        }
+      }
+    },
+    "Kürzel ändern …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change Shortcut …"
+          }
+        }
+      }
+    },
+    "Labor …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lab…"
+          }
+        }
+      }
+    },
+    "Lesetest" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read test"
+          }
+        }
+      }
+    },
+    "Letzter Absturz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last crash"
+          }
+        }
+      }
+    },
+    "Liegt ein sensibler Eintrag beim Ablauf noch in der Zwischenablage, wird sie geleert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If a sensitive entry is still on the clipboard when it expires, the clipboard is cleared."
+          }
+        }
+      }
+    },
+    "Liest nur Änderungszähler und Formate, keine Inhalte. Achte darauf, ob macOS dabei einen Hinweis zeigt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reads only the change count and formats, no content. Watch whether macOS shows a notice."
+          }
+        }
+      }
+    },
+    "Liste" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List"
+          }
+        }
+      }
+    },
+    "Los geht’s" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let’s Go"
+          }
+        }
+      }
+    },
+    "Lädt das Symbol einer kopierten Website aus dem Netz. Aus: CopyPal stellt nie eine Verbindung her." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loads the icon of a copied website from the internet. Off: CopyPal never connects."
+          }
+        }
+      }
+    },
+    "Löschen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "Maximale Höhe erreicht" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximum height reached"
+          }
+        }
+      }
+    },
+    "Mit ⌘P im Pop-up oder über das Menü eines Eintrags." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With ⌘P in the popup or from an entry’s menu."
+          }
+        }
+      }
+    },
+    "Nach Updates suchen …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for Updates…"
+          }
+        }
+      }
+    },
+    "Nach oben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move Up"
+          }
+        }
+      }
+    },
+    "Nach unten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move Down"
+          }
+        }
+      }
+    },
+    "Name (optional)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name (optional)"
+          }
+        }
+      }
+    },
+    "Name, z. B. „E-Mail privat“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name, e.g. “Personal email”"
+          }
+        }
+      }
+    },
+    "Neue Funktionen früher – mit kleinem Risiko." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New features earlier – with a small risk."
+          }
+        }
+      }
+    },
+    "Neuer Verlauf angelegt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New history created"
+          }
+        }
+      }
+    },
+    "Nicht auslesbar (Xcode zu alt)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not readable (Xcode too old)"
+          }
+        }
+      }
+    },
+    "Nicht benötigt (Bildschirmfoto aus)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not needed (screenshot off)"
+          }
+        }
+      }
+    },
+    "Nicht erteilt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not granted"
+          }
+        }
+      }
+    },
+    "Nicht nötig auf diesem macOS" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not needed on this macOS"
+          }
+        }
+      }
+    },
+    "Nicht sensibel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Sensitive"
+          }
+        }
+      }
+    },
+    "Nicht vorhanden (vor macOS 15.4)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not available (before macOS 15.4)"
+          }
+        }
+      }
+    },
+    "Nie erlauben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Never Allow"
+          }
+        }
+      }
+    },
+    "Noch keine Favoriten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No favorites yet"
+          }
+        }
+      }
+    },
+    "Noch keine Favoriten. Im Pop-up macht ⌘P den ausgewählten Eintrag zum Favoriten." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No favorites yet. In the popup, ⌘P makes the selected entry a favorite."
+          }
+        }
+      }
+    },
+    "Noch nicht auf „Immer erlauben“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not yet “Always Allow”"
+          }
+        }
+      }
+    },
+    "Noch nicht erteilt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not granted yet"
+          }
+        }
+      }
+    },
+    "Noch nichts kopiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing copied yet"
+          }
+        }
+      }
+    },
+    "Nur Fenster · Leertaste zurück" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows only · Space back"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "Ohne Bedienungshilfen öffnet ⌃⌥V den Verlauf; der Eintrag landet dann in der Zwischenablage." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without Accessibility, ⌃⌥V opens the history; the entry then goes to the clipboard."
+          }
+        }
+      }
+    },
+    "Onboarding zeigen …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Onboarding…"
+          }
+        }
+      }
+    },
+    "Open Source" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Source"
+          }
+        }
+      }
+    },
+    "Passwortmanager und markierte Inhalte werden nie gespeichert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password managers and marked content are never stored."
+          }
+        }
+      }
+    },
+    "Passwörter bleiben draußen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwords stay out"
+          }
+        }
+      }
+    },
+    "Pausieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        }
+      }
+    },
+    "Probier es aus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try it"
+          }
+        }
+      }
+    },
+    "Prüfung fehlgeschlagen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check failed"
+          }
+        }
+      }
+    },
+    "Prüfung fehlgeschlagen: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check failed: %@"
+          }
+        }
+      }
+    },
+    "Schließen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "Schlüssel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Key"
+          }
+        }
+      }
+    },
+    "Schon für das Bildschirmfoto vergeben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already used for the screenshot"
+          }
+        }
+      }
+    },
+    "Schon für das Pop-up vergeben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already used for the popup"
+          }
+        }
+      }
+    },
+    "Schritt %lld von %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step %lld of %lld"
+          }
+        }
+      }
+    },
+    "Scroll-Aufnahme braucht Bedienungshilfen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrolling capture needs Accessibility"
+          }
+        }
+      }
+    },
+    "Scrollrichtung umkehren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reverse scroll direction"
+          }
+        }
+      }
+    },
+    "Sechsstellige Zahlen wie „123 456“ gelten als sensibel." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Six-digit numbers like “123 456” count as sensitive."
+          }
+        }
+      }
+    },
+    "Sensible Einträge löschen nach" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete sensitive entries after"
+          }
+        }
+      }
+    },
+    "Sensible Einträge verschwinden nach kurzer Zeit und gehen nie ans iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensitive entries disappear after a short time and never go to the iPhone."
+          }
+        }
+      }
+    },
+    "Sensible Inhalte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensitive Content"
+          }
+        }
+      }
+    },
+    "Sensibles verschwindet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensitive content disappears"
+          }
+        }
+      }
+    },
+    "Sichern" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "Signatur" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signature"
+          }
+        }
+      }
+    },
+    "So lange musst du ⌘V halten. Kürzer wirkt schneller, länger verhindert Versehen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How long you hold ⌘V. Shorter feels faster, longer prevents accidents."
+          }
+        }
+      }
+    },
+    "Sofort übernehmen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take over immediately"
+          }
+        }
+      }
+    },
+    "Später" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        }
+      }
+    },
+    "Stabil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stable"
+          }
+        }
+      }
+    },
+    "Standard wiederherstellen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore Defaults"
+          }
+        }
+      }
+    },
+    "Start" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startup"
+          }
+        }
+      }
+    },
+    "Suche: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search: %@"
+          }
+        }
+      }
+    },
+    "Suchen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        }
+      }
+    },
+    "Systemeinstellungen öffnen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        }
+      }
+    },
+    "Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen → CopyPal einschalten. Diese Seite erkennt die Freigabe automatisch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Settings → Privacy & Security → Accessibility → turn on CopyPal. This page notices the permission automatically."
+          }
+        }
+      }
+    },
+    "Systemeinstellungen → Datenschutz & Sicherheit → Bildschirmaufnahme → CopyPal einschalten. Dieses Fenster erkennt die Freigabe automatisch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Settings → Privacy & Security → Screen Recording → turn on CopyPal. This window detects the permission automatically."
+          }
+        }
+      }
+    },
+    "Systemstandard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System default"
+          }
+        }
+      }
+    },
+    "Tasten drücken …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press keys…"
+          }
+        }
+      }
+    },
+    "Tastenkürzel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard Shortcut"
+          }
+        }
+      }
+    },
+    "Tastenkürzel: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard shortcut: %@"
+          }
+        }
+      }
+    },
+    "Technische Angaben für Fehlerberichte. Enthält keine Inhalte deiner Zwischenablage." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Technical details for bug reports. Contains no clipboard content."
+          }
+        }
+      }
+    },
+    "Tippen zum Suchen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type to search"
+          }
+        }
+      }
+    },
+    "Umbenennen …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rename…"
+          }
+        }
+      }
+    },
+    "Umfang" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Size"
+          }
+        }
+      }
+    },
+    "Unbegrenzt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited"
+          }
+        }
+      }
+    },
+    "Unbekannt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown"
+          }
+        }
+      }
+    },
+    "Unbekannt (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown (%lld)"
+          }
+        }
+      }
+    },
+    "Unsigniert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unsigned"
+          }
+        }
+      }
+    },
+    "Verbergen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide"
+          }
+        }
+      }
+    },
+    "Verlauf" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        }
+      }
+    },
+    "Verlauf löschen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear History"
+          }
+        }
+      }
+    },
+    "Verlauf löschen …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear History…"
+          }
+        }
+      }
+    },
+    "Verlauf löschen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear history?"
+          }
+        }
+      }
+    },
+    "Verlauf mit Tastenkürzel öffnen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open the history with a keyboard shortcut"
+          }
+        }
+      }
+    },
+    "Verlauf nur vorübergehend (Speicher nicht verfügbar)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History is temporary only (storage unavailable)"
+          }
+        }
+      }
+    },
+    "Verlauf öffnen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open History"
+          }
+        }
+      }
+    },
+    "Verschlüsselt auf diesem Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encrypted on this Mac"
+          }
+        }
+      }
+    },
+    "Version" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        }
+      }
+    },
+    "Vom iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From iPhone"
+          }
+        }
+      }
+    },
+    "Vom iPhone kopiert – Auswahl lädt den Inhalt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied on iPhone – choosing it loads the content"
+          }
+        }
+      }
+    },
+    "Von einer anderen App belegt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taken by another app"
+          }
+        }
+      }
+    },
+    "Voreingestellt ⌘⇧A. Chrome („Tabs durchsuchen“) und der Finder nutzen die Kombination ebenfalls – hier lässt sie sich ändern." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default ⌘⇧A. Chrome (“Search Tabs”) and the Finder use the combination too – change it here."
+          }
+        }
+      }
+    },
+    "Voreingestellt: Passwortmanager, Schlüsselbund, Passwörter-App, Banking." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preset: password managers, Keychain, Passwords app, banking."
+          }
+        }
+      }
+    },
+    "Vorschauen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previews"
+          }
+        }
+      }
+    },
+    "Website-Symbole laden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load website icons"
+          }
+        }
+      }
+    },
+    "Weiter" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        }
+      }
+    },
+    "Willkommen bei CopyPal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to CopyPal"
+          }
+        }
+      }
+    },
+    "Wird wie eine Kopie am Mac gespeichert. macOS kann dabei kurz „Einfügen vom iPhone“ anzeigen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stored like a copy on the Mac. macOS may briefly show “Pasting from iPhone”."
+          }
+        }
+      }
+    },
+    "Während der Pause speichert CopyPal nichts. Das Menüleisten-Symbol zeigt die Pause." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "While paused, CopyPal stores nothing. The menu bar icon shows the pause."
+          }
+        }
+      }
+    },
+    "Zeit +1 Tag" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time +1 Day"
+          }
+        }
+      }
+    },
+    "Zeit +2 Tage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time +2 Days"
+          }
+        }
+      }
+    },
+    "Zeit +31 Tage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time +31 Days"
+          }
+        }
+      }
+    },
+    "Zeitversatz zurücksetzen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset Time Offset"
+          }
+        }
+      }
+    },
+    "Zeitversatz: %lld Tage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time offset: %lld days"
+          }
+        }
+      }
+    },
+    "Zu Favoriten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to Favorites"
+          }
+        }
+      }
+    },
+    "Zu Favoriten hinzugefügt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to favorites"
+          }
+        }
+      }
+    },
+    "Zugriff auf die Zwischenablage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard Access"
+          }
+        }
+      }
+    },
+    "Zugriff auf die Zwischenablage erlauben …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Clipboard Access…"
+          }
+        }
+      }
+    },
+    "Zugriff für CopyPal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access for CopyPal"
+          }
+        }
+      }
+    },
+    "Zurück" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        }
+      }
+    },
+    "Zweiter Beispieltext – halte ⌘V und drücke 2" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Second example text – hold ⌘V and press 2"
+          }
+        }
+      }
+    },
+    "Zwischenablage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard"
+          }
+        }
+      }
+    },
+    "Zwischenablage danach leeren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear the clipboard afterwards"
+          }
+        }
+      }
+    },
+    "esc leert die Suche" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "esc clears the search"
+          }
+        }
+      }
+    },
+    "formatiert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "formatted"
+          }
+        }
+      }
+    },
+    "gerade eben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "just now"
+          }
+        }
+      }
+    },
+    "iPhone (Universelle Zwischenablage)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone (Universal Clipboard)"
+          }
+        }
+      }
+    },
+    "macOS" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS"
+          }
+        }
+      }
+    },
+    "macOS 15 fragt etwa einmal im Monat erneut nach – das ist normal." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 15 asks again about once a month – that is expected."
+          }
+        }
+      }
+    },
+    "macOS hat den Anmeldestart nicht übernommen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS did not apply the login item."
+          }
+        }
+      }
+    },
+    "macOS wartet auf deine Zustimmung unter Systemeinstellungen → Allgemein → Anmeldeobjekte." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS is waiting for your approval in System Settings → General → Login Items."
+          }
+        }
+      }
+    },
+    "macOS übernimmt die Freigabe erst nach einem Neustart von CopyPal." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS applies the permission only after CopyPal relaunches."
+          }
+        }
+      }
+    },
+    "Ältere Einträge werden automatisch gelöscht." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Older entries are deleted automatically."
+          }
+        }
+      }
+    },
+    "Über" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        }
+      }
+    },
+    "Übungsfeld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Practice field"
+          }
+        }
+      }
+    },
+    "„Kopiert“ an der Notch zeigen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show “Copied” at the notch"
+          }
+        }
+      }
+    },
+    "↓ halten für mehr · ⌥↓ bis zum Ende · Esc stoppt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold ↓ for more · ⌥↓ to the end · Esc stops"
+          }
+        }
+      }
+    },
+    "↩ einfügen · ⌘1–8 Eintrag · ⇧↩ ohne Formatierung · esc Suche leeren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↩ paste · ⌘1–8 entry · ⇧↩ without formatting · esc clear search"
+          }
+        }
+      }
+    },
+    "⇧ Quadrat · ⌥ von der Mitte · Leertaste verschieben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧ square · ⌥ from the center · Space moves"
+          }
+        }
+      }
+    },
+    "⌘C kopiert wie immer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘C copies as always"
+          }
+        }
+      }
+    },
+    "⌘P im Verlauf macht einen Eintrag zum Favoriten." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘P in the history makes an entry a favorite."
+          }
+        }
+      }
+    },
+    "⌘V halten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Holding ⌘V"
+          }
+        }
+      }
+    },
+    "⌘V halten öffnet den Verlauf" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Holding ⌘V opens the history"
+          }
+        }
+      }
+    },
+    "⌘V kurz drücken fügt ein" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tapping ⌘V pastes"
+          }
+        }
+      }
+    },
+    "⌘V kurz drücken fügt wie gewohnt ein. ⌘V halten öffnet den Verlauf an der Notch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tapping ⌘V pastes as usual. Holding ⌘V opens the history at the notch."
+          }
+        }
+      }
+    },
+    "⏎ aufnehmen · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⏎ capture · ↓ ↑ extend · ⌘ arrows move · Esc"
+          }
+        }
+      }
+    },
+    "⏎ aufnehmen · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⏎ capture · ↓ ↑ continue · ⌫ remove section · Esc"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

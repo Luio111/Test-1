@@ -14,10 +14,18 @@ on:
     paths:
       - "CopyPal/**"
       - ".github/workflows/copypal-ci.yml"
+  # Manual runs (Actions → "CopyPal CI" → Run workflow) can add the smoke test on the
+  # oldest supported macOS (ROADMAP M8, D13); left out of automatic runs to save minutes.
   workflow_dispatch:
+    inputs:
+      macos14:
+        description: "Zusätzlich Selbsttest auf macOS 14"
+        type: boolean
+        default: false
 
 concurrency:
-  group: copypal-ci-${{ github.ref }}
+  # One group per branch for pull_request and manual runs alike: the newest run wins.
+  group: copypal-ci-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 permissions:
@@ -32,11 +40,16 @@ jobs:
     name: Package tests (Linux)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    container: swift:6.1-noble
+    container: swift:6.2-noble
     steps:
       - uses: actions/checkout@v5
+      - name: Install SQLite headers (GRDB) and Python
+        run: apt-get update -qq && apt-get install -y -qq libsqlite3-dev python3 > /dev/null
+      - name: Every UI text has an English translation
+        run: python3 CopyPal/scripts/check-localization.py
+      # Ubuntu's SQLite is built without snapshots, which GRDB uses on Apple platforms.
       - name: Build and test CopyPalKit
-        run: swift test --package-path CopyPal/Packages/CopyPalKit 2>&1 | tee package.log
+        run: swift test --package-path CopyPal/Packages/CopyPalKit -Xswiftc -DSQLITE_DISABLE_SNAPSHOT 2>&1 | tee package.log
       - name: No warnings in own sources
         run: CopyPal/scripts/ci-check-warnings.sh package.log
 
@@ -46,15 +59,29 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 25
     env:
-      # Pinned so CI and the documented minimum (README) match; update together.
-      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      # Same major version as the main development Mac (ROADMAP R15).
+      XCODE_VERSION: "26.0"
       XCODEGEN_VERSION: "2.46.0"
     steps:
       - uses: actions/checkout@v5
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          xcode="$(ls -d /Applications/Xcode_"${XCODE_VERSION}"*.app 2>/dev/null | head -n 1)"
+          if [ -z "$xcode" ]; then
+            echo "::error::Xcode ${XCODE_VERSION} fehlt auf dem Runner. Vorhanden:"
+            ls -d /Applications/Xcode*.app
+            exit 1
+          fi
+          echo "DEVELOPER_DIR=$xcode/Contents/Developer" >> "$GITHUB_ENV"
       - name: Toolchain
         run: |
           xcodebuild -version
           swift --version
+      # copypal-update with macOS's bash 3.2 and zsh, before the long build.
+      - name: Update script (copypal-update)
+        run: |
+          CopyPal/scripts/test-update.sh
+          COPYPAL_TEST_SHELL=bash CopyPal/scripts/test-update.sh
       - name: Package tests (incl. macOS adapters)
         run: swift test --package-path CopyPal/Packages/CopyPalKit 2>&1 | tee package.log
       - name: Install XcodeGen ${{ env.XCODEGEN_VERSION }}
@@ -72,6 +99,47 @@ jobs:
             -scheme CopyPal \
             -configuration Debug \
             -destination 'platform=macOS' \
+            -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee app.log
       - name: No warnings in own sources
         run: CopyPal/scripts/ci-check-warnings.sh package.log app.log
+      - name: German and English in the app bundle
+        run: |
+          resources="build/DerivedData/Build/Products/Debug/CopyPal.app/Contents/Resources"
+          ls -d "$resources"/*.lproj
+          test -e "$resources/en.lproj/Localizable.strings" || test -e "$resources/en.lproj/Localizable.stringsdict" \
+            || { echo "::error::Englische Übersetzung fehlt im App-Bundle"; exit 1; }
+      # Runs the app's end-to-end check of the ⌘V gesture with simulated key presses.
+      # GitHub's macOS runners grant Accessibility to processes started from job steps.
+      - name: Self-test (capture, history, ⌘V gesture, popup)
+        timeout-minutes: 4
+        run: CopyPal/scripts/ci-self-test.sh build/DerivedData/Build/Products/Debug/CopyPal.app
+      - name: Keep the app for the macOS 14 smoke test
+        if: inputs.macos14
+        run: ditto -c -k --keepParent build/DerivedData/Build/Products/Debug/CopyPal.app CopyPal.zip
+      - if: inputs.macos14
+        uses: actions/upload-artifact@v4
+        with:
+          name: CopyPal-debug
+          path: CopyPal.zip
+          retention-days: 3
+
+  smoke-macos14:
+    name: Self-test on macOS 14
+    needs: app-macos
+    if: inputs.macos14
+    runs-on: macos-14
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: CopyPal/scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: CopyPal-debug
+      - name: Self-test (same build as above)
+        timeout-minutes: 6
+        run: |
+          sw_vers
+          ditto -x -k CopyPal.zip .
+          CopyPal/scripts/ci-self-test.sh CopyPal.app

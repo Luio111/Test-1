@@ -11,6 +11,9 @@ import CopyPalSystem
 final class DiagnosticsModel {
     private(set) var snapshot: DiagnosticsSnapshot
     private(set) var reportCopied = false
+    /// The newest crash report of CopyPal, if macOS wrote one.
+    private(set) var latestCrash: CrashReports.Report?
+    private(set) var crashCopied = false
 
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var copiedResetTask: Task<Void, Never>?
@@ -26,6 +29,21 @@ final class DiagnosticsModel {
     /// Re-reads everything, keeping the last probe result.
     func refresh() {
         snapshot = Self.makeSnapshot(probe: snapshot.pasteboardProbe)
+        latestCrash = CrashReports.latest()
+    }
+
+    /// Copies the newest crash report, with the home folder shortened to "~".
+    func copyCrashReport() {
+        guard let latestCrash, let text = CrashReports.anonymizedText(of: latestCrash) else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        crashCopied = true
+        announce(String(localized: "Absturzbericht kopiert"))
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            self?.crashCopied = false
+        }
     }
 
     func runPasteboardProbe() {
@@ -40,6 +58,18 @@ final class DiagnosticsModel {
 
     func openAccessibilitySettings() {
         AccessibilityPermission.openSystemSettings()
+    }
+
+    /// Screen Recording for screenshots (M11); the system prompt comes only from here
+    /// or the permission window, never on its own.
+    func requestScreenCapture() {
+        AppSettings.screenshotPermissionAsked = true
+        ScreenCapturePermission.request()
+        refresh()
+    }
+
+    func openScreenCaptureSettings() {
+        ScreenCapturePermission.openSystemSettings()
     }
 
     func copyReport() {
@@ -82,6 +112,15 @@ final class DiagnosticsModel {
         if pasteboardAccess != snapshot.pasteboardAccess {
             snapshot.pasteboardAccess = pasteboardAccess
         }
+        let screenCapture = Self.screenCaptureState()
+        if screenCapture != snapshot.screenCapture {
+            snapshot.screenCapture = screenCapture
+        }
+    }
+
+    /// nil while screenshots are switched off: the permission is not needed then.
+    private static func screenCaptureState() -> PermissionState? {
+        AppSettings.screenshotEnabled ? ScreenCapturePermission.state : nil
     }
 
     private func announce(_ message: String) {
@@ -105,7 +144,39 @@ final class DiagnosticsModel {
             signing: CodeSigningInspector.currentProcess(),
             accessibility: AccessibilityPermission.state,
             pasteboardAccess: PasteboardInspector.accessStatus(),
-            pasteboardProbe: probe
+            pasteboardProbe: probe,
+            screenCapture: screenCaptureState()
         )
+    }
+}
+
+/// Crash reports macOS writes for CopyPal (`~/Library/Logs/DiagnosticReports`).
+enum CrashReports {
+    struct Report: Equatable {
+        var url: URL
+        var date: Date
+    }
+
+    static var directory: URL {
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/DiagnosticReports", isDirectory: true)
+    }
+
+    static func latest() -> Report? {
+        let keys: [URLResourceKey] = [.contentModificationDateKey]
+        guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: keys) else {
+            return nil
+        }
+        return files
+            .filter { $0.lastPathComponent.hasPrefix("CopyPal") && ["ips", "crash"].contains($0.pathExtension) }
+            .compactMap { url in
+                (try? url.resourceValues(forKeys: Set(keys)).contentModificationDate).map { Report(url: url, date: $0) }
+            }
+            .max { $0.date < $1.date }
+    }
+
+    /// Crash reports contain no clipboard content; the user's home path is shortened.
+    static func anonymizedText(of report: Report) -> String? {
+        guard let text = try? String(contentsOf: report.url, encoding: .utf8) else { return nil }
+        return text.replacingOccurrences(of: FileManager.default.homeDirectoryForCurrentUser.path, with: "~")
     }
 }

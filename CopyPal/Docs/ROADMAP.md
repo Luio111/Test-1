@@ -1,6 +1,6 @@
 # CopyPal – Umsetzungsplan (Mac-Version)
 
-Stand: 11.10.2026 · Zielplattform: macOS 14 Sonoma und neuer · Vertrieb: direkt (außerhalb des App Stores), Preismodell noch offen.
+Stand: 13.10.2026 · Zielplattform: macOS 14 Sonoma und neuer · Vertrieb: direkt (außerhalb des App Stores), Preismodell noch offen.
 
 CopyPal ist ein nativer Clipboard-Manager für den Mac:
 
@@ -18,20 +18,21 @@ Schwerpunkte sind Datenschutz und Einfachheit. Die iPhone-App ist ausdrücklich 
 
 | Meilenstein | Inhalt | Status |
 |---|---|---|
-| M0 | Fundament: Projekt, Signierung, CI, Diagnose | in Arbeit |
-| M1 | Spike A: ⌘V halten, Einfügen, Fokus | offen |
-| M2 | Spike B: Zwischenablage, Datenschutz-Abfragen, Universal Clipboard | offen |
-| G1 | Go/No-Go-Entscheidung | offen |
-| M3 | Kern und Speicher (parallel zu M1/M2) | offen |
-| M4 | Alpha: echter Verlauf und Pop-up, Alltagsnutzung | offen |
+| M0 | Fundament: Projekt, Signierung, CI, Diagnose | erledigt (12.10.2026) |
+| M1 | Spike A: ⌘V halten, Einfügen, Fokus | umgesetzt, CI-Selbsttest grün · Handtest offen |
+| M2 | Spike B: Zwischenablage, Datenschutz-Abfragen, Universal Clipboard | umgesetzt, CI-Selbsttest · Handtest offen (Passwortmanager, iPhone, `accessBehavior`) |
+| G1 | Go/No-Go-Entscheidung | wartet auf die Handtests M1/M2 |
+| M3 | Kern und Speicher (parallel zu M1/M2) | umgesetzt, CI grün · Schlüsselbund-Test lokal offen |
+| M4 | Alpha: echter Verlauf und Pop-up, Alltagsnutzung | umgesetzt, CI-Selbsttest · Alltagsnutzung offen |
 | G2 | Rückblick nach einer Woche Alltagsnutzung | offen |
-| M5 | Datenschutz komplett | offen |
-| M6 | Vorschauen und Favoriten | offen |
-| M7 | Notch-Erlebnis, Onboarding, Einstellungen | offen |
-| M8 | Härtung, Performance, Kompatibilität | offen |
-| G3 | Bereit für die Beta | offen |
-| M9 | Beta-Vertrieb: Developer ID, Notarisierung, Sparkle | offen |
-| M10 | Release 1.0 | offen |
+| M5 | Datenschutz komplett | umgesetzt, Korpus 0 Fehler · Handtest offen |
+| M6 | Vorschauen und Favoriten | umgesetzt · Handtest offen |
+| M7 | Notch-Erlebnis, Onboarding, Einstellungen | umgesetzt (Deutsch + Englisch) · Handtest offen |
+| M8 | Härtung, Performance, Kompatibilität | umgesetzt, soweit automatisierbar · CI-Selbsttest auf macOS 14.8 und 15.7 grün · Messungen am Mac, Matrix offen |
+| G3 | Bereit für die Beta | offen (D8, D10–D12) |
+| M9 | Beta-Vertrieb: Developer ID, Notarisierung, Sparkle | vorbereitet (Sparkle, `scripts/release.sh`, Anleitungen) · braucht Developer-Account (D10) |
+| M10 | Release 1.0 | vorbereitet (Website, Rechtstexte als Vorlage, Checkliste) · braucht D11 und deine Angaben |
+| M11 | Bildschirmfoto: ⌘⇧A, Einrasten an Fenstern und Kontrastbereichen, Scroll-Aufnahme | umgesetzt, Kernlogik auf Linux getestet, CI-Selbsttest · Handtest offen (`Docs/Testplaene/M11.md`) |
 
 ### Reihenfolge (schwierigste Risiken zuerst)
 
@@ -258,7 +259,7 @@ Ziffern werden über die physische Taste erkannt, nicht über das erzeugte Zeich
   1. Linux: `swift test` im Package (günstig, läuft zuerst)
   2. macOS (nur wenn 1 grün): `swift test`, `xcodegen generate`, `xcodebuild build` ohne Signierung
   3. Compiler-Warnungen im eigenen Code lassen den Lauf scheitern (`scripts/ci-check-warnings.sh`)
-- **Versionen fest:** Xcode 16.4 und XcodeGen 2.46.0. Mindestversion für dich: Xcode 16.3 (README).
+- **Versionen fest:** Xcode 26.0 (wie der Entwicklungs-Mac) und XcodeGen 2.46.0. Mindestversion laut README: Xcode 16.3.
 - **Keychain-Tests** laufen nur lokal.
 - **Kosten:** In privaten Repos zählen macOS-Minuten mit Faktor 10 gegen das Freikontingent. Ziel sind unter 8 Minuten pro Lauf. Öffentliche Repos sind kostenlos (siehe D1).
 - **Optional:** Swift-Toolchain im Cloud-Container über einen SessionStart-Hook. Dann laufen die Core-Tests schon vor dem Push.
@@ -556,11 +557,11 @@ Ziffern werden über die physische Taste erkannt, nicht über das erzeugte Zeich
 **Fertig wenn**
 - [ ] Die CPU liegt im Leerlauf unter 0,1 % (10 Minuten in der Aktivitätsanzeige gemessen).
 - [ ] Der Speicher bleibt bei 500 Einträgen (davon 50 Bilder) unter 50 MB.
-- [ ] Die Popup-Latenz liegt p90 unter 100 ms.
-- [ ] Ein 20-MB-Bild zu kopieren erzeugt kein Ruckeln.
-- [ ] `for i in {1..100}; do echo $i | pbcopy; sleep 0.1; done`: kein Absturz, keine Duplikate, der letzte Eintrag ist korrekt.
+- [ ] Die Popup-Latenz liegt p90 unter 100 ms. *(CI-VM: p90 55 ms auf macOS 15, 62 ms auf macOS 14)*
+- [ ] Ein 20-MB-Bild zu kopieren erzeugt kein Ruckeln. *(CI-VM: längste Blockade 39 bzw. 45 ms)*
+- [ ] `for i in {1..100}; do echo $i | pbcopy; sleep 0.1; done`: kein Absturz, keine Duplikate, der letzte Eintrag ist korrekt. *(im CI-Selbsttest nachgestellt: bestanden)*
 - [ ] Die Matrix ist vollständig; jede rote Zelle hat eine Umgehung oder eine App-Ausnahme.
-- [ ] Der Smoke-Test auf macOS 14 ist bestanden.
+- [x] Der Smoke-Test auf macOS 14 ist bestanden. *(CI, macOS 14.8.9, alle 28 Selbsttest-Prüfungen, 12.10.2026)*
 - [ ] 2 Wochen ohne Absturz, keine offenen kritischen Fehler.
 
 #### Gate G3: Bereit für die Beta
@@ -609,6 +610,30 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 - [ ] Die Website ist live, mit notarisiertem DMG und Update-Feed.
 - [ ] Falls kostenpflichtig: Kauf, Aktivierung und Rückerstattung sind einmal komplett durchgespielt.
 - [ ] Alle offenen Entscheidungen sind abgeschlossen.
+
+---
+
+### M11: Bildschirmfoto – ⌘⇧A, Einrasten an Fenstern und Bereichen, Scroll-Aufnahme
+
+**Aufgaben**
+- **Tastenkürzel ⌘⇧A** (zweiter Carbon-Hotkey, in den Einstellungen änderbar und abschaltbar, Menüeintrag „Bildschirmfoto aufnehmen“). Ein Kürzel, das schon das Pop-up öffnet, wird abgelehnt.
+- **Freigabe „Bildschirmaufnahme“** erst bei der ersten Nutzung: eigenes Fenster im Onboarding-Stil, erkennt die Freigabe selbst, bietet den Neustart an, den macOS verlangt. Die Systemabfrage kommt nur über den Knopf. Nach einem Entzug zeigt die Menüleiste das Warnsymbol – nur wenn die Funktion schon einmal lief.
+- **Eingefrorenes Bild:** Alle Bildschirme werden einmal aufgenommen, bevor ein Overlay erscheint (ScreenCaptureKit). Das Overlay dunkelt um 45 % ab, die aktive App bleibt vorne.
+- **Einrasten:** Element → Textblock → Fläche → Fenster → Bildschirm, aus einer Kontrastanalyse des eingefrorenen Bildes und der Fensterliste. ⇥/⇧⇥ wechseln die Stufe, die Leertaste schaltet „nur Fenster“.
+- **Aufnehmen:** Klick nimmt den markierten Bereich sofort auf, Ziehen wählt frei (⇧ Quadrat, ⌥ von der Mitte, Leertaste verschiebt), ⌥-Klick lässt die Auswahl stehen. Danach Ecken ziehen, ⌘-Pfeile verschieben, ⏎ nimmt auf. Das Ergebnis ist eine frische Aufnahme ohne Overlay.
+- **Erweitern (Scroll-Aufnahme):** ↓/↑ scrollen den Inhalt unter der Auswahl und setzen die Bilder zusammen (Zeilen-Hashes, Eindeutigkeitsprüfung, feste Kopf- und Fußzeilen nur einmal). ↓ halten geht Schritt für Schritt, ⌥↓ bis zum Ende, ⌫ nimmt den letzten Abschnitt zurück, Esc stoppt und behält.
+- **Ergebnis:** PNG (Retina-DPI) und TIFF in die Zwischenablage, PNG als Bild in den Verlauf. Pause und Ignorierliste gelten; „Bildschirmfoto kopiert“ an der Notch.
+- **Selbsttest:** Kürzel, Overlay oder Berechtigungsfenster, ⌘V danach, synthetisches Zusammensetzen immer; die Aufnahme in den Verlauf nur mit Freigabe, sonst `::warning::`.
+
+**Fertig wenn**
+- [ ] ⌘⇧A öffnet das Overlay in unter 300 ms; die aktive App bleibt vorne, ⌘V halten funktioniert danach unverändert. *(CI: Kürzel, Overlay/Berechtigungsfenster, ⌘V danach)*
+- [ ] Ein Klick auf Fenster, Absatz, Bild und Button in Safari liefert jeweils den passenden Ausschnitt; ⇥ erreicht Fläche und Fenster.
+- [ ] Freies Ziehen mit ⇧, ⌥ und Leertaste; Bildmaße = Punkte × Faktor; Vorschau zeigt 144 dpi auf Retina.
+- [ ] ↓ auf einer langen Webseite liefert ein Bild ohne doppelte Zeilen; ein fester Header erscheint einmal; „Ende erreicht“ stoppt von selbst; Esc behält das Zusammengesetzte.
+- [ ] Ohne Freigabe erscheint nur das Berechtigungsfenster; nach dem Entzug Warnsymbol und Menüeintrag.
+- [ ] Alle Kern-Algorithmen sind auf Linux getestet (Automat, Kandidaten, Kontrastbereiche, Zusammensetzen, Scroll-Planung). *(CI)*
+- [ ] Einfügen klappt in TextEdit, Mail, Safari (TIFF) und Chrome, Slack, Figma (PNG).
+- [ ] Null Compiler-Warnungen; der Selbsttest bleibt grün. *(CI)*
 
 ---
 
@@ -674,14 +699,21 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 | R12 | Speicherbedarf durch große Inhalte | Größenlimits; Blobs auf der Platte; Miniaturen; nur die neuesten Einträge im RAM | M4, M8 |
 | R13 | Claude kann nicht selbst kompilieren | CI bei jedem PR; kleine PRs; Logik im Package | M0 |
 | R14 | CI-Kosten (macOS-Minuten) | Pfadfilter, Abbruch alter Läufe, Cache; öffentliches Repo oder eigener Runner | M0 |
-| R15 | Unterschiedliche Xcode-Versionen bei dir und in der CI | CI auf Xcode 16.4 festgelegt; „Gebaut mit“ in der Diagnose; auf deine Hauptversion umstellen, sobald bekannt | M0 |
+| R15 | Unterschiedliche Xcode-Versionen bei dir und in der CI | CI baut mit Xcode 26.0 wie dein Mac (Diagnose „Gebaut mit“); bei Xcode-Updates beide anheben | M0 |
 | R16 | Nur ein Test-Mac, Mindestversion ist macOS 14 | VM mit macOS 14; Beta-Tester mit älteren Macs bzw. Macs ohne Notch | M8, M9 |
-| R17 | Notch-Geometrie, mehrere Bildschirme, Vollbild | getestete Geometrie; Labor-Overlay; Rückfall oben mittig | M7 |
+| R17 | Notch-Geometrie, mehrere Bildschirme, Vollbild | getestete Geometrie; Labor-Overlay; Rückfall oben mittig; Panel wandert beim Öffnen auf den aktiven Space (`moveToActiveSpace`), ein unsichtbares Pop-up wird abgebrochen statt die Geste zu blockieren | M7 |
 | R18 | Name „CopyPal“ markenrechtlich oder als Domain belegt | früh prüfen: DPMA, EUIPO, USPTO, App Store, Domains | D8 |
 | R19 | Privater Update-Schlüssel verloren, dann keine Updates mehr möglich | Backup an zwei Orten, Wiederherstellung ausprobiert | M9 |
 | R20 | Apple schränkt synthetische Eingaben weiter ein | Rückfall „nur in die Zwischenablage legen“; Betas beobachten | laufend |
 | R21 | Kopien, die schneller als 0,4 s aufeinander folgen, werden verpasst | akzeptiert und dokumentiert | M2 |
 | R22 | Konkurrenz durch den Spotlight-Verlauf ab macOS 26 | Abgrenzung über ⌘V-Halten, Datenschutz, Verschlüsselung, Favoriten | M10 |
+| R23 | Freigabe „Bildschirmaufnahme“: Neustart nötig, hängende Einträge, monatliche Rückfrage ab macOS 15 | Prüfung mit ScreenCaptureKit unterscheidet „verweigert“ und „Neustart nötig“; Neustart-Knopf; Aufnahme vor dem Overlay, damit Systemdialoge sichtbar bleiben; `Troubleshooting.md` | M11 |
+| R24 | ⌘⇧A kollidiert mit App-Kürzeln (Chrome „Tabs durchsuchen“, Finder) | Kürzel änder- und abschaltbar; Hinweis „Von einer anderen App belegt“; D14 | M11 |
+| R25 | ScreenCaptureKit-Geometrie (Ausschnitt in Punkten, Größe in Pixeln, Menüleiste erst ab 14.2, mehrere Bildschirme) | ganzzahlige Pixelrechtecke in Core; Größenprüfung mit Rückfall auf ganzen Bildschirm plus Zuschnitt; Auswahl bleibt auf einem Bildschirm; vor 14.2 unterhalb der Menüleiste | M11 |
+| R26 | Scroll-Ereignisse erreichen den Inhalt nicht (Routing, Scroll-Tools, Terminal, Electron) | Overlay lässt die Maus während des Schritts durch, Zeiger kurz über der Auswahl, Fensterprüfung vor jedem Schritt, Zeilen-Wiederholung, „Scrollrichtung umkehren“, sauberer Stopp mit Hinweis | M11 |
+| R27 | Falsche Nähte (feste Kopfzeilen, Animationen, Wiederholmuster) | Eindeutigkeitsprüfung verwirft statt zu raten; feste Bänder nur mit Inhalt; ⌫; Grenzen dokumentiert | M11 |
+| R28 | Speicher bei hohen Aufnahmen | Grenzen 20.000 px, 200 MB, 200 Schritte; Verkleinerung auf die Hälfte mit Hinweis | M11 |
+| R29 | Bildschirmaufnahme auf den GitHub-Runnern | Stand 13.10.2026 auf macOS 15.7: freigegeben, der Selbsttest nimmt wirklich auf. Fehlt sie auf einem Runner, überspringt der Selbsttest die Aufnahme-Prüfung mit `::warning::`; die Logik ist auf Linux getestet | M11 |
 
 ---
 
@@ -702,10 +734,14 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 | D11 | Preismodell | offen; falls kostenpflichtig, über einen Merchant of Record | Start M9 |
 | D12 | Beta-Programm | 5–15 Tester, Sparkle-Beta-Kanal | Start M9 |
 | D13 | Mindestversion macOS 14 bestätigen | 14 | G1 |
+| D14 | Standard-Kürzel für das Bildschirmfoto | ⌘⇧A wie gewünscht, trotz Chrome und Finder; frei änderbar | M11 |
+| D15 | Bildschirmfotos und Universal Clipboard | nicht `local_only` (Weitergabe an iPad und iPhone ist erwünscht); keine Texterkennung, daher keine Prüfung auf sensible Inhalte in Bildern (Backlog) | M11 |
 
 ---
 
 ## 7. Backlog nach 1.0
+
+Ideen mit Bewertung und das Design-Review vom 13.10.2026: [`Docs/Ideen-und-Design-Review.md`](Ideen-und-Design-Review.md).
 
 - **v1.x:**
   - „Sammeln“-Modus: jedes ⌘V fügt den nächsten Eintrag aus einer Warteschlange ein
@@ -714,6 +750,7 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
   - Durchblättern durch wiederholtes V (wie ⌘-Tab) als Profi-Option
   - Favoriten exportieren und importieren
   - Pop-up direkt am Textcursor
+  - Bildschirmfoto: Texterkennung (Vision) für Suche und sensible Inhalte, manueller Scroll-Modus (selbst scrollen, CopyPal setzt zusammen), Erweitern nach links/rechts, zusätzlich auf dem Schreibtisch sichern, Lupe beim Ziehen
 - **v2:**
   - iCloud-Sync über CKSyncEngine (das Schema ist vorbereitet), mit Ende-zu-Ende-Verschlüsselung über einen eigenen Schlüssel im iCloud-Schlüsselbund
   - `local_only`-Einträge werden nie synchronisiert
