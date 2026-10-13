@@ -441,8 +441,10 @@ final class SelfTestRunner {
             }
             await self.app.capture.drain()
             let titles = self.app.history.items.map(\.preview.title)
-            let duplicates = titles.count - Set(titles).count
-            return (titles.first == "Stress 100" && duplicates == 0, "oben: „\(titles.first ?? "–")“, Duplikate: \(duplicates), gespeichert: \(titles.filter { $0.hasPrefix("Stress") }.count)")
+            // Only the stress copies count: images from earlier checks share the empty title.
+            let stress = titles.filter { $0.hasPrefix("Stress") }
+            let duplicates = stress.count - Set(stress).count
+            return (titles.first == "Stress 100" && duplicates == 0, "oben: „\(titles.first ?? "–")“, Duplikate: \(duplicates), gespeichert: \(stress.count)")
         }
     }
 
