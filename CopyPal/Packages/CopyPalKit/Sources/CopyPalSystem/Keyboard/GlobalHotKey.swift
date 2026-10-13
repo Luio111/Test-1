@@ -84,9 +84,11 @@ public final class GlobalHotKey {
                     &hotKeyID
                 )
                 guard status == OSStatus(noErr) else { return OSStatus(eventNotHandledErr) }
-                // Carbon delivers application-target events on the main thread.
+                // Carbon delivers application-target events on the main thread. The type
+                // is named in full: a C function pointer cannot capture `Self`.
                 return MainActor.assumeIsolated {
-                    guard hotKeyID.signature == signature, let hotKey = instances[hotKeyID.id] else {
+                    guard hotKeyID.signature == GlobalHotKey.signature,
+                          let hotKey = GlobalHotKey.instances[hotKeyID.id] else {
                         return OSStatus(eventNotHandledErr)
                     }
                     hotKey.onPress?()
