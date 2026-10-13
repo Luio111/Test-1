@@ -135,6 +135,12 @@ public final class EventTapController: @unchecked Sendable {
         perform { $0.apply(input: .popupClosed, event: nil) }
     }
 
+    /// Tell the gesture that the popup could not be shown (main thread): a held V is
+    /// swallowed until its release, then the gesture starts over.
+    public func popupDidFail() {
+        perform { $0.apply(input: .popupFailed, event: nil) }
+    }
+
     // MARK: Tap thread
 
     private func runTapLoop() {
@@ -142,6 +148,10 @@ public final class EventTapController: @unchecked Sendable {
               let source = CFMachPortCreateRunLoopSource(nil, port, 0) else {
             return
         }
+        // A restarted tap (sleep, user switch, permission) never inherits a hold that
+        // was in flight when the old one stopped.
+        machine = HoldGestureStateMachine()
+        cancelHoldTimer()
         let loop = CFRunLoopGetCurrent()
         lock.withLock { runLoop = loop }
         CFRunLoopAddSource(loop, source, .commonModes)

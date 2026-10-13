@@ -66,6 +66,10 @@ final class InputCoordinator {
         tap.popupDidClose()
     }
 
+    func popupDidFail() {
+        tap.popupDidFail()
+    }
+
     func popupDidAppear() {
         tap.diagnostics.markPopupVisible()
     }

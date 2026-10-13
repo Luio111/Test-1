@@ -221,6 +221,10 @@ final class SelfTestRunner {
             return (opened && rows == 8 && empty, "sichtbar: \(opened), Zeilen: \(rows), Text: „\(self.textView.string)“")
         }
 
+        await check("Pop-up erscheint über einem Vollbild-Fenster") {
+            await self.fullScreenCheck()
+        }
+
         await check("Taste 1 fügt formatiert (fett) ein") {
             let result = await self.pasteFromPopup(keys: [(18, [])], expected: "Fett formatierter Text")
             return (result.0 && self.isBold, "\(result.1), fett: \(self.isBold)")
@@ -393,6 +397,32 @@ final class SelfTestRunner {
             documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
         )
         await copy(text, extra: rtf.map { [PasteboardTypeID.rtf: $0] } ?? [:])
+    }
+
+    /// The panel must join a full-screen Space (M7). CI can only put CopyPal's own
+    /// window into full screen; another app's Space is the manual test in M7.md.
+    private func fullScreenCheck() async -> (Bool, String) {
+        guard let window else { return (false, "kein Testfenster") }
+        window.styleMask.insert(.resizable)
+        window.collectionBehavior.insert(.fullScreenPrimary)
+        window.toggleFullScreen(nil)
+        guard await waitUntil(timeout: 8_000, { window.styleMask.contains(.fullScreen) }) else {
+            return (true, "übersprungen: kein Vollbild auf diesem Mac")
+        }
+        await sleep(600) // the Space transition
+        await prepare(clipboard: nil)
+        await openPopup()
+        let opened = await waitUntil { self.app.popup.isVisible }
+        await sleep(200)
+        let onSpace = app.popup.isOnActiveSpace
+        let onScreen = app.popup.isOnScreen
+        app.popup.close()
+        await sleep(300)
+        window.toggleFullScreen(nil)
+        _ = await waitUntil(timeout: 8_000) { !window.styleMask.contains(.fullScreen) }
+        await sleep(600)
+        focusTextView()
+        return (opened && onSpace && onScreen, "sichtbar: \(opened), auf aktivem Space: \(onSpace), auf dem Bildschirm: \(onScreen)")
     }
 
     private func pasteFromPopup(keys: [(UInt16, CGEventFlags)], expected: String, seedClipboard: Bool = true) async -> (Bool, String) {

@@ -10,6 +10,8 @@ import CopyPalSystem
 final class PopupController {
     /// Called after the popup closed (by choice, esc or losing focus).
     var onClose: (() -> Void)?
+    /// Called when the popup could not be put on the user's Space; it is not open then.
+    var onShowFailed: (() -> Void)?
     /// Called right after the popup became visible (latency measurement).
     var onVisible: (() -> Void)?
 
@@ -20,6 +22,7 @@ final class PopupController {
     private let retract = NotchRetract()
     private var keyMonitor: Any?
     private var resignObserver: NSObjectProtocol?
+    private var spaceObserver: NSObjectProtocol?
     private var targetProcessID: pid_t?
     private var screen: NSScreen?
     /// Where the pointer was when the popup opened: hovering selects a row only after
@@ -40,6 +43,21 @@ final class PopupController {
 
     var isVisible: Bool {
         panel.isVisible
+    }
+
+    /// The panel is on the Space the user sees; false would mean an invisible popup.
+    var isOnActiveSpace: Bool {
+        panel.isOnActiveSpace
+    }
+
+    /// The window server lists the panel among the windows on screen (needs no
+    /// Screen Recording permission: only numbers and bounds are read).
+    var isOnScreen: Bool {
+        guard let windows = CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID) as? [[String: Any]] else {
+            return false
+        }
+        let number = panel.windowNumber
+        return windows.contains { ($0[kCGWindowNumber as String] as? Int) == number }
     }
 
     private var animates: Bool {
@@ -68,6 +86,19 @@ final class PopupController {
         panel.contentView?.layoutSubtreeIfNeeded()
         panel.displayIfNeeded()
         panel.orderFrontRegardless()
+        if !panel.isOnActiveSpace {
+            // Seen once: first shown over another app's full-screen Space, the panel stayed
+            // on the desktop behind it. Ordering it in again moves it to the active Space.
+            panel.orderOut(nil)
+            panel.orderFrontRegardless()
+        }
+        guard panel.isOnActiveSpace else {
+            // Better no popup than an invisible one that keeps the gesture and ⌘V hostage.
+            Log.app.error("Pop-up liegt nicht auf dem aktiven Space – abgebrochen (auf dem Bildschirm: \(self.isOnScreen, privacy: .public))")
+            panel.orderOut(nil)
+            onShowFailed?()
+            return
+        }
         panel.makeKey()
         installMonitors()
 
@@ -91,12 +122,13 @@ final class PopupController {
         }
     }
 
-    func close() {
+    /// `retracting`: false skips the closing animation (the user is on another Space).
+    func close(retracting: Bool = true) {
         guard isVisible else { return }
         removeMonitors()
         // The visible popup leaves at once (focus and the paste go back to the app);
         // a passive copy of the shape shrinks back into the notch.
-        if animates, model.expanded {
+        if retracting, animates, model.expanded {
             retract.play(
                 from: visibleSilhouette(),
                 to: model.layout.silhouette(expanded: false),
@@ -296,6 +328,17 @@ final class PopupController {
                 self?.close()
             }
         }
+        // Switching Spaces (swipe, full screen on/off) leaves the popup behind and
+        // changes the app that would be pasted into: close.
+        spaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.close(retracting: false)
+            }
+        }
     }
 
     private func removeMonitors() {
@@ -307,6 +350,10 @@ final class PopupController {
             NotificationCenter.default.removeObserver(resignObserver)
         }
         resignObserver = nil
+        if let spaceObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(spaceObserver)
+        }
+        spaceObserver = nil
     }
 
     private func makePanel() -> PopupPanel {

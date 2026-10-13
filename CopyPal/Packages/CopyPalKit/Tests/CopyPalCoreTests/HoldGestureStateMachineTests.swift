@@ -103,6 +103,50 @@ struct HoldGestureStateMachineTests {
         #expect(machine.state == .waiting(generation: 2))
     }
 
+    // MARK: Popup could not be shown
+
+    @Test func failedPopupWhileKeyIsDownSwallowsRepeatsUntilRelease() {
+        let (machine, outputs) = run([
+            .keyDown(cmdV), .thresholdElapsed(generation: 1), .popupFailed,
+            .keyDown(cmdVRepeat), .keyDown(cmdVRepeat), .keyUp(vUp),
+        ])
+        #expect(outputs[2] == .pass)
+        #expect(Array(outputs[3...]) == [.swallow, .swallow, .swallow])
+        #expect(!outputs.flatMap(\.effects).contains(.synthesizePaste))
+        #expect(machine.state == .idle)
+    }
+
+    @Test func failedPopupAfterReleaseReturnsToIdle() {
+        let (machine, _) = run([.keyDown(cmdV), .thresholdElapsed(generation: 1), .keyUp(vUp), .popupFailed])
+        #expect(machine.state == .idle)
+    }
+
+    @Test func tapAfterFailedPopupPastesNormally() {
+        let (machine, outputs) = run([
+            .keyDown(cmdV), .thresholdElapsed(generation: 1), .popupFailed, .keyUp(vUp),
+            .keyDown(cmdV), .keyUp(vUp),
+        ])
+        #expect(outputs[4] == HoldGestureOutput(.swallow, [.startTimer(generation: 2)]))
+        #expect(outputs[5] == HoldGestureOutput(.swallow, [.cancelTimer, .synthesizePaste]))
+        #expect(machine.state == .idle)
+    }
+
+    @Test func otherKeysPassWhileReleasing() {
+        let (machine, outputs) = run([
+            .keyDown(cmdV), .thresholdElapsed(generation: 1), .popupFailed, .keyDown(otherKey), .keyUp(otherKey),
+        ])
+        #expect(outputs[3] == .pass)
+        #expect(outputs[4] == .pass)
+        #expect(machine.state == .releasing)
+    }
+
+    @Test func failedPopupInIdleIsHarmless() {
+        let (machine, outputs) = run([.popupFailed, .keyDown(cmdV), .keyUp(vUp)])
+        #expect(outputs[0] == .pass)
+        #expect(outputs[2] == HoldGestureOutput(.swallow, [.cancelTimer, .synthesizePaste]))
+        #expect(machine.state == .idle)
+    }
+
     // MARK: Timers
 
     @Test func staleTimerIsIgnored() {

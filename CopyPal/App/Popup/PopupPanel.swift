@@ -1,6 +1,17 @@
 import AppKit
 import SwiftUI
 
+extension NSWindow.CollectionBehavior {
+    /// A short-lived overlay at the notch, shown wherever the user is right now: it
+    /// moves to the active Space when it is ordered in (so a panel created at launch
+    /// and first shown over another app's full-screen Space lands on that Space, not
+    /// on the desktop behind it), may join other apps' full-screen Spaces, and stays
+    /// out of Mission Control, Exposé and the window cycle.
+    static let notchOverlay: NSWindow.CollectionBehavior = [
+        .moveToActiveSpace, .fullScreenAuxiliary, .canJoinAllApplications, .stationary, .ignoresCycle,
+    ]
+}
+
 /// Takes the first click. The popup never activates CopyPal (the app being pasted
 /// into stays in front), so for macOS every click is the first click into an inactive
 /// app – which NSHostingView ignores by default: buttons and rows would not react.
@@ -56,14 +67,14 @@ final class NotchRetractPanel: NSPanel {
     }
 }
 
-/// Shared setup: above the menu bar on every Space, transparent, always dark (the
-/// notch is black). No window shadow: it would keep the outline of the first frame
-/// while the shape animates; the view draws its own.
+/// Shared setup: above the menu bar, transparent, always dark (the notch is black).
+/// No window shadow: it would keep the outline of the first frame while the shape
+/// animates; the view draws its own.
 @MainActor
 private func configureForNotch(_ panel: NSPanel) {
     panel.isFloatingPanel = true
     panel.level = .statusBar
-    panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+    panel.collectionBehavior = .notchOverlay
     panel.becomesKeyOnlyIfNeeded = false
     panel.hidesOnDeactivate = false
     panel.isReleasedWhenClosed = false

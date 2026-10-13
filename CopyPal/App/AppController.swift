@@ -82,6 +82,7 @@ final class AppController {
         input.onPermissionChange = { [weak self] _ in self?.statusItem?.update() }
         input.start()
         popup.onClose = { [weak self] in self?.input.popupDidClose() }
+        popup.onShowFailed = { [weak self] in self?.input.popupDidFail() }
         popup.onVisible = { [weak self] in
             guard let self else { return }
             self.input.popupDidAppear()

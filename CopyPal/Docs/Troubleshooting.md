@@ -64,6 +64,14 @@ Auf MacBooks mit Notch blendet macOS Menüleisten-Symbole aus, wenn die Menüs d
 - Andere Symbole mit gedrückter ⌘-Taste aus der Menüleiste ziehen.
 - CopyPal erneut öffnen (Finder, Spotlight oder `open`): Das öffnet die Diagnose.
 
+## Pop-up erscheint im Vollbild einer anderen App nicht
+
+Das Pop-up ist ein eigenes Fenster, das beim Öffnen auf den gerade sichtbaren Space wandert (`moveToActiveSpace`), auch in den Vollbild-Space einer anderen App. Landet es trotzdem nicht dort, bricht CopyPal das Öffnen ab, statt ein unsichtbares Pop-up offen zu lassen: ⌘V funktioniert sofort wieder normal, und im Protokoll steht „Pop-up liegt nicht auf dem aktiven Space“.
+
+- Prüfen: `log show --last 10m --predicate 'subsystem == "<bundle-id>" AND category == "app"'`
+- Umgehung: Vollbild kurz verlassen und wieder betreten, dann ⌘V halten.
+- Bitte melden mit macOS-Version, der App im Vollbild und ob CopyPal kurz vorher neu gestartet wurde.
+
 ## Weitere Befehle
 
 | Zweck | Befehl |

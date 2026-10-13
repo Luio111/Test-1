@@ -676,7 +676,7 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 | R14 | CI-Kosten (macOS-Minuten) | Pfadfilter, Abbruch alter Läufe, Cache; öffentliches Repo oder eigener Runner | M0 |
 | R15 | Unterschiedliche Xcode-Versionen bei dir und in der CI | CI baut mit Xcode 26.0 wie dein Mac (Diagnose „Gebaut mit“); bei Xcode-Updates beide anheben | M0 |
 | R16 | Nur ein Test-Mac, Mindestversion ist macOS 14 | VM mit macOS 14; Beta-Tester mit älteren Macs bzw. Macs ohne Notch | M8, M9 |
-| R17 | Notch-Geometrie, mehrere Bildschirme, Vollbild | getestete Geometrie; Labor-Overlay; Rückfall oben mittig | M7 |
+| R17 | Notch-Geometrie, mehrere Bildschirme, Vollbild | getestete Geometrie; Labor-Overlay; Rückfall oben mittig; Panel wandert beim Öffnen auf den aktiven Space (`moveToActiveSpace`), ein unsichtbares Pop-up wird abgebrochen statt die Geste zu blockieren | M7 |
 | R18 | Name „CopyPal“ markenrechtlich oder als Domain belegt | früh prüfen: DPMA, EUIPO, USPTO, App Store, Domains | D8 |
 | R19 | Privater Update-Schlüssel verloren, dann keine Updates mehr möglich | Backup an zwei Orten, Wiederherstellung ausprobiert | M9 |
 | R20 | Apple schränkt synthetische Eingaben weiter ein | Rückfall „nur in die Zwischenablage legen“; Betas beobachten | laufend |

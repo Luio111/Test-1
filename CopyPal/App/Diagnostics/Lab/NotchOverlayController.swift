@@ -31,7 +31,7 @@ final class NotchOverlayController {
             panel.isOpaque = false
             panel.backgroundColor = .clear
             panel.hasShadow = false
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .canJoinAllApplications, .stationary]
             let label = notch.map { "Notch \(Int($0.width))×\(Int($0.height)) pt" } ?? "keine Notch – oben mittig"
             panel.contentView = NSHostingView(rootView: NotchOutline(label: label))
             panel.setFrame(frame, display: true)

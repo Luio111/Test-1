@@ -28,6 +28,9 @@ public enum HoldGestureInput: Sendable, Equatable {
     /// The hold timer started with `generation` fired.
     case thresholdElapsed(generation: Int)
     case popupClosed
+    /// The popup could not be shown (e.g. not on the active Space): no popup is open,
+    /// but a still-held V must not reach the target app as key repeats.
+    case popupFailed
     /// The event tap was disabled/re-enabled by the system; forget everything in flight.
     case tapReset
 }
@@ -66,6 +69,9 @@ public enum HoldGestureState: Sendable, Equatable {
     case waiting(generation: Int)
     /// The popup is open; the held V must not reach the target app.
     case holding
+    /// The popup failed while V was still down: swallow its repeats and the release,
+    /// then start over.
+    case releasing
 }
 
 /// Decides for every keyboard event whether ⌘V is a short tap (normal paste) or a
@@ -76,6 +82,8 @@ public struct HoldGestureStateMachine: Sendable {
     /// When false (e.g. hold disabled for the frontmost app), ⌘V passes through untouched.
     public var isEnabled = true
     private var lastGeneration = 0
+    /// The intercepted V is still down (its release has not been seen).
+    private var pasteKeyIsDown = false
 
     public init() {}
 
@@ -92,6 +100,7 @@ public struct HoldGestureStateMachine: Sendable {
                 effects.append(.cancelTimer)
             }
             state = .idle
+            pasteKeyIsDown = false
             return HoldGestureOutput(.pass, effects)
         default:
             break
@@ -104,6 +113,8 @@ public struct HoldGestureStateMachine: Sendable {
             return handleWaiting(input, generation: generation)
         case .holding:
             return handleHolding(input)
+        case .releasing:
+            return handleReleasing(input)
         }
     }
 
@@ -113,6 +124,7 @@ public struct HoldGestureStateMachine: Sendable {
         }
         lastGeneration += 1
         state = .waiting(generation: lastGeneration)
+        pasteKeyIsDown = true
         return HoldGestureOutput(.swallow, [.startTimer(generation: lastGeneration)])
     }
 
@@ -127,6 +139,7 @@ public struct HoldGestureStateMachine: Sendable {
             return HoldGestureOutput(.swallow, [.cancelTimer, .synthesizePaste, .replayCurrentEvent])
         case let .keyUp(stroke) where stroke.isPasteKey:
             state = .idle
+            pasteKeyIsDown = false
             return HoldGestureOutput(.swallow, [.cancelTimer, .synthesizePaste])
         case let .thresholdElapsed(fired) where fired == generation:
             state = .holding
@@ -138,8 +151,31 @@ public struct HoldGestureStateMachine: Sendable {
 
     private mutating func handleHolding(_ input: HoldGestureInput) -> HoldGestureOutput {
         switch input {
-        case let .keyDown(stroke) where stroke.isPasteKey,
-             let .keyUp(stroke) where stroke.isPasteKey:
+        case let .keyDown(stroke) where stroke.isPasteKey:
+            return .swallow
+        case let .keyUp(stroke) where stroke.isPasteKey:
+            pasteKeyIsDown = false
+            return .swallow
+        case .popupClosed:
+            state = .idle
+            return .pass
+        case .popupFailed:
+            // Going straight to idle would pass the held V's repeats to the target app
+            // as pastes; wait for the release first.
+            state = pasteKeyIsDown ? .releasing : .idle
+            return .pass
+        default:
+            return .pass
+        }
+    }
+
+    private mutating func handleReleasing(_ input: HoldGestureInput) -> HoldGestureOutput {
+        switch input {
+        case let .keyDown(stroke) where stroke.isPasteKey:
+            return .swallow
+        case let .keyUp(stroke) where stroke.isPasteKey:
+            state = .idle
+            pasteKeyIsDown = false
             return .swallow
         case .popupClosed:
             state = .idle
