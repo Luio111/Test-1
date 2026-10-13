@@ -15,16 +15,24 @@ extension HotKeyShortcut {
 
 /// System-wide hotkey through Carbon's `RegisterEventHotKey`. Works without the
 /// Accessibility permission (unlike the event tap), so the popup stays reachable.
+/// Each instance is one hotkey (popup, screenshot …); they share one event handler.
 @MainActor
 public final class GlobalHotKey {
     public var onPress: (() -> Void)?
     public private(set) var shortcut: HotKeyShortcut?
 
     private var hotKeyRef: EventHotKeyRef?
-    private var handlerRef: EventHandlerRef?
+    private let id: UInt32
     private static let signature: OSType = 0x4370_506C // "CpPl"
+    private static var nextID: UInt32 = 1
+    private static var handlerRef: EventHandlerRef?
+    /// Live instances by id; the Carbon callback looks up which hotkey was pressed.
+    private static var instances: [UInt32: GlobalHotKey] = [:]
 
-    public init() {}
+    public init() {
+        id = Self.nextID
+        Self.nextID += 1
+    }
 
     /// Registers `shortcut` (replacing the previous one); nil unregisters. Returns false
     /// when macOS refuses, e.g. because another app owns the combination.
@@ -32,12 +40,12 @@ public final class GlobalHotKey {
     public func register(_ shortcut: HotKeyShortcut?) -> Bool {
         unregister()
         guard let shortcut, shortcut.isValid else { return shortcut == nil }
-        installHandlerIfNeeded()
+        Self.installHandlerIfNeeded()
         var ref: EventHotKeyRef?
         let status = RegisterEventHotKey(
             UInt32(shortcut.keyCode),
             shortcut.carbonModifiers,
-            EventHotKeyID(signature: Self.signature, id: 1),
+            EventHotKeyID(signature: Self.signature, id: id),
             GetApplicationEventTarget(),
             0,
             &ref
@@ -45,6 +53,7 @@ public final class GlobalHotKey {
         guard status == OSStatus(noErr), let ref else { return false }
         hotKeyRef = ref
         self.shortcut = shortcut
+        Self.instances[id] = self
         return true
     }
 
@@ -54,26 +63,39 @@ public final class GlobalHotKey {
         }
         hotKeyRef = nil
         shortcut = nil
+        Self.instances[id] = nil
     }
 
-    private func installHandlerIfNeeded() {
+    private static func installHandlerIfNeeded() {
         guard handlerRef == nil else { return }
         var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        let userData = Unmanaged.passUnretained(self).toOpaque()
         InstallEventHandler(
             GetApplicationEventTarget(),
-            { _, _, userData in
+            { _, event, _ in
+                guard let event else { return OSStatus(eventNotHandledErr) }
+                var hotKeyID = EventHotKeyID()
+                let status = GetEventParameter(
+                    event,
+                    EventParamName(kEventParamDirectObject),
+                    EventParamType(typeEventHotKeyID),
+                    nil,
+                    ByteCount(MemoryLayout<EventHotKeyID>.size),
+                    nil,
+                    &hotKeyID
+                )
+                guard status == OSStatus(noErr) else { return OSStatus(eventNotHandledErr) }
                 // Carbon delivers application-target events on the main thread.
-                guard let userData else { return OSStatus(eventNotHandledErr) }
-                let hotKey = Unmanaged<GlobalHotKey>.fromOpaque(userData).takeUnretainedValue()
-                MainActor.assumeIsolated {
+                return MainActor.assumeIsolated {
+                    guard hotKeyID.signature == signature, let hotKey = instances[hotKeyID.id] else {
+                        return OSStatus(eventNotHandledErr)
+                    }
                     hotKey.onPress?()
+                    return OSStatus(noErr)
                 }
-                return OSStatus(noErr)
             },
             1,
             &eventType,
-            userData,
+            nil,
             &handlerRef
         )
     }
