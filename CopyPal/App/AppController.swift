@@ -22,6 +22,9 @@ final class AppController {
     let paster: PasteController
     let popup: PopupController
     let hotKey = GlobalHotKey()
+    /// ⌘⇧A (M11); a second Carbon slot, dispatched by id like the first.
+    let screenshotHotKey = GlobalHotKey()
+    private(set) lazy var screenshot = ScreenshotController(app: self)
     let loginItem = LoginItem()
     let updates = UpdateController()
     let license: any LicenseProvider = AlwaysLicensed()
@@ -92,6 +95,7 @@ final class AppController {
             }
         }
         hotKey.onPress = { [weak self] in self?.showPopup() }
+        screenshotHotKey.onPress = { [weak self] in self?.screenshot.toggle() }
         applyHotKey()
 
         capture.onStored = { [weak self] _ in self?.didStoreCopy() }
@@ -126,6 +130,12 @@ final class AppController {
     // MARK: Popup
 
     func showPopup() {
+        // While the screenshot overlay is up, a held ⌘V opens nothing; the gesture must
+        // still be told, or it would wait for a popup that never comes (ROADMAP M11).
+        if screenshot.isActive {
+            input.popupDidFail()
+            return
+        }
         guard !popup.isVisible else { return }
         holdSignpost = Log.signposter.beginInterval("Halten bis sichtbar", id: Log.signposter.makeSignpostID())
         popup.show(targetProcessID: NSWorkspace.shared.frontmostApplication?.processIdentifier)
@@ -133,6 +143,12 @@ final class AppController {
 
     var needsAttention: Bool {
         input.permission == .denied || capture.blockedReason == .accessDenied || storageProblem != nil
+            || screenshot.permissionRevoked
+    }
+
+    /// Something the menu bar icon shows changed (permissions, screenshot state).
+    func attentionDidChange() {
+        statusItem?.update()
     }
 
     // MARK: Capture
@@ -220,13 +236,26 @@ final class AppController {
     }
 
     private func applyHotKey() {
-        guard AppSettings.hotKeyEnabled else {
+        if AppSettings.hotKeyEnabled {
+            let shortcut = AppSettings.hotKey
+            if hotKey.shortcut != shortcut {
+                hotKey.register(shortcut)
+            }
+        } else {
             hotKey.register(nil)
-            return
         }
-        let shortcut = AppSettings.hotKey
-        if hotKey.shortcut != shortcut {
-            hotKey.register(shortcut)
+
+        if AppSettings.screenshotEnabled {
+            let shortcut = AppSettings.screenshotHotKey
+            // `shortcut` stays nil after a refused registration, so this retries on
+            // every settings change until the combination is free again.
+            if screenshotHotKey.shortcut != shortcut {
+                screenshot.setHotKeyAvailable(screenshotHotKey.register(shortcut))
+            }
+        } else {
+            screenshotHotKey.register(nil)
+            screenshot.setHotKeyAvailable(true)
+            screenshot.cancel()
         }
     }
 
@@ -298,13 +327,30 @@ final class AppController {
         }
         let workspace = NSWorkspace.shared.notificationCenter
         // ROADMAP M8: no reading while the screen is locked or the Mac sleeps.
-        observe(workspace, NSWorkspace.willSleepNotification) { app in app.capture.stop() }
-        observe(workspace, NSWorkspace.sessionDidResignActiveNotification) { app in app.capture.stop() }
+        observe(workspace, NSWorkspace.willSleepNotification) { app in
+            app.capture.stop()
+            app.screenshot.cancel()
+        }
+        observe(workspace, NSWorkspace.sessionDidResignActiveNotification) { app in
+            app.capture.stop()
+            app.screenshot.cancel()
+        }
         observe(workspace, NSWorkspace.didWakeNotification) { app in app.resumeMonitoring() }
         observe(workspace, NSWorkspace.sessionDidBecomeActiveNotification) { app in app.resumeMonitoring() }
         let distributed = DistributedNotificationCenter.default()
-        observe(distributed, Notification.Name("com.apple.screenIsLocked")) { app in app.capture.stop() }
+        observe(distributed, Notification.Name("com.apple.screenIsLocked")) { app in
+            app.capture.stop()
+            app.screenshot.cancel()
+        }
         observe(distributed, Notification.Name("com.apple.screenIsUnlocked")) { app in app.resumeMonitoring() }
+        // A display added or removed under a running screenshot: its geometry is gone.
+        observe(NotificationCenter.default, NSApplication.didChangeScreenParametersNotification) { app in
+            app.screenshot.cancel()
+        }
+        // Permissions changed in System Settings show up when the user comes back.
+        observe(NotificationCenter.default, NSApplication.didBecomeActiveNotification) { app in
+            app.screenshot.refreshPermission()
+        }
     }
 
     private func resumeMonitoring() {

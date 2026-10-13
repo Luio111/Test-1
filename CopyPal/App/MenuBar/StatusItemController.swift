@@ -1,4 +1,5 @@
 import AppKit
+import CopyPalSystem
 
 /// The menu bar icon and its menu. Kept short: CopyPal is used through ⌘V; the menu
 /// is for the history window, pausing, settings and help. The icon shows a pause
@@ -70,11 +71,19 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             item.isEnabled = false
             menu.addItem(item)
         }
+        if app.screenshot.permissionRevoked {
+            menu.addItem(makeItem(String(localized: "Bildschirmaufnahme erlauben …"), symbol: "exclamationmark.triangle") { app in
+                app.screenshot.showPermissionWindow()
+            })
+        }
 
         menu.addItem(.separator())
         menu.addItem(makeItem(String(localized: "Verlauf öffnen"), keyEquivalent: "") { app in
             app.showHistoryWindow()
         })
+        if AppSettings.screenshotEnabled {
+            menu.addItem(screenshotItem())
+        }
         menu.addItem(pauseItem())
         menu.addItem(makeItem(String(localized: "Verlauf löschen …")) { app in
             app.confirmClearHistory()
@@ -100,6 +109,26 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         menu.addItem(makeItem(String(localized: "CopyPal beenden"), keyEquivalent: "q") { _ in
             NSApp.terminate(nil)
         })
+    }
+
+    /// „Bildschirmfoto aufnehmen“ with the shortcut shown the way the menu bar shows
+    /// it; the Carbon hot key does the actual work, the menu is the second way in.
+    private func screenshotItem() -> NSMenuItem {
+        let shortcut = AppSettings.screenshotHotKey
+        let keyName = KeyboardLayout.keyName(for: shortcut.keyCode)
+        let keyEquivalent = keyName.count == 1 ? keyName.lowercased() : ""
+        let item = makeItem(String(localized: "Bildschirmfoto aufnehmen"), symbol: "camera.viewfinder", keyEquivalent: keyEquivalent) { app in
+            app.screenshot.start()
+        }
+        if !keyEquivalent.isEmpty {
+            var mask: NSEvent.ModifierFlags = []
+            if shortcut.modifiers.contains(.command) { mask.insert(.command) }
+            if shortcut.modifiers.contains(.shift) { mask.insert(.shift) }
+            if shortcut.modifiers.contains(.option) { mask.insert(.option) }
+            if shortcut.modifiers.contains(.control) { mask.insert(.control) }
+            item.keyEquivalentModifierMask = mask
+        }
+        return item
     }
 
     private func pauseItem() -> NSMenuItem {

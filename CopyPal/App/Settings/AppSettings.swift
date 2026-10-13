@@ -27,6 +27,11 @@ enum AppSettings {
         static let animatePopup = "animatePopup"
         static let loadFavicons = "loadFavicons"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
+        static let screenshotEnabled = "screenshotEnabled"
+        static let screenshotHotKey = "screenshotHotKey"
+        static let screenshotScrollReversed = "screenshotScrollReversed"
+        static let screenshotPermissionAsked = "screenshotPermissionAsked"
+        static let screenCaptureWasGranted = "screenCaptureWasGranted"
     }
 
     /// Read by the Sparkle delegate off the main actor, hence public and plain.
@@ -67,6 +72,10 @@ enum AppSettings {
             Key.animatePopup: true,
             Key.loadFavicons: false,
             Key.hasCompletedOnboarding: false,
+            Key.screenshotEnabled: true,
+            Key.screenshotScrollReversed: false,
+            Key.screenshotPermissionAsked: false,
+            Key.screenCaptureWasGranted: false,
         ])
     }
 
@@ -201,6 +210,39 @@ enum AppSettings {
     static var hasCompletedOnboarding: Bool {
         get { defaults.bool(forKey: Key.hasCompletedOnboarding) }
         set { set(newValue, for: Key.hasCompletedOnboarding) }
+    }
+
+    // MARK: Screenshot (M11)
+
+    static var screenshotEnabled: Bool {
+        get { defaults.bool(forKey: Key.screenshotEnabled) }
+        set { set(newValue, for: Key.screenshotEnabled) }
+    }
+
+    static var screenshotHotKey: HotKeyShortcut {
+        get {
+            defaults.data(forKey: Key.screenshotHotKey).flatMap { try? JSONDecoder().decode(HotKeyShortcut.self, from: $0) } ?? .screenshotStandard
+        }
+        set { set(try? JSONEncoder().encode(newValue), for: Key.screenshotHotKey) }
+    }
+
+    /// For scroll tools that flip the wheel direction (Mos, Scroll Reverser).
+    static var screenshotScrollReversed: Bool {
+        get { defaults.bool(forKey: Key.screenshotScrollReversed) }
+        set { set(newValue, for: Key.screenshotScrollReversed) }
+    }
+
+    /// The system prompt for Screen Recording was shown once (macOS shows it only once).
+    static var screenshotPermissionAsked: Bool {
+        get { defaults.bool(forKey: Key.screenshotPermissionAsked) }
+        set { set(newValue, for: Key.screenshotPermissionAsked) }
+    }
+
+    /// A screenshot worked once on this install: a later denial is a revocation worth a
+    /// warning in the menu bar. Users who never used the feature never see it.
+    static var screenCaptureWasGranted: Bool {
+        get { defaults.bool(forKey: Key.screenCaptureWasGranted) }
+        set { set(newValue, for: Key.screenCaptureWasGranted) }
     }
 
     // MARK: Derived

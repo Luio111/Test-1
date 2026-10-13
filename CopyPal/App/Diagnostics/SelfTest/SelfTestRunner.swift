@@ -23,6 +23,8 @@ final class SelfTestRunner {
     private var window: NSWindow?
     private let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 480, height: 240))
     private var failures = 0
+    /// Checks that need something this machine lacks (a permission); never silent.
+    private var skipped = 0
     private let pasteKey: UInt16
     private let secretMarker = "SelbsttestGeheimwort\(Int.random(in: 1_000...9_999))"
 
@@ -73,14 +75,30 @@ final class SelfTestRunner {
 
         await gestureChecks()
         await popupChecks()
+        await screenshotChecks()
         await robustnessChecks()
         await performanceChecks()
 
         if let popup = app.input.tap.diagnostics.snapshot().popup {
             Self.write(String(format: "Messwert Pop-up-Latenz: Median %.0f ms · p90 %.0f ms (n = %ld)", popup.median, popup.p90, popup.count))
         }
-        Self.write(failures == 0 ? "Alle Prüfungen bestanden." : "\(failures) Prüfung(en) fehlgeschlagen.")
+        Self.write(summaryLine)
         return failures == 0 ? 0 : 1
+    }
+
+    private var summaryLine: String {
+        if failures > 0 { return "\(failures) Prüfung(en) fehlgeschlagen." }
+        return skipped > 0 ? "Alle Prüfungen bestanden (\(skipped) übersprungen)." : "Alle Prüfungen bestanden."
+    }
+
+    /// M11: the screenshot hot key and its gate. Capture checks follow once the overlay
+    /// exists; they are skipped with a warning where Screen Recording is not granted.
+    private func screenshotChecks() async {
+        await check("Tastenkürzel ⌘⇧A ist registriert") {
+            let registered = self.app.screenshotHotKey.shortcut == AppSettings.screenshotHotKey
+            let available = self.app.screenshot.hotKeyAvailable
+            return (registered && available, "registriert: \(registered), frei: \(available)")
+        }
     }
 
     /// M2–M5: what gets recorded, and how.
@@ -369,6 +387,14 @@ final class SelfTestRunner {
         let (passed, detail) = await body()
         if !passed { failures += 1 }
         Self.write("\(passed ? "✔" : "✘") \(name) – \(detail)")
+    }
+
+    /// A check this machine cannot run. The `::warning::` line becomes a GitHub
+    /// annotation, so a skipped check is never mistaken for a passed one.
+    private func skip(_ name: String, reason: String) {
+        skipped += 1
+        Self.write("⚠︎ \(name) – übersprungen: \(reason)")
+        Self.write("::warning::Selbsttest: \(name) übersprungen – \(reason)")
     }
 
     private var topTitle: String? {

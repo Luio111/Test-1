@@ -671,6 +671,66 @@
         }
       }
     },
+    "Bildschirmaufnahme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen Recording"
+          }
+        }
+      }
+    },
+    "Bildschirmaufnahme erlauben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Screen Recording"
+          }
+        }
+      }
+    },
+    "Bildschirmaufnahme erlauben …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Screen Recording …"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto aufnehmen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take Screenshot"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto mit Tastenkürzel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot with keyboard shortcut"
+          }
+        }
+      }
+    },
     "Bis zur Reaktivierung" : {
       "localizations" : {
         "en" : {
@@ -747,6 +807,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "CopyPal remembers what you copy."
+          }
+        }
+      }
+    },
+    "CopyPal neu starten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relaunch CopyPal"
           }
         }
       }
@@ -1121,6 +1191,16 @@
         }
       }
     },
+    "Falls das Erweitern in die falsche Richtung läuft (z. B. mit Scroll-Tools wie Mos oder Scroll Reverser)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If extending scrolls the wrong way (e.g. with scroll tools such as Mos or Scroll Reverser)."
+          }
+        }
+      }
+    },
     "Favorit" : {
       "localizations" : {
         "en" : {
@@ -1247,6 +1327,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Works without the Accessibility permission, too."
+          }
+        }
+      }
+    },
+    "Für Bildschirmfotos braucht CopyPal die Freigabe „Bildschirmaufnahme“. CopyPal nimmt nur auf, wenn du das Tastenkürzel drückst – nie im Hintergrund. Jedes Bildschirmfoto bleibt verschlüsselt auf diesem Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For screenshots CopyPal needs the “Screen Recording” permission. CopyPal only captures when you press the shortcut – never in the background. Every screenshot stays encrypted on this Mac."
           }
         }
       }
@@ -1457,6 +1547,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "None"
+          }
+        }
+      }
+    },
+    "Klick nimmt ein Fenster oder einen Bereich auf, Ziehen wählt frei. ↓ erweitert die Aufnahme über den sichtbaren Teil hinaus." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click captures a window or an area, drag selects freely. ↓ extends the capture beyond the visible part."
           }
         }
       }
@@ -1721,6 +1821,16 @@
         }
       }
     },
+    "Nicht benötigt (Bildschirmfoto aus)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not needed (screenshot off)"
+          }
+        }
+      }
+    },
     "Nicht erteilt" : {
       "localizations" : {
         "en" : {
@@ -1901,6 +2011,16 @@
         }
       }
     },
+    "Prüfung fehlgeschlagen: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check failed: %@"
+          }
+        }
+      }
+    },
     "Schließen" : {
       "localizations" : {
         "en" : {
@@ -1921,12 +2041,42 @@
         }
       }
     },
+    "Schon für das Bildschirmfoto vergeben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already used for the screenshot"
+          }
+        }
+      }
+    },
+    "Schon für das Pop-up vergeben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already used for the popup"
+          }
+        }
+      }
+    },
     "Schritt %lld von %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Step %lld of %lld"
+          }
+        }
+      }
+    },
+    "Scrollrichtung umkehren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reverse scroll direction"
           }
         }
       }
@@ -2097,6 +2247,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "System Settings → Privacy & Security → Accessibility → turn on CopyPal. This page notices the permission automatically."
+          }
+        }
+      }
+    },
+    "Systemeinstellungen → Datenschutz & Sicherheit → Bildschirmaufnahme → CopyPal einschalten. Dieses Fenster erkennt die Freigabe automatisch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Settings → Privacy & Security → Screen Recording → turn on CopyPal. This window detects the permission automatically."
           }
         }
       }
@@ -2337,6 +2497,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copied on iPhone – choosing it loads the content"
+          }
+        }
+      }
+    },
+    "Von einer anderen App belegt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taken by another app"
+          }
+        }
+      }
+    },
+    "Voreingestellt ⌘⇧A. Chrome („Tabs durchsuchen“) und der Finder nutzen die Kombination ebenfalls – hier lässt sie sich ändern." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default ⌘⇧A. Chrome (“Search Tabs”) and the Finder use the combination too – change it here."
           }
         }
       }
@@ -2601,6 +2781,16 @@
         }
       }
     },
+    "macOS 15 fragt etwa einmal im Monat erneut nach – das ist normal." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 15 asks again about once a month – that is expected."
+          }
+        }
+      }
+    },
     "macOS hat den Anmeldestart nicht übernommen." : {
       "localizations" : {
         "en" : {
@@ -2617,6 +2807,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "macOS is waiting for your approval in System Settings → General → Login Items."
+          }
+        }
+      }
+    },
+    "macOS übernimmt die Freigabe erst nach einem Neustart von CopyPal." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS applies the permission only after CopyPal relaunches."
           }
         }
       }

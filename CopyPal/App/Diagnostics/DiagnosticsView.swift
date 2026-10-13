@@ -155,6 +155,22 @@ struct DiagnosticsView: View {
                     }
                 }
             }
+            PropertyRow(label: "Bildschirmaufnahme", systemImage: "camera.viewfinder") {
+                HStack(spacing: Theme.Spacing.s) {
+                    switch snapshot.screenCapture {
+                    case .granted:
+                        StatusTag(text: "Erteilt", style: .green)
+                    case .denied:
+                        StatusTag(text: "Nicht erteilt", style: .red)
+                        Button("Anfragen") { model.requestScreenCapture() }
+                            .buttonStyle(SubtleButtonStyle())
+                        Button("Systemeinstellungen öffnen") { model.openScreenCaptureSettings() }
+                            .buttonStyle(SubtleButtonStyle())
+                    case nil:
+                        StatusTag(text: "Nicht benötigt (Bildschirmfoto aus)", style: .gray)
+                    }
+                }
+            }
         }
     }
 

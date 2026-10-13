@@ -60,6 +60,18 @@ final class DiagnosticsModel {
         AccessibilityPermission.openSystemSettings()
     }
 
+    /// Screen Recording for screenshots (M11); the system prompt comes only from here
+    /// or the permission window, never on its own.
+    func requestScreenCapture() {
+        AppSettings.screenshotPermissionAsked = true
+        ScreenCapturePermission.request()
+        refresh()
+    }
+
+    func openScreenCaptureSettings() {
+        ScreenCapturePermission.openSystemSettings()
+    }
+
     func copyReport() {
         refresh()
         let pasteboard = NSPasteboard.general
@@ -100,6 +112,15 @@ final class DiagnosticsModel {
         if pasteboardAccess != snapshot.pasteboardAccess {
             snapshot.pasteboardAccess = pasteboardAccess
         }
+        let screenCapture = Self.screenCaptureState()
+        if screenCapture != snapshot.screenCapture {
+            snapshot.screenCapture = screenCapture
+        }
+    }
+
+    /// nil while screenshots are switched off: the permission is not needed then.
+    private static func screenCaptureState() -> PermissionState? {
+        AppSettings.screenshotEnabled ? ScreenCapturePermission.state : nil
     }
 
     private func announce(_ message: String) {
@@ -123,7 +144,8 @@ final class DiagnosticsModel {
             signing: CodeSigningInspector.currentProcess(),
             accessibility: AccessibilityPermission.state,
             pasteboardAccess: PasteboardInspector.accessStatus(),
-            pasteboardProbe: probe
+            pasteboardProbe: probe,
+            screenCapture: screenCaptureState()
         )
     }
 }

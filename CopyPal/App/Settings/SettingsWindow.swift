@@ -178,11 +178,62 @@ private struct GeneralSettings: View {
             SettingRow(title: "Verlauf mit Tastenkürzel öffnen", detail: "Funktioniert auch ohne Bedienungshilfen-Freigabe.") {
                 RowSwitch(isOn: $settings.hotKeyEnabled)
             }
-            SettingRow(title: "Tastenkürzel") {
-                HotKeyRecorder(shortcut: $settings.hotKey)
+            VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                SettingRow(title: "Tastenkürzel") {
+                    HotKeyRecorder(shortcut: $settings.hotKey) { candidate in
+                        popupShortcutTaken = candidate == settings.screenshotHotKey
+                        return !popupShortcutTaken
+                    }
                     .disabled(!settings.hotKeyEnabled)
+                }
+                if popupShortcutTaken {
+                    shortcutCaption("Schon für das Bildschirmfoto vergeben")
+                }
             }
         }
+
+        Hairline()
+
+        SectionBlock(title: "Bildschirmfoto") {
+            SettingRow(title: "Bildschirmfoto mit Tastenkürzel", detail: "Klick nimmt ein Fenster oder einen Bereich auf, Ziehen wählt frei. ↓ erweitert die Aufnahme über den sichtbaren Teil hinaus.") {
+                RowSwitch(isOn: $settings.screenshotEnabled)
+            }
+            VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                SettingRow(title: "Tastenkürzel", detail: "Voreingestellt ⌘⇧A. Chrome („Tabs durchsuchen“) und der Finder nutzen die Kombination ebenfalls – hier lässt sie sich ändern.") {
+                    HotKeyRecorder(shortcut: $settings.screenshotHotKey) { candidate in
+                        screenshotShortcutTaken = candidate == settings.hotKey
+                        return !screenshotShortcutTaken
+                    }
+                    .disabled(!settings.screenshotEnabled)
+                }
+                if screenshotShortcutTaken {
+                    shortcutCaption("Schon für das Pop-up vergeben")
+                } else if settings.screenshotEnabled, !app.screenshot.hotKeyAvailable {
+                    shortcutCaption("Von einer anderen App belegt")
+                }
+            }
+            SettingRow(title: "Scrollrichtung umkehren", detail: "Falls das Erweitern in die falsche Richtung läuft (z. B. mit Scroll-Tools wie Mos oder Scroll Reverser).") {
+                RowSwitch(isOn: $settings.screenshotScrollReversed)
+                    .disabled(!settings.screenshotEnabled)
+            }
+            SettingRow(title: "Bildschirmaufnahme") {
+                HStack(spacing: Theme.Spacing.s) {
+                    if app.screenshot.permissionState == .granted {
+                        StatusTag(text: "Erteilt", style: .green)
+                    } else {
+                        StatusTag(text: "Noch nicht erteilt", style: .orange)
+                        if app.screenshot.permissionAsked {
+                            Button("Systemeinstellungen öffnen") { app.screenshot.openSystemSettings() }
+                                .buttonStyle(SubtleButtonStyle())
+                        } else {
+                            Button("Freigabe anfordern") { app.screenshot.requestPermission() }
+                                .buttonStyle(SubtleButtonStyle())
+                        }
+                    }
+                }
+            }
+        }
+        .onAppear { app.screenshot.refreshPermission() }
 
         Hairline()
 
@@ -203,11 +254,25 @@ private struct GeneralSettings: View {
     }
 
     @State private var editingHoldOff = false
+    @State private var popupShortcutTaken = false
+    @State private var screenshotShortcutTaken = false
+
+    private func shortcutCaption(_ text: LocalizedStringKey) -> some View {
+        Label {
+            Text(text)
+        } icon: {
+            Image(systemName: "exclamationmark.triangle")
+        }
+        .font(Theme.Typography.caption)
+        .foregroundStyle(Theme.Colors.textSecondary)
+    }
 }
 
-/// Click, then press the new combination (with ⌘, ⌥ or ⌃). Esc cancels.
+/// Click, then press the new combination (with ⌘, ⌥ or ⌃). Esc cancels. `isAllowed`
+/// can refuse a combination that is in use elsewhere (the other CopyPal shortcut).
 private struct HotKeyRecorder: View {
     @Binding var shortcut: HotKeyShortcut
+    var isAllowed: (HotKeyShortcut) -> Bool = { _ in true }
     @State private var recording = false
     @State private var monitor: Any?
 
@@ -241,7 +306,7 @@ private struct HotKeyRecorder: View {
                     return
                 }
                 let candidate = HotKeyShortcut(keyCode: keyCode, modifiers: modifiers.intersection([.command, .option, .control, .shift]))
-                if candidate.isValid {
+                if candidate.isValid, isAllowed(candidate) {
                     shortcut = candidate
                     stop()
                 } else {

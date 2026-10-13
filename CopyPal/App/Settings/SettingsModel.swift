@@ -56,6 +56,23 @@ final class SettingsModel: Observable {
         set { write(\.holdDisabledBundleIDs) { AppSettings.holdDisabledBundleIDs = newValue } }
     }
 
+    // MARK: Screenshot
+
+    var screenshotEnabled: Bool {
+        get { read(\.screenshotEnabled) { AppSettings.screenshotEnabled } }
+        set { write(\.screenshotEnabled) { AppSettings.screenshotEnabled = newValue } }
+    }
+
+    var screenshotHotKey: HotKeyShortcut {
+        get { read(\.screenshotHotKey) { AppSettings.screenshotHotKey } }
+        set { write(\.screenshotHotKey) { AppSettings.screenshotHotKey = newValue } }
+    }
+
+    var screenshotScrollReversed: Bool {
+        get { read(\.screenshotScrollReversed) { AppSettings.screenshotScrollReversed } }
+        set { write(\.screenshotScrollReversed) { AppSettings.screenshotScrollReversed = newValue } }
+    }
+
     // MARK: History
 
     var historyLimit: Int {
