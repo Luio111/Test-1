@@ -877,11 +877,14 @@ final class SelfTestRunner {
         guard (try? Self.longPage.write(to: file, atomically: true, encoding: .utf8)) != nil else {
             return (false, "Testseite nicht geschrieben")
         }
+        // Its own fresh profile: no restored tabs, no profile lock from another instance.
+        let profile = FileManager.default.temporaryDirectory.appendingPathComponent("copypal-selbsttest-chrome-\(UUID().uuidString)")
         let open = Process()
         open.executableURL = URL(fileURLWithPath: "/usr/bin/open")
         open.arguments = [
             "-n", "-a", chrome.path, file.path, "--args",
-            "--no-first-run", "--no-default-browser-check", "--new-window", "--window-position=160,80", "--window-size=900,720",
+            "--user-data-dir=\(profile.path)", "--no-first-run", "--no-default-browser-check", "--disable-search-engine-choice-screen",
+            "--window-position=160,80", "--window-size=900,720",
         ]
         guard (try? open.run()) != nil else {
             return (false, "Chrome startet nicht")
@@ -893,14 +896,17 @@ final class SelfTestRunner {
             NSApp.activate()
             focusTextView()
         }
-        _ = await waitUntil(timeout: 15_000) {
+        _ = await waitUntil(timeout: 30_000) {
             browser = NSRunningApplication.runningApplications(withBundleIdentifier: "com.google.Chrome").first
             guard let pid = browser?.processIdentifier else { return false }
             found = WindowList.onScreen().first { $0.ownerPID == pid && $0.layer == 0 && $0.frame.height > 300 }
             return found != nil
         }
         guard let window = found else {
-            return (false, "kein Chrome-Fenster")
+            await saveSnapshot("5-chrome-ohne-fenster")
+            let pid = browser?.processIdentifier
+            let windows = WindowList.onScreen().filter { $0.ownerPID == pid }.map { "\(Int($0.frame.width))×\(Int($0.frame.height)) Ebene \($0.layer)" }
+            return (false, "kein Chrome-Fenster nach 30 s – läuft: \(browser != nil), Fenster: \(windows.isEmpty ? "keine" : windows.joined(separator: ", "))")
         }
         await sleep(2_000)
         // Below the tab strip and the toolbar.
