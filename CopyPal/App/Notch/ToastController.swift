@@ -32,6 +32,7 @@ final class ToastController {
 
         hideTask?.cancel()
         panel.alphaValue = 0
+        panel.applyScreenSharingPreference()
         panel.orderFrontOnActiveSpace()
         animate(to: 1, duration: 0.12)
         hideTask = Task { @MainActor [weak self] in

@@ -72,7 +72,13 @@ private struct PopupContent: View {
             } else {
                 VStack(spacing: 0) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        PopupRow(number: index + 1, item: item, visuals: visuals, isSelected: index == model.selectedIndex)
+                        PopupRow(
+                            number: index + 1,
+                            item: item,
+                            visuals: visuals,
+                            isSelected: index == model.selectedIndex,
+                            concealed: model.concealsContent
+                        )
                             .onTapGesture { onSelect(index) }
                             .onHover { inside in
                                 if inside { onHover(index) }
@@ -200,6 +206,13 @@ private struct PopupContent: View {
             Group {
                 if let notice = model.notice {
                     noticeLabel(notice)
+                } else if model.concealsContent {
+                    Label {
+                        Text("Präsentationsmodus – Inhalte verborgen · 1–8 einfügen")
+                    } icon: {
+                        Image(systemName: "eye.slash")
+                    }
+                    .foregroundStyle(Theme.Notch.textSecondary)
                 } else {
                     Text(footerText)
                         .foregroundStyle(Theme.Notch.textSecondary)
@@ -251,6 +264,8 @@ private struct PopupRow: View {
     let item: ClipItem
     let visuals: ClipVisuals
     let isSelected: Bool
+    /// Presentation mode: the kind instead of the content, no thumbnail.
+    var concealed = false
 
     var body: some View {
         HStack(spacing: Theme.Spacing.s) {
@@ -261,8 +276,13 @@ private struct PopupRow: View {
                 .frame(width: 16, height: 16)
                 .background(Theme.Notch.control, in: RoundedRectangle(cornerRadius: 4))
                 .accessibilityHidden(true)
-            ClipLeadingVisual(item: item, visuals: visuals, size: 18)
-            if let name = visuals.favoriteName(for: item) {
+            ClipLeadingVisual(item: item, visuals: visuals, size: 18, showsContent: !concealed)
+            if concealed {
+                Text(verbatim: visuals.kindLabel(for: item))
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.Notch.textSecondary)
+                    .lineLimit(1)
+            } else if let name = visuals.favoriteName(for: item) {
                 // Favorites that start alike are told apart by their names.
                 Text(verbatim: name)
                     .font(.system(size: 13))
@@ -281,13 +301,15 @@ private struct PopupRow: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            if item.preview.lineCount > 1, item.kind == .text || item.kind == .richText, item.sensitivity == nil {
+            if !concealed, item.preview.lineCount > 1, item.kind == .text || item.kind == .richText, item.sensitivity == nil {
                 Text(verbatim: "+\(item.preview.lineCount - 1)")
                     .font(.system(size: 11))
                     .foregroundStyle(Theme.Notch.textSecondary)
                     .accessibilityHidden(true)
             }
-            ClipTags(item: item, visuals: visuals)
+            if !concealed {
+                ClipTags(item: item, visuals: visuals)
+            }
             Spacer(minLength: Theme.Spacing.s)
             ClipTrailingDetails(item: item, visuals: visuals)
         }
@@ -301,6 +323,9 @@ private struct PopupRow: View {
     }
 
     private var accessibilityTitle: String {
+        if concealed {
+            return "\(number): \(visuals.kindLabel(for: item))"
+        }
         let title = visuals.title(for: item)
         if let name = visuals.favoriteName(for: item) {
             return "\(number): \(name), \(title)"

@@ -65,6 +65,27 @@ final class ClipVisuals {
         }
     }
 
+    /// What an entry is, without its content (presentation mode): "Link", "Bild" …
+    func kindLabel(for item: ClipItem) -> String {
+        if item.isRemotePlaceholder {
+            return String(localized: "Vom iPhone")
+        }
+        if let sensitivity = item.sensitivity {
+            return sensitivityLabel(sensitivity)
+        }
+        switch item.kind {
+        case .text: return String(localized: "Text")
+        case .richText: return String(localized: "Formatierter Text")
+        case .link: return String(localized: "Link")
+        case .color: return String(localized: "Farbe")
+        case .image: return item.preview.capturedFrom != nil ? String(localized: "Bildschirmfoto") : String(localized: "Bild")
+        case .files:
+            let fileCount = item.preview.fileNames.count
+            return fileCount > 1 ? String(localized: "\(fileCount) Dateien") : String(localized: "Datei")
+        case .other: return String(localized: "Eintrag")
+        }
+    }
+
     func systemImage(for item: ClipItem) -> String {
         if item.isRemotePlaceholder { return "iphone" }
         if let sensitivity = item.sensitivity {
@@ -218,10 +239,16 @@ struct ClipLeadingVisual: View {
     let item: ClipItem
     let visuals: ClipVisuals
     var size: CGFloat = 20
+    /// False in presentation mode: the symbol only, never a thumbnail or swatch.
+    var showsContent = true
 
     var body: some View {
         Group {
-            if item.kind == .color, item.sensitivity == nil, let color = item.preview.color {
+            if !showsContent {
+                Image(systemName: visuals.systemImage(for: item))
+                    .font(.system(size: size * 0.62))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            } else if item.kind == .color, item.sensitivity == nil, let color = item.preview.color {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color(.sRGB, red: color.red, green: color.green, blue: color.blue, opacity: color.alpha))
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Theme.Colors.divider))

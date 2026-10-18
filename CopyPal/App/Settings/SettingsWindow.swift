@@ -469,6 +469,23 @@ private struct PrivacySettingsPage: View {
 
         Hairline()
 
+        SectionBlock(title: "Bildschirmfreigabe") {
+            SettingRow(title: "Pop-up in Freigaben ausblenden", detail: "Bittet Bildschirmfreigaben, Pop-up und Hinweise an der Notch wegzulassen. Viele Apps halten sich daran, nicht alle – sicher ist der Präsentationsmodus.") {
+                RowSwitch(isOn: $settings.hideFromScreenSharing)
+            }
+            SettingRow(title: "Präsentationsmodus", detail: "Das Pop-up zeigt nur Art, App und Alter der Einträge, keine Inhalte. Endet nach 2 Stunden von selbst; auch im Menü.") {
+                if app.presentation.isActive {
+                    Button("Beenden") { app.presentation.stop() }
+                        .buttonStyle(SubtleButtonStyle())
+                } else {
+                    Button("Einschalten") { app.presentation.start() }
+                        .buttonStyle(SubtleButtonStyle())
+                }
+            }
+        }
+
+        Hairline()
+
         SectionBlock(title: "Links") {
             SettingRow(title: "Tracking-Parameter entfernen", detail: "Beim Einfügen ohne Formatierung (⇧) fallen utm_*, fbclid, gclid und ähnliche Zusätze weg, die verraten, woher ein Link kommt.") {
                 RowSwitch(isOn: $settings.cleanLinks)

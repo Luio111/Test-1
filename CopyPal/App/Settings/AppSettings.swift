@@ -27,6 +27,8 @@ enum AppSettings {
         static let animatePopup = "animatePopup"
         static let loadFavicons = "loadFavicons"
         static let cleanLinks = "cleanLinksOnPlainPaste"
+        static let hideFromScreenSharing = "hideFromScreenSharing"
+        static let presentationUntil = "presentationUntil"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let screenshotEnabled = "screenshotEnabled"
         static let screenshotHotKey = "screenshotHotKey"
@@ -73,6 +75,7 @@ enum AppSettings {
             Key.animatePopup: true,
             Key.loadFavicons: false,
             Key.cleanLinks: true,
+            Key.hideFromScreenSharing: true,
             Key.hasCompletedOnboarding: false,
             Key.screenshotEnabled: true,
             Key.screenshotScrollReversed: false,
@@ -183,6 +186,22 @@ enum AppSettings {
             return value > 0 ? Date(timeIntervalSince1970: value) : nil
         }
         set { set(newValue?.timeIntervalSince1970 ?? 0, for: Key.pausedUntil) }
+    }
+
+    /// Presentation mode is on until then (see `PresentationMode`).
+    static var presentationUntil: Date? {
+        get {
+            let value = defaults.double(forKey: Key.presentationUntil)
+            return value > 0 ? Date(timeIntervalSince1970: value) : nil
+        }
+        set { set(newValue?.timeIntervalSince1970 ?? 0, for: Key.presentationUntil) }
+    }
+
+    /// The popup, the notch capsule and the shortcut card ask screen sharing to leave
+    /// them out (`NSWindow.sharingType = .none`). Many sharing apps honour it, not all.
+    static var hideFromScreenSharing: Bool {
+        get { defaults.bool(forKey: Key.hideFromScreenSharing) }
+        set { set(newValue, for: Key.hideFromScreenSharing) }
     }
 
     // MARK: Appearance

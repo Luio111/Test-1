@@ -21,6 +21,16 @@
         }
       }
     },
+    "%lld Dateien" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld files"
+          }
+        }
+      }
+    },
     "%lld Dateien: %@" : {
       "localizations" : {
         "en" : {
@@ -631,6 +641,16 @@
         }
       }
     },
+    "Beenden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn Off"
+          }
+        }
+      }
+    },
     "Bei der Anmeldung starten" : {
       "localizations" : {
         "en" : {
@@ -901,12 +921,32 @@
         }
       }
     },
+    "Bildschirmfreigabe" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen Sharing"
+          }
+        }
+      }
+    },
     "Bis zur Reaktivierung" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Until Resumed"
+          }
+        }
+      }
+    },
+    "Bittet Bildschirmfreigaben, Pop-up und Hinweise an der Notch wegzulassen. Viele Apps halten sich daran, nicht alle – sicher ist der Präsentationsmodus." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asks screen sharing to leave out the pop-up and the hints at the notch. Many apps respect this, not all – presentation mode is the safe choice."
           }
         }
       }
@@ -1051,6 +1091,16 @@
         }
       }
     },
+    "CopyPal – Präsentationsmodus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal – Presentation Mode"
+          }
+        }
+      }
+    },
     "Damit CopyPal erkennt, ob du ⌘V kurz drückst oder hältst, und den gewählten Eintrag einfügen kann. CopyPal liest dabei keine Tastatureingaben mit." : {
       "localizations" : {
         "en" : {
@@ -1077,6 +1127,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The image goes straight to the clipboard and the history – ready for ⌘V."
+          }
+        }
+      }
+    },
+    "Das Pop-up zeigt nur Art, App und Alter der Einträge, keine Inhalte. Endet nach 2 Stunden von selbst; auch im Menü." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The pop-up only shows the kind, app and age of entries, never their content. Ends by itself after 2 hours; also in the menu."
+          }
+        }
+      }
+    },
+    "Datei" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File"
           }
         }
       }
@@ -1271,6 +1341,16 @@
         }
       }
     },
+    "Einschalten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn On"
+          }
+        }
+      }
+    },
     "Einsetzen" : {
       "localizations" : {
         "en" : {
@@ -1297,6 +1377,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Settings…"
+          }
+        }
+      }
+    },
+    "Eintrag" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry"
           }
         }
       }
@@ -1441,6 +1531,16 @@
         }
       }
     },
+    "Farbe" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color"
+          }
+        }
+      }
+    },
     "Favorit" : {
       "localizations" : {
         "en" : {
@@ -1527,6 +1627,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Formats: %lld · change count: %lld · %@ ms"
+          }
+        }
+      }
+    },
+    "Formatierter Text" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formatted Text"
           }
         }
       }
@@ -2011,6 +2121,16 @@
         }
       }
     },
+    "Link" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link"
+          }
+        }
+      }
+    },
     "Links" : {
       "localizations" : {
         "en" : {
@@ -2351,6 +2471,16 @@
         }
       }
     },
+    "Pop-up in Freigaben ausblenden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide pop-up from screen sharing"
+          }
+        }
+      }
+    },
     "Probier es aus" : {
       "localizations" : {
         "en" : {
@@ -2367,6 +2497,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Try it: press %@."
+          }
+        }
+      }
+    },
+    "Präsentationsmodus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presentation Mode"
+          }
+        }
+      }
+    },
+    "Präsentationsmodus (bis %@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presentation Mode (until %@)"
+          }
+        }
+      }
+    },
+    "Präsentationsmodus beendet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presentation mode ended"
+          }
+        }
+      }
+    },
+    "Präsentationsmodus – Inhalte verborgen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presentation mode – content hidden"
+          }
+        }
+      }
+    },
+    "Präsentationsmodus – Inhalte verborgen · 1–8 einfügen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presentation mode – content hidden · 1–8 paste"
           }
         }
       }
@@ -2687,6 +2867,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Technical details for bug reports. Contains no clipboard content."
+          }
+        }
+      }
+    },
+    "Text" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text"
           }
         }
       }

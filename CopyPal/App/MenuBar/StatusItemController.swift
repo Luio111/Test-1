@@ -10,6 +10,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     enum Status: Equatable {
         case normal
         case paused
+        case presenting
         case needsAttention
     }
 
@@ -68,6 +69,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             .needsAttention
         } else if app.capture.isPaused {
             .paused
+        } else if app.presentation.isActive {
+            .presenting
         } else {
             .normal
         }
@@ -75,6 +78,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         let (symbol, description) = switch status {
         case .normal: ("doc.on.clipboard", String(localized: "CopyPal"))
         case .paused: ("pause.circle", String(localized: "CopyPal – Aufzeichnung pausiert"))
+        case .presenting: ("eye.slash", String(localized: "CopyPal – Präsentationsmodus"))
         case .needsAttention: ("exclamationmark.triangle", String(localized: "CopyPal – Berechtigung fehlt"))
         }
         let image = NSImage(systemSymbolName: symbol, accessibilityDescription: description)
@@ -139,6 +143,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             menu.addItem(screenshotItem())
         }
         menu.addItem(pauseItem())
+        menu.addItem(presentationItem())
         menu.addItem(makeItem(String(localized: "Letzte Kopie vergessen"), symbol: "eraser") { app in
             app.forgetLastCopy()
         })
@@ -186,6 +191,22 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             item.keyEquivalentModifierMask = mask
         }
         return item
+    }
+
+    /// Checked while on, with the time it ends by itself.
+    private func presentationItem() -> NSMenuItem {
+        let presentation = app.presentation
+        if presentation.isActive, let until = presentation.until {
+            let time = until.formatted(date: .omitted, time: .shortened)
+            let item = makeItem(String(localized: "Präsentationsmodus (bis \(time))"), symbol: "eye.slash") { app in
+                app.presentation.stop()
+            }
+            item.state = .on
+            return item
+        }
+        return makeItem(String(localized: "Präsentationsmodus"), symbol: "eye.slash") { app in
+            app.presentation.start()
+        }
     }
 
     private func pauseItem() -> NSMenuItem {

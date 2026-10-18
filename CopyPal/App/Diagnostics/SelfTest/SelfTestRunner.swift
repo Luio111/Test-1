@@ -476,6 +476,21 @@ final class SelfTestRunner {
             return (opened && self.textView.string.isEmpty, "geöffnet: \(opened)")
         }
 
+        await check("Präsentationsmodus: Pop-up ohne Inhalte, aus Freigaben herausgehalten") {
+            self.app.presentation.start()
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            let opened = await self.waitUntil { self.app.popup.isVisible }
+            let concealed = self.app.popup.model.concealsContent
+            let hidden = self.app.popup.panelSharingType == .none
+            await self.sleep(200)
+            await self.press(53, flags: [])
+            _ = await self.waitUntil { !self.app.popup.isVisible }
+            self.app.presentation.stop()
+            let off = !self.app.popup.model.concealsContent && AppSettings.presentationUntil == nil
+            return (opened && concealed && hidden && off, "geöffnet: \(opened), ohne Inhalte: \(concealed), aus Freigaben: \(hidden), danach aus: \(off)")
+        }
+
         await check("⇧ fügt Links ohne Tracking-Parameter ein") {
             await self.copy("https://example.com/artikel?utm_source=newsletter&id=7&fbclid=abc")
             return await self.pasteFromPopup(keys: [(18, .maskShift)], expected: "https://example.com/artikel?id=7", seedClipboard: false)

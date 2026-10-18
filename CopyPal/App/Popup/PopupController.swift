@@ -32,8 +32,8 @@ final class PopupController {
     private var openStartedAt: TimeInterval?
     private var noticeTask: Task<Void, Never>?
 
-    init(history: HistoryModel, visuals: ClipVisuals, paster: PasteController) {
-        model = PopupModel(history: history, visuals: visuals)
+    init(history: HistoryModel, visuals: ClipVisuals, paster: PasteController, presentation: PresentationMode) {
+        model = PopupModel(history: history, visuals: visuals, presentation: presentation)
         self.visuals = visuals
         self.paster = paster
         // Created now, so the first ⌘V hold does not pay for building the panels.
@@ -72,6 +72,11 @@ final class PopupController {
         )
     }
 
+    /// Self-test: whether screen sharing is asked to leave the popup out.
+    var panelSharingType: NSWindow.SharingType {
+        panel.sharingType
+    }
+
     /// Self-test: compares the click with the level the popup had before.
     var panelLevel: NSWindow.Level {
         get { panel.level }
@@ -104,6 +109,7 @@ final class PopupController {
         }
         panel.contentView?.layoutSubtreeIfNeeded()
         panel.displayIfNeeded()
+        panel.applyScreenSharingPreference()
         guard panel.orderFrontOnActiveSpace() else {
             // Better no popup than an invisible one that keeps the gesture and ⌘V hostage.
             Log.app.error("Pop-up liegt nicht auf dem aktiven Space – abgebrochen (auf dem Bildschirm: \(self.isOnScreen, privacy: .public))")
@@ -411,6 +417,7 @@ private final class NotchRetract {
         panel.setFrame(frame, display: false)
         panel.contentView?.layoutSubtreeIfNeeded()
         panel.displayIfNeeded()
+        panel.applyScreenSharingPreference()
         panel.orderFrontRegardless()
         hideTask = Task { @MainActor [weak self] in
             // About one frame later, so the start state is on screen before it shrinks.

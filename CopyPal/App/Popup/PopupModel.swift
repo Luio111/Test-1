@@ -125,10 +125,17 @@ final class PopupModel {
 
     @ObservationIgnored let history: HistoryModel
     @ObservationIgnored private let visuals: ClipVisuals
+    @ObservationIgnored private let presentation: PresentationMode
 
-    init(history: HistoryModel, visuals: ClipVisuals) {
+    init(history: HistoryModel, visuals: ClipVisuals, presentation: PresentationMode) {
         self.history = history
         self.visuals = visuals
+        self.presentation = presentation
+    }
+
+    /// Presentation mode: rows say what kind each entry is, never its content.
+    var concealsContent: Bool {
+        presentation.isActive
     }
 
     /// At most 8 entries: the search result in the current list.

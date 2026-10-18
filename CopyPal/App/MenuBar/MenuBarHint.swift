@@ -64,6 +64,7 @@ final class MenuBarHintController {
         panel.setFrame(CGRect(x: x, y: y, width: size.width, height: size.height), display: true)
         if !panel.isVisible {
             panel.alphaValue = 0
+            panel.applyScreenSharingPreference()
             panel.orderFrontOnActiveSpace()
         }
         animate(to: 1, duration: 0.12)
@@ -150,6 +151,8 @@ struct MenuBarHintContent: Equatable {
             String(localized: "Berechtigung fehlt – Klick für mehr")
         } else if app.capture.isPaused {
             String(localized: "Aufzeichnung pausiert")
+        } else if app.presentation.isActive {
+            String(localized: "Präsentationsmodus – Inhalte verborgen")
         } else {
             nil
         }

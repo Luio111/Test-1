@@ -21,6 +21,8 @@ final class AppController {
     let toast: ToastController
     let paster: PasteController
     let popup: PopupController
+    /// Popup without content while the screen is shared.
+    let presentation: PresentationMode
     let hotKey = GlobalHotKey()
     /// ⌘⇧A (M11); a second Carbon slot, dispatched by id like the first.
     let screenshotHotKey = GlobalHotKey()
@@ -78,12 +80,18 @@ final class AppController {
         self.input = input
         self.toast = toast
         self.paster = paster
-        popup = PopupController(history: history, visuals: visuals, paster: paster)
+        let presentation = PresentationMode()
+        self.presentation = presentation
+        popup = PopupController(history: history, visuals: visuals, paster: paster, presentation: presentation)
     }
 
     func start() {
         NSApp.mainMenu = MainMenu.make()
 
+        presentation.onChange = { [weak self] in self?.statusItem?.update() }
+        presentation.onExpire = { [weak self] in
+            self?.toast.show(String(localized: "Präsentationsmodus beendet"), systemImage: "eye")
+        }
         input.onHold = { [weak self] in self?.showPopup() }
         input.onPermissionChange = { [weak self] _ in self?.statusItem?.update() }
         input.start()

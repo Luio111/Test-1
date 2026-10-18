@@ -21,6 +21,12 @@ extension NSWindow.Level {
 }
 
 extension NSWindow {
+    /// Asks screen sharing to leave the window out, as set under Datenschutz. Applied
+    /// each time a notch window appears, so a changed setting counts at once.
+    func applyScreenSharingPreference() {
+        sharingType = AppSettings.hideFromScreenSharing ? .none : .readOnly
+    }
+
     /// Orders the window in on the Space the user sees. Seen with the popup: first shown
     /// over another app's full-screen Space, a panel stayed on the desktop behind it;
     /// ordering it in again moves it to the active Space. False when it is still elsewhere.
