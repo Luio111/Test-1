@@ -1,5 +1,4 @@
-import CoreGraphics
-import Foundation
+import AppKit
 import Observation
 import CopyPalCore
 
@@ -7,6 +6,15 @@ import CopyPalCore
 enum PopupList: Equatable {
     case history
     case favorites
+}
+
+/// What the preview (→) shows for an entry, loaded when it is first previewed.
+enum PopupPreviewContent {
+    case loading
+    /// The plain text, at most 4,000 characters.
+    case text(String)
+    case image(NSImage)
+    case unavailable
 }
 
 /// Short confirmation shown in the footer after ⌘P.
@@ -122,6 +130,10 @@ final class PopupModel {
     var expanded = false
     var contentVisible = false
     var notice: PopupNotice?
+    /// → shows the selected entry in full instead of the list.
+    var previewing = false
+    /// Preview contents loaded during this opening, by entry.
+    var previews: [UUID: PopupPreviewContent] = [:]
 
     @ObservationIgnored let history: HistoryModel
     @ObservationIgnored private let visuals: ClipVisuals
@@ -155,6 +167,8 @@ final class PopupModel {
         query = ""
         selectedIndex = 0
         notice = nil
+        previewing = false
+        previews = [:]
     }
 
     func clampSelection() {

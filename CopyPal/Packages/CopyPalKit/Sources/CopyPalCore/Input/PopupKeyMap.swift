@@ -18,6 +18,10 @@ public enum PopupKeyAction: Sendable, Equatable {
     case togglePin
     /// ⌘⌫: delete the selected entry.
     case deleteItem
+    /// →: show the selected entry in full instead of the list.
+    case showPreview
+    /// ←: back from the preview to the list.
+    case hidePreview
 }
 
 /// Maps physical keys to popup actions. Digits are matched by key code, not by the
@@ -73,8 +77,10 @@ public enum PopupKeyMap {
             return .moveUp
         case downArrow:
             return .moveDown
-        case leftArrow, rightArrow:
-            return nil
+        case rightArrow:
+            return .showPreview
+        case leftArrow:
+            return .hidePreview
         case tab:
             return .switchList
         case delete, forwardDelete:

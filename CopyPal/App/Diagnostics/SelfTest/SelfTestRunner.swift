@@ -430,6 +430,33 @@ final class SelfTestRunner {
             return (typed == "abc" && cleared && closed && self.textView.string.isEmpty, "Suche: „\(typed)“, geleert: \(cleared), geschlossen: \(closed)")
         }
 
+        await check("→ zeigt den Eintrag ganz, ← und Esc gehen zurück zur Liste") {
+            guard let top = self.app.history.items.first(where: { $0.kind == .text || $0.kind == .richText }) else { return (false, "kein Text im Verlauf") }
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            _ = await self.waitUntil { self.app.popup.isVisible }
+            let index = self.app.popup.model.visibleItems.firstIndex { $0.id == top.id } ?? 0
+            for _ in 0..<index {
+                await self.press(125, flags: [])
+            }
+            await self.press(124, flags: []) // →
+            let previewing = self.app.popup.model.previewing
+            let loaded = await self.waitUntil {
+                if case .text = self.app.popup.model.previews[top.id] { return true }
+                return false
+            }
+            await self.press(123, flags: []) // ←
+            let backWithLeft = !self.app.popup.model.previewing && self.app.popup.isVisible
+            await self.press(124, flags: [])
+            await self.press(53, flags: []) // Esc leaves the preview, not the popup
+            let backWithEscape = !self.app.popup.model.previewing && self.app.popup.isVisible
+            await self.press(53, flags: [])
+            let closed = await self.waitUntil { !self.app.popup.isVisible }
+            let untouched = self.textView.string.isEmpty
+            return (previewing && loaded && backWithLeft && backWithEscape && closed && untouched,
+                    "Vorschau: \(previewing), Text geladen: \(loaded), ← zurück: \(backWithLeft), Esc zurück: \(backWithEscape), danach geschlossen: \(closed)")
+        }
+
         await check("⌘P macht zum Favoriten, ⇥ zeigt Favoriten, 1 fügt ihn ein") {
             guard let second = self.app.history.items.dropFirst().first else { return (false, "zu wenige Einträge") }
             await self.prepare(clipboard: nil)

@@ -34,7 +34,8 @@ struct PopupKeyMapTests {
         #expect(PopupKeyMap.action(keyCode: 126, modifiers: []) == .moveUp)
         #expect(PopupKeyMap.action(keyCode: 125, modifiers: []) == .moveDown)
         #expect(PopupKeyMap.action(keyCode: 48, modifiers: []) == .switchList)
-        #expect(PopupKeyMap.action(keyCode: 123, modifiers: []) == nil)
+        #expect(PopupKeyMap.action(keyCode: 124, modifiers: []) == .showPreview)
+        #expect(PopupKeyMap.action(keyCode: 123, modifiers: []) == .hidePreview)
     }
 
     @Test func escapeClearsSearchFirst() {

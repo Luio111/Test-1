@@ -71,6 +71,16 @@
         }
       }
     },
+    "+%lld weitere" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld more"
+          }
+        }
+      }
+    },
     "1 Jahr" : {
       "localizations" : {
         "en" : {
@@ -141,42 +151,42 @@
         }
       }
     },
-    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit entfernen" : {
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit entfernen · → Vorschau" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P remove favorite"
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P remove favorite · → preview"
           }
         }
       }
     },
-    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit hinzufügen" : {
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit hinzufügen · → Vorschau" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P add favorite"
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P add favorite · → preview"
           }
         }
       }
     },
-    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P behalten" : {
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P behalten · → Vorschau" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P keep"
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P keep · → preview"
           }
         }
       }
     },
-    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Verlauf · ⌘P Favorit entfernen" : {
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Verlauf · ⌘P Favorit entfernen · → Vorschau" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1–8 paste · ⇧ without formatting · ⇥ history · ⌘P remove favorite"
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ history · ⌘P remove favorite · → preview"
           }
         }
       }
@@ -2681,6 +2691,16 @@
         }
       }
     },
+    "Sensibler Eintrag – der Inhalt bleibt verdeckt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensitive entry – the content stays hidden."
+          }
+        }
+      }
+    },
     "Sensibles verschwindet" : {
       "localizations" : {
         "en" : {
@@ -3087,6 +3107,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copied on iPhone – choosing it loads the content"
+          }
+        }
+      }
+    },
+    "Vom iPhone kopiert – der Inhalt wird erst beim Einfügen geladen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied on iPhone – the content is loaded when you paste it."
           }
         }
       }
@@ -3537,6 +3567,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hold ↓ for more · ⌥↓ to the end · Esc stops"
+          }
+        }
+      }
+    },
+    "↩ einfügen · ⇧ ohne Formatierung · ↑↓ blättern · ← zurück" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↩ paste · ⇧ without formatting · ↑↓ browse · ← back"
           }
         }
       }

@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import CopyPalCore
+import CopyPalServices
 import CopyPalSystem
 
 /// Shows the popup at the notch of the screen the user works on, handles its keys
@@ -213,7 +214,9 @@ final class PopupController {
     private func updateLayout() {
         guard let screen else { return }
         let metrics = ScreenMetrics(screen)
-        let layout = PopupLayout(anchor: NotchGeometry.anchor(on: metrics), rows: model.visibleItems.count)
+        // The preview takes the room of a full list.
+        let rows = model.previewing ? PopupMetrics.maxRows : model.visibleItems.count
+        let layout = PopupLayout(anchor: NotchGeometry.anchor(on: metrics), rows: rows)
         model.layout = layout
         let frame = NotchGeometry.popupPanelFrame(size: layout.panelSize, on: metrics)
         if panel.frame != frame {
@@ -253,6 +256,19 @@ final class PopupController {
             queryIsEmpty: model.query.isEmpty
         )
         guard let action else { return }
+        if model.previewing {
+            switch action {
+            case .cancel, .clearQuery, .hidePreview:
+                // Esc and ← leave the preview first.
+                hidePreview()
+                return
+            case .insertText, .deleteBackward, .switchList:
+                // Typing and ⇥ change the list: back to it.
+                hidePreview()
+            default:
+                break
+            }
+        }
         switch action {
         case let .select(index, plainText):
             paste(at: index - 1, plainText: plainText)
@@ -260,8 +276,14 @@ final class PopupController {
             paste(at: model.selectedIndex, plainText: plainText)
         case .moveUp:
             model.selectedIndex = max(model.selectedIndex - 1, 0)
+            previewSelection()
         case .moveDown:
             model.selectedIndex = min(model.selectedIndex + 1, max(model.visibleItems.count - 1, 0))
+            previewSelection()
+        case .showPreview:
+            showPreview()
+        case .hidePreview:
+            break
         case .cancel:
             close()
         case .clearQuery:
@@ -300,6 +322,82 @@ final class PopupController {
                 contentChanged()
             }
         }
+    }
+
+    // MARK: Preview
+
+    /// → : the selected entry in full, in the same shape (not in presentation mode).
+    private func showPreview() {
+        guard !model.concealsContent, let item = model.selectedItem else {
+            NSSound.beep()
+            return
+        }
+        model.previewing = true
+        loadPreview(for: item)
+        withAnimation(PopupMotion.resize) {
+            updateLayout()
+        }
+    }
+
+    private func hidePreview() {
+        guard model.previewing else { return }
+        model.previewing = false
+        withAnimation(PopupMotion.resize) {
+            updateLayout()
+        }
+    }
+
+    /// ↑/↓ while previewing: the preview follows the selection.
+    private func previewSelection() {
+        guard model.previewing, let item = model.selectedItem else { return }
+        loadPreview(for: item)
+    }
+
+    /// Loads the text or a larger picture once per opening, off the main thread.
+    /// Sensitive entries and iPhone placeholders load nothing: the preview shows their
+    /// masked title only.
+    private func loadPreview(for item: ClipItem) {
+        guard model.previews[item.id] == nil, !item.isSensitive, !item.isRemotePlaceholder else { return }
+        switch item.kind {
+        case .text, .richText, .link, .image, .other:
+            break
+        case .color, .files:
+            return
+        }
+        model.previews[item.id] = .loading
+        let engine = model.history.engine
+        let id = item.id
+        let kind = item.kind
+        Task {
+            let loaded = await Self.loadPreview(id: id, kind: kind, engine: engine)
+            let content: PopupPreviewContent = switch loaded {
+            case let .text(text): .text(text)
+            case let .imageData(data): NSImage(data: data).map(PopupPreviewContent.image) ?? .unavailable
+            case .unavailable: .unavailable
+            }
+            self.model.previews[id] = content
+        }
+    }
+
+    private enum LoadedPreview: Sendable {
+        case text(String)
+        case imageData(Data)
+        case unavailable
+    }
+
+    nonisolated private static func loadPreview(id: UUID, kind: ClipKind, engine: HistoryEngine) async -> LoadedPreview {
+        guard let representations = try? await engine.representations(of: id) else { return .unavailable }
+        if kind == .image {
+            guard let png = representations.first(where: { $0.type == PasteboardTypeID.png })?.data,
+                  let data = ImageConversion.thumbnail(fromImageData: png, maxPixelSize: 960) else {
+                return .unavailable
+            }
+            return .imageData(data)
+        }
+        guard let plain = representations.first(where: { $0.type == PasteboardTypeID.plainText }) else {
+            return .unavailable
+        }
+        return .text(String(String(decoding: plain.data, as: UTF8.self).prefix(4_000)))
     }
 
     private func contentChanged() {

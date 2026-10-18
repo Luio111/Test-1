@@ -65,7 +65,11 @@ private struct PopupContent: View {
                 .frame(height: model.layout.bandHeight)
                 .opacity(model.contentVisible ? 1 : 0)
                 .animation(PopupMotion.chrome, value: model.contentVisible)
-            if items.isEmpty {
+            if model.previewing, let item = model.selectedItem {
+                PopupPreview(number: model.selectedIndex + 1, item: item, content: model.previews[item.id], visuals: visuals)
+                    .frame(height: PopupMetrics.listHeight(rows: PopupMetrics.maxRows))
+                    .opacity(model.contentVisible ? 1 : 0)
+            } else if items.isEmpty {
                 emptyState
                     .opacity(model.contentVisible ? 1 : 0)
                     .animation(PopupMotion.chrome, value: model.contentVisible)
@@ -243,19 +247,182 @@ private struct PopupContent: View {
     /// ⌘P toggles: "add" for a normal entry, "remove" for a favorite (always in the
     /// favorites list).
     private var footerText: LocalizedStringKey {
+        if model.previewing {
+            return "↩ einfügen · ⇧ ohne Formatierung · ↑↓ blättern · ← zurück"
+        }
         if !model.query.isEmpty {
             return "↩ einfügen · ⌘1–8 Eintrag · ⇧↩ ohne Formatierung · esc Suche leeren"
         }
         if model.list == .favorites {
-            return "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Verlauf · ⌘P Favorit entfernen"
+            return "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Verlauf · ⌘P Favorit entfernen · → Vorschau"
         }
         if let selected = model.selectedItem, selected.isSensitive, !selected.isPinned {
             // A sensitive entry is deleted soon; a favorite stays.
-            return "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P behalten"
+            return "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P behalten · → Vorschau"
         }
         return model.selectedItem?.isPinned == true
-            ? "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit entfernen"
-            : "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit hinzufügen"
+            ? "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit entfernen · → Vorschau"
+            : "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit hinzufügen · → Vorschau"
+    }
+}
+
+/// → : the selected entry in full – up to 4,000 characters of text, the whole link,
+/// the picture, the color or the file names – in the room of the list.
+private struct PopupPreview: View {
+    let number: Int
+    let item: ClipItem
+    let content: PopupPreviewContent?
+    let visuals: ClipVisuals
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+            HStack(spacing: Theme.Spacing.s) {
+                Text(verbatim: "\(number)")
+                    .font(.system(size: 11, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.Notch.textPrimary)
+                    .frame(width: 16, height: 16)
+                    .background(Theme.Notch.control, in: RoundedRectangle(cornerRadius: 4))
+                    .accessibilityHidden(true)
+                if let name = visuals.favoriteName(for: item) {
+                    Text(verbatim: name)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Theme.Notch.textPrimary)
+                        .lineLimit(1)
+                }
+                Text(verbatim: visuals.kindLabel(for: item))
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.Notch.textSecondary)
+                    .lineLimit(1)
+                Spacer(minLength: Theme.Spacing.s)
+                ClipTrailingDetails(item: item, visuals: visuals)
+            }
+            detail
+        }
+        .padding(.horizontal, PopupMetrics.listHorizontalPadding + Theme.Spacing.s)
+        .padding(.vertical, Theme.Spacing.s)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private var detail: some View {
+        if item.isSensitive {
+            Text(verbatim: visuals.title(for: item))
+                .font(.system(size: 14, design: .monospaced))
+                .foregroundStyle(Theme.Notch.textPrimary)
+            Text("Sensibler Eintrag – der Inhalt bleibt verdeckt.")
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.Notch.textSecondary)
+        } else if item.isRemotePlaceholder {
+            Text("Vom iPhone kopiert – der Inhalt wird erst beim Einfügen geladen.")
+                .font(.system(size: 12.5))
+                .foregroundStyle(Theme.Notch.textSecondary)
+        } else {
+            switch item.kind {
+            case .color:
+                colorDetail
+            case .files:
+                filesDetail
+            case .image:
+                imageDetail
+            case .text, .richText, .link, .other:
+                textDetail
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var textDetail: some View {
+        switch content {
+        case let .text(text):
+            Text(verbatim: text)
+                .font(.system(size: 12.5))
+                .foregroundStyle(Theme.Notch.textPrimary)
+                .lineLimit(item.kind == .link ? 6 : 11)
+                .truncationMode(item.kind == .link ? .middle : .tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        case .loading, nil:
+            Text(verbatim: visuals.title(for: item))
+                .font(.system(size: 12.5))
+                .foregroundStyle(Theme.Notch.textSecondary)
+                .lineLimit(1)
+        case .image, .unavailable:
+            Text(verbatim: visuals.title(for: item))
+                .font(.system(size: 12.5))
+                .foregroundStyle(Theme.Notch.textPrimary)
+                .lineLimit(3)
+        }
+    }
+
+    @ViewBuilder
+    private var imageDetail: some View {
+        if case let .image(image) = content {
+            Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity, maxHeight: 158, alignment: .leading)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .accessibilityHidden(true)
+        } else {
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Theme.Notch.control)
+                .frame(height: 158)
+                .overlay {
+                    if case .loading = content {
+                        ProgressView().controlSize(.small)
+                    }
+                }
+        }
+        if let size = item.preview.imageSize {
+            Text(verbatim: "\(size.width) × \(size.height) px")
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundStyle(Theme.Notch.textSecondary)
+        }
+    }
+
+    private var colorDetail: some View {
+        HStack(spacing: Theme.Spacing.m) {
+            if let color = item.preview.color {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(.sRGB, red: color.red, green: color.green, blue: color.blue, opacity: color.alpha))
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.Notch.divider))
+                    .frame(width: 72, height: 72)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                    Text(verbatim: color.hex)
+                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Theme.Notch.textPrimary)
+                    Text(verbatim: "R \(Int((color.red * 255).rounded())) · G \(Int((color.green * 255).rounded())) · B \(Int((color.blue * 255).rounded()))")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(Theme.Notch.textSecondary)
+                }
+            } else {
+                Text(verbatim: visuals.title(for: item))
+                    .foregroundStyle(Theme.Notch.textPrimary)
+            }
+        }
+    }
+
+    private var filesDetail: some View {
+        let names = item.preview.fileNames
+        let moreCount = max(names.count - 9, 0)
+        return VStack(alignment: .leading, spacing: 3) {
+            ForEach(Array(names.prefix(9).enumerated()), id: \.offset) { _, name in
+                Label {
+                    Text(verbatim: name).lineLimit(1).truncationMode(.middle)
+                } icon: {
+                    Image(systemName: "doc")
+                }
+                .font(.system(size: 12.5))
+                .foregroundStyle(Theme.Notch.textPrimary)
+            }
+            if moreCount > 0 {
+                Text("+\(moreCount) weitere")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.Notch.textSecondary)
+            }
+        }
     }
 }
 
