@@ -613,6 +613,9 @@ final class SelfTestRunner {
             ))
         }
 
+        // New images are read in the background once; idle means after that.
+        let indexed = await waitUntil(timeout: 60_000) { self.app.textIndexer.isIdle }
+        Self.write("Texterkennung im Hintergrund \(indexed ? "fertig" : "nach 60 s noch beschäftigt")")
         let idle = await Self.cpuUsage(during: 5)
         Self.write(String(format: "Messwert CPU im Leerlauf (5 s): %.2f %%", idle * 100))
         Self.write(String(format: "Messwert Speicher: %.0f MB bei %ld Einträgen", Self.memoryFootprint() / 1_000_000, app.history.items.count))

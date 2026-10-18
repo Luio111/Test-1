@@ -23,9 +23,8 @@ struct ScreenshotSystemTests {
         return buffer
     }
 
-    @Test func recognizesRenderedText() throws {
-        let width = 900
-        let height = 200
+    /// Black text on white, drawn with CoreText.
+    private func renderedText(_ string: String, width: Int, height: Int, fontSize: CGFloat) throws -> CGImage {
         let context = try #require(CGContext(
             data: nil,
             width: width,
@@ -38,14 +37,29 @@ struct ScreenshotSystemTests {
         context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
         // CoreText draws black by default.
-        let font = CTFontCreateWithName("Helvetica" as CFString, 56, nil)
-        let line = CTLineCreateWithAttributedString(NSAttributedString(string: "Rechnung 2026", attributes: [.font: font]))
-        context.textPosition = CGPoint(x: 40, y: 70)
+        let font = CTFontCreateWithName("Helvetica" as CFString, fontSize, nil)
+        let line = CTLineCreateWithAttributedString(NSAttributedString(string: string, attributes: [.font: font]))
+        context.textPosition = CGPoint(x: CGFloat(width) * 0.05, y: CGFloat(height) * 0.4)
         CTLineDraw(line, context)
-        let image = try #require(context.makeImage())
+        return try #require(context.makeImage())
+    }
+
+    @Test func recognizesRenderedText() throws {
+        let image = try renderedText("Rechnung 2026", width: 900, height: 200, fontSize: 56)
         let text = try #require(TextRecognizer.text(in: image))
         #expect(text.contains("Rechnung"))
         #expect(text.contains("2026"))
+    }
+
+    @Test func largeImagesAreReadScaledDown() throws {
+        let image = try renderedText("Rechnung 2026", width: 4_000, height: 1_600, fontSize: 320)
+        let data = NSMutableData()
+        let destination = try #require(CGImageDestinationCreateWithData(data, "public.png" as CFString, 1, nil))
+        CGImageDestinationAddImage(destination, image, nil)
+        #expect(CGImageDestinationFinalize(destination))
+        // 6.4 MP read as at most 1.5 MP.
+        let text = try #require(TextRecognizer.text(inImageData: data as Data, maxPixels: 1_500_000))
+        #expect(text.contains("Rechnung"))
     }
 
     @Test func pixelBufferAndImageRoundTrip() throws {

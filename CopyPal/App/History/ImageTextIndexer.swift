@@ -19,6 +19,11 @@ final class ImageTextIndexer {
         self.history = history
     }
 
+    /// Nothing queued or running (self-test: measure idle CPU only after this).
+    var isIdle: Bool {
+        !isRunning && queue.isEmpty
+    }
+
     func enqueue(_ id: UUID) {
         guard AppSettings.recognizeTextInImages, !queue.contains(id) else { return }
         queue.append(id)
