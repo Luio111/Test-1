@@ -78,6 +78,19 @@ Runden laut ROADMAP §4.3: M1 (Gruppe A: Tippen, Halten, Fokus) · M4 (Gruppe A 
 | VS Code | | | – | |
 | Nachrichten | | | | Hintergrundbild kann das Erweitern stoppen |
 
+## Bildschirmfreigabe (M12)
+
+Frage: Ist das Pop-up beim Teilen des Bildschirms für die anderen sichtbar, wenn „Pop-up in Freigaben ausblenden“ an ist? Der Präsentationsmodus zeigt ohnehin keine Inhalte.
+
+| App | macOS 14 | macOS 15 | macOS 26 | Anmerkung |
+|---|---|---|---|---|
+| Zoom (ganzer Bildschirm) | | | | |
+| Microsoft Teams | | | | |
+| Google Meet (Chrome) | | | | |
+| FaceTime / SharePlay | | | | |
+| OBS (Bildschirmaufnahme) | | | | |
+| QuickTime-Bildschirmaufnahme | | | | |
+
 ## Tool-Konflikte
 
 | Tool | Verhalten | Umgehung |
