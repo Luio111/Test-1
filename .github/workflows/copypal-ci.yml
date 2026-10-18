@@ -113,7 +113,18 @@ jobs:
       # GitHub's macOS runners grant Accessibility to processes started from job steps.
       - name: Self-test (capture, history, ⌘V gesture, popup)
         timeout-minutes: 4
+        env:
+          # Screens of the screenshot overlay as the self-test saw them (design review).
+          COPYPAL_SELFTEST_SHOTS: ${{ github.workspace }}/selftest-shots
         run: CopyPal/scripts/ci-self-test.sh build/DerivedData/Build/Products/Debug/CopyPal.app
+      - name: Keep the self-test screens
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selftest-shots
+          path: selftest-shots
+          if-no-files-found: ignore
+          retention-days: 3
       - name: Keep the app for the macOS 14 smoke test
         if: inputs.macos14
         run: ditto -c -k --keepParent build/DerivedData/Build/Products/Debug/CopyPal.app CopyPal.zip

@@ -436,27 +436,23 @@ struct OverlayChrome: View {
                 .fill(Theme.Notch.fill)
                 .overlay(
                     RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
-                        .strokeBorder(Theme.Notch.divider)
+                        .strokeBorder(Color.white.opacity(0.16))
                 )
+                .shadow(color: .black.opacity(0.6), radius: 12, y: 2)
         )
         .fixedSize()
     }
 
-    /// Keycap, then what it does. The first row is what to do now (white 92 %), the
-    /// second the extras (smaller, white 60 %).
+    /// Keycap, then what it does. The first row is what to do now (white, 13 medium),
+    /// the second the extras (11, white 60 %).
     private func hintRow(_ hints: [OverlayHint], prominent: Bool) -> some View {
         HStack(spacing: prominent ? Theme.Spacing.l : Theme.Spacing.m) {
             ForEach(hints, id: \.self) { hint in
                 HStack(spacing: Theme.Spacing.xs + Theme.Spacing.xxs) {
-                    Text(verbatim: hint.keys)
-                        .font(.system(size: prominent ? 12 : 11, weight: .medium))
-                        .foregroundStyle(Theme.Notch.textPrimary)
-                        .padding(.horizontal, Theme.Spacing.xs + 1)
-                        .padding(.vertical, 1)
-                        .background(Theme.Notch.control, in: RoundedRectangle(cornerRadius: Theme.Radius.tag))
+                    OverlayKeycap(keys: hint.keys, size: prominent ? 12 : 11)
                     Text(verbatim: hint.label)
-                        .font(.system(size: prominent ? 12 : 11))
-                        .foregroundStyle(prominent ? Theme.Notch.textPrimary : Theme.Notch.textSecondary)
+                        .font(.system(size: prominent ? 13 : 11, weight: prominent ? .medium : .regular))
+                        .foregroundStyle(prominent ? Color.white : Theme.Notch.textSecondary)
                 }
             }
         }

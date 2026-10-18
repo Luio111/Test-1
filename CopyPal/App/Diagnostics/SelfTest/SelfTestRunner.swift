@@ -786,8 +786,17 @@ final class SelfTestRunner {
             return (false, "Aufnahme nicht geöffnet")
         }
         await sleep(300)
-        await drag(from: CGPoint(x: frame.minX + 8, y: frame.maxY - 32), to: CGPoint(x: frame.maxX - 8, y: frame.minY + 8))
+        let start = CGPoint(x: frame.minX + 8, y: frame.maxY - 32)
+        if !shiftClick {
+            Self.postMouse(.mouseMoved, at: start)
+            await sleep(400)
+            await saveSnapshot("1-overlay-vor-der-auswahl")
+        }
+        await drag(from: start, to: CGPoint(x: frame.maxX - 8, y: frame.minY + 8))
         let shown = await waitUntil(timeout: 2_000) { !self.app.screenshot.actionsForSelfTest.isEmpty }
+        if !shiftClick {
+            await saveSnapshot("2-overlay-knoepfe")
+        }
         let buttons = app.screenshot.actionsForSelfTest.map { "\($0)" }.joined(separator: ", ")
         let target: CGPoint? = shiftClick
             ? CGPoint(x: frame.midX, y: frame.midY)
@@ -796,6 +805,11 @@ final class SelfTestRunner {
             app.screenshot.cancel()
             focusTextView()
             return (false, "keine Knöpfe unter der Auswahl (gezeigt: \(shown))")
+        }
+        if !shiftClick {
+            Self.postMouse(.mouseMoved, at: target)
+            await sleep(300)
+            await saveSnapshot("3-overlay-knopf-unter-dem-zeiger")
         }
         await click(at: target, flags: shiftClick ? .maskShift : [])
         let closed = await waitUntil(timeout: 3_000) { !self.app.screenshot.isActive }
@@ -810,6 +824,24 @@ final class SelfTestRunner {
         await sleep(200)
         let detail = "Knöpfe: \(buttons.isEmpty ? "keine" : buttons), geschlossen: \(closed), Text im Verlauf: \(stored)"
         return ((shiftClick || shown) && closed && stored, detail)
+    }
+
+    /// CI: the screen as the user sees it, kept as a job artifact (the folder in
+    /// `COPYPAL_SELFTEST_SHOTS`); nothing when the variable is not set.
+    private func saveSnapshot(_ name: String) async {
+        guard let folder = ProcessInfo.processInfo.environment["COPYPAL_SELFTEST_SHOTS"],
+              let screen = NSScreen.main ?? NSScreen.screens.first,
+              let display = ScreenCaptureEngine.display(for: screen),
+              let image = try? await ScreenCaptureEngine.captureDisplay(display),
+              let png = ImageConversion.png(image.image, scale: display.scale) else {
+            return
+        }
+        let directory = URL(fileURLWithPath: folder, isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent(name).appendingPathExtension("png")
+        if (try? png.write(to: url)) != nil {
+            Self.write("Bild für die CI: \(url.lastPathComponent)")
+        }
     }
 
     private func drag(from start: CGPoint, to end: CGPoint) async {

@@ -45,15 +45,21 @@ final class ScreenshotActionBar: NSView {
         layer?.cornerRadius = Theme.Radius.panel
         layer?.cornerCurve = .continuous
         layer?.borderWidth = 1
-        layer?.borderColor = NSColor.white.withAlphaComponent(0.08).cgColor
+        layer?.borderColor = NSColor.white.withAlphaComponent(0.16).cgColor
+        // Lifts the bar off the dimmed picture behind it.
+        let lift = NSShadow()
+        lift.shadowColor = NSColor.black.withAlphaComponent(0.6)
+        lift.shadowBlurRadius = 12
+        lift.shadowOffset = NSSize(width: 0, height: -2)
+        shadow = lift
 
         sizeLabel.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
         sizeLabel.textColor = NSColor.white.withAlphaComponent(0.6)
 
         stack.orientation = .horizontal
         stack.alignment = .centerY
-        stack.spacing = Theme.Spacing.xs
-        stack.edgeInsets = NSEdgeInsets(top: Theme.Spacing.xs, left: Theme.Spacing.m, bottom: Theme.Spacing.xs, right: Theme.Spacing.xs)
+        stack.spacing = Theme.Spacing.xs + Theme.Spacing.xxs
+        stack.edgeInsets = NSEdgeInsets(top: Theme.Spacing.xs + 1, left: Theme.Spacing.m, bottom: Theme.Spacing.xs + 1, right: Theme.Spacing.xs + 1)
         stack.translatesAutoresizingMaskIntoConstraints = false
         addSubview(stack)
         NSLayoutConstraint.activate([
@@ -237,30 +243,56 @@ final class ActionButtonHost: NSHostingView<ActionButtonLabel> {
     }
 }
 
+/// A key as the overlay draws it: outlined and darker than what it sits on, so it
+/// reads as "the key" beside a label in bright white.
+struct OverlayKeycap: View {
+    let keys: String
+    var size: CGFloat = 11
+    /// On the accent-coloured main button.
+    var onAccent = false
+
+    var body: some View {
+        Text(verbatim: keys)
+            .font(.system(size: size, weight: .semibold))
+            .foregroundStyle(Color.white.opacity(onAccent ? 0.95 : 0.8))
+            .padding(.horizontal, Theme.Spacing.xs + 1)
+            .frame(minWidth: 20, minHeight: size + 7)
+            .background(Color.black.opacity(onAccent ? 0.25 : 0.4), in: RoundedRectangle(cornerRadius: Theme.Radius.tag))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Radius.tag)
+                    .strokeBorder(Color.white.opacity(onAccent ? 0.55 : 0.32))
+            )
+    }
+}
+
+/// A button on the bar: a lighter surface with a rim on the black bar, the label in
+/// white, the key as an inset keycap at its end.
 struct ActionButtonLabel: View {
     let item: ScreenshotActionBar.Item
     var hovered = false
     var pressed = false
 
     var body: some View {
-        HStack(spacing: Theme.Spacing.xs + Theme.Spacing.xxs) {
-            Image(systemName: item.symbol)
-                .font(.system(size: 12, weight: .medium))
-            if !item.title.isEmpty {
-                Text(verbatim: item.title)
-                    .font(.system(size: 12, weight: .medium))
+        HStack(spacing: Theme.Spacing.s) {
+            HStack(spacing: Theme.Spacing.xs + 1) {
+                Image(systemName: item.symbol)
+                    .font(.system(size: 12, weight: .semibold))
+                if !item.title.isEmpty {
+                    Text(verbatim: item.title)
+                        .font(.system(size: 13, weight: .medium))
+                }
             }
-            Text(verbatim: item.keys)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Color.white.opacity(item.prominent ? 0.85 : 0.6))
-                .padding(.horizontal, Theme.Spacing.xs)
-                .padding(.vertical, 1)
-                .background(Color.white.opacity(item.prominent ? 0.18 : 0.1), in: RoundedRectangle(cornerRadius: Theme.Radius.tag))
+            .foregroundStyle(Color.white)
+            OverlayKeycap(keys: item.keys, onAccent: item.prominent)
         }
-        .foregroundStyle(Theme.Notch.textPrimary)
-        .padding(.horizontal, Theme.Spacing.s + Theme.Spacing.xxs)
-        .frame(height: 28)
-        .background(background, in: RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous))
+        .padding(.leading, Theme.Spacing.s + Theme.Spacing.xxs)
+        .padding(.trailing, Theme.Spacing.xs + 1)
+        .frame(height: 30)
+        .background(background, in: RoundedRectangle(cornerRadius: Theme.Radius.control + 1, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Radius.control + 1, style: .continuous)
+                .strokeBorder(Color.white.opacity(item.prominent ? 0.2 : 0.16))
+        )
         .fixedSize()
         .environment(\.colorScheme, .dark)
         .accessibilityHidden(true)
@@ -269,9 +301,9 @@ struct ActionButtonLabel: View {
     private var background: Color {
         if item.prominent {
             if pressed { return Theme.Colors.accentFillPressed }
-            return hovered ? Theme.Colors.accentFillHover : Theme.Colors.accentFill
+            return hovered ? Theme.Colors.accent : Theme.Colors.accentFill
         }
-        if pressed { return Color.white.opacity(0.2) }
-        return hovered ? Theme.Notch.selection : Color.clear
+        if pressed { return Color.white.opacity(0.32) }
+        return Color.white.opacity(hovered ? 0.25 : 0.17)
     }
 }
