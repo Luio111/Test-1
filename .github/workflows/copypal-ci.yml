@@ -111,6 +111,14 @@ jobs:
             || { echo "::error::Englische Übersetzung fehlt im App-Bundle"; exit 1; }
       # Runs the app's end-to-end check of the ⌘V gesture with simulated key presses.
       # GitHub's macOS runners grant Accessibility to processes started from job steps.
+      # Chrome on the runner comes from Homebrew with the quarantine flag: Gatekeeper
+      # would ask before its first start and the self-test's web page check wait for
+      # a window that never comes.
+      - name: Let Chrome start without the Gatekeeper prompt
+        run: |
+          if [ -d "/Applications/Google Chrome.app" ]; then
+            sudo xattr -dr com.apple.quarantine "/Applications/Google Chrome.app" || true
+          fi
       - name: Self-test (capture, history, ⌘V gesture, popup)
         timeout-minutes: 4
         env:
@@ -148,6 +156,14 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: CopyPal-debug
+      # Chrome on the runner comes from Homebrew with the quarantine flag: Gatekeeper
+      # would ask before its first start and the self-test's web page check wait for
+      # a window that never comes.
+      - name: Let Chrome start without the Gatekeeper prompt
+        run: |
+          if [ -d "/Applications/Google Chrome.app" ]; then
+            sudo xattr -dr com.apple.quarantine "/Applications/Google Chrome.app" || true
+          fi
       - name: Self-test (same build as above)
         timeout-minutes: 6
         run: |
