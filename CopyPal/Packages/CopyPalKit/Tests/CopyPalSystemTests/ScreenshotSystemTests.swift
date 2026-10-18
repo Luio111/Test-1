@@ -127,6 +127,10 @@ struct ScreenshotSystemTests {
         #expect(PasteSynthesizer.isOwn(event))
         #expect(event.location == CGPoint(x: 10, y: 20))
 
+        #expect(event.getIntegerValueField(.scrollWheelEventScrollPhase) == 0)
+        let began = try #require(ScrollSynthesizer.makeEvent(delta: -40, units: .pixel, at: .zero, phase: .began))
+        #expect(began.getIntegerValueField(.scrollWheelEventScrollPhase) == Int64(CGScrollPhase.began.rawValue))
+
         let lines = try #require(ScrollSynthesizer.makeEvent(delta: 3, units: .line, at: .zero))
         #expect(lines.getIntegerValueField(.scrollWheelEventDeltaAxis1) > 0)
         #expect(ScrollPlanner.chunks(deltaPoints: 400, direction: .down, reversed: false) == [-160, -160, -80])

@@ -13,8 +13,9 @@ public enum ScrollSynthesizer {
     }
 
     /// A scroll event of `delta` (negative scrolls down) at `location` (top-left
-    /// coordinates, like `CGEvent.location`).
-    public static func makeEvent(delta: Int32, units: Units, at location: CGPoint, source: CGEventSource? = nil) -> CGEvent? {
+    /// coordinates, like `CGEvent.location`). `phase` marks pixel events as part of a
+    /// trackpad gesture.
+    public static func makeEvent(delta: Int32, units: Units, at location: CGPoint, phase: CGScrollPhase? = nil, source: CGEventSource? = nil) -> CGEvent? {
         let cgUnits: CGScrollEventUnit = units == .pixel ? .pixel : .line
         guard let event = CGEvent(scrollWheelEvent2Source: source, units: cgUnits, wheelCount: 1, wheel1: delta, wheel2: 0, wheel3: 0) else {
             return nil
@@ -23,19 +24,31 @@ public enum ScrollSynthesizer {
         if units == .pixel {
             event.setIntegerValueField(.scrollWheelEventIsContinuous, value: 1)
         }
+        if let phase {
+            event.setIntegerValueField(.scrollWheelEventScrollPhase, value: Int64(phase.rawValue))
+        }
         event.setIntegerValueField(.eventSourceUserData, value: PasteSynthesizer.marker)
         return event
     }
 
-    /// Posts `chunks` one after another with `gap` between them: deltas that arrive in
-    /// one burst are dropped by some apps.
+    /// Posts `chunks` as one trackpad gesture (began, changed …, ended, no momentum),
+    /// with `gap` between the events: browsers take pixel scrolling without a phase
+    /// unreliably, and deltas that arrive in one burst are dropped by some apps.
     public static func post(chunks: [Int32], at location: CGPoint, gap: Duration = .milliseconds(8)) async {
+        let source = CGEventSource(stateID: .privateState)
         for (index, chunk) in chunks.enumerated() {
-            let source = CGEventSource(stateID: .privateState)
-            makeEvent(delta: chunk, units: .pixel, at: location, source: source)?.post(tap: .cghidEventTap)
-            if index < chunks.count - 1 {
-                try? await Task.sleep(for: gap)
-            }
+            makeEvent(delta: chunk, units: .pixel, at: location, phase: index == 0 ? .began : .changed, source: source)?.post(tap: .cghidEventTap)
+            try? await Task.sleep(for: gap)
+        }
+        makeEvent(delta: 0, units: .pixel, at: location, phase: .ended, source: source)?.post(tap: .cghidEventTap)
+    }
+
+    /// `count` single-line events in a row, the mouse-wheel way: for content that does
+    /// not follow pixel scrolling. Each one is a separate wheel notch.
+    public static func post(lines count: Int, down: Bool, at location: CGPoint, gap: Duration = .milliseconds(16)) async {
+        for _ in 0..<max(count, 1) {
+            postLines(down ? -1 : 1, at: location)
+            try? await Task.sleep(for: gap)
         }
     }
 

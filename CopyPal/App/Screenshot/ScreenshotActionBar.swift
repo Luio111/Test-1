@@ -254,6 +254,8 @@ struct OverlayKeycap: View {
     var body: some View {
         Text(verbatim: keys)
             .font(.system(size: size, weight: .semibold))
+            .lineLimit(1)
+            .fixedSize()
             .foregroundStyle(Color.white.opacity(onAccent ? 0.95 : 0.8))
             .padding(.horizontal, Theme.Spacing.xs + 1)
             .frame(minWidth: 20, minHeight: size + 7)

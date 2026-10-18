@@ -1,5 +1,6 @@
 #if DEBUG
 import AppKit
+import WebKit
 import CopyPalCore
 import CopyPalServices
 import CopyPalStorage
@@ -223,6 +224,16 @@ final class SelfTestRunner {
             }
             await check("⇧-Klick in die Auswahl kopiert ihren Text") {
                 await self.overlayTextCheck(in: window.frame, marker: "6933", shiftClick: true)
+            }
+            await check("↓ erweitert eine Webseite (WebKit) um zwei Abschnitte") {
+                await self.extendWebKitCheck()
+            }
+            if let chrome = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.google.Chrome") {
+                await check("↓ erweitert eine Webseite in Google Chrome um zwei Abschnitte") {
+                    await self.extendChromeCheck(chrome)
+                }
+            } else {
+                skip("↓ erweitert eine Webseite in Google Chrome", reason: "Chrome ist hier nicht installiert")
             }
         case let .pasteboardOnly(reason):
             await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
@@ -824,6 +835,103 @@ final class SelfTestRunner {
         await sleep(200)
         let detail = "Knöpfe: \(buttons.isEmpty ? "keine" : buttons), geschlossen: \(closed), Text im Verlauf: \(stored)"
         return ((shiftClick || shown) && closed && stored, detail)
+    }
+
+    /// A long page with a sticky header, like most websites: ↓ has to scroll it and
+    /// join what appears.
+    private static let longPage: String = {
+        let paragraphs = (1...90).map { index in
+            "<p><b>Absatz \(index)</b> – " + String(repeating: "Wort\(index * 7 % 13) ", count: 5 + index % 11) + "</p>"
+        }.joined()
+        return """
+        <html><head><meta charset="utf-8"><style>
+        body { font: 16px -apple-system, sans-serif; margin: 0; background: white; color: #37352F; }
+        header { position: sticky; top: 0; background: #2383E2; color: white; padding: 12px 16px; font-weight: 600; }
+        p { margin: 0; padding: 8px 16px; border-bottom: 1px solid #ddd; }
+        p:nth-of-type(3n) { background: #F4F4F2; }
+        </style></head><body><header>CopyPal Selbsttest – Webseite</header>\(paragraphs)</body></html>
+        """
+    }()
+
+    private func extendWebKitCheck() async -> (Bool, String) {
+        let page = WKWebView(frame: NSRect(x: 0, y: 0, width: 560, height: 420), configuration: WKWebViewConfiguration())
+        page.loadHTMLString(Self.longPage, baseURL: nil)
+        let pageWindow = NSWindow(contentRect: NSRect(x: 220, y: 140, width: 560, height: 420), styleMask: [.titled], backing: .buffered, defer: false)
+        pageWindow.title = "CopyPal Selbsttest Webseite"
+        pageWindow.isReleasedWhenClosed = false
+        pageWindow.contentView = page
+        pageWindow.makeKeyAndOrderFront(nil)
+        defer {
+            pageWindow.orderOut(nil)
+            focusTextView()
+        }
+        _ = await waitUntil(timeout: 5_000) { !page.isLoading }
+        await sleep(600)
+        return await extendCheck(in: pageWindow.frame, topInset: 40, snapshot: "4-erweitern-webkit")
+    }
+
+    /// The same in Google Chrome, which the GitHub runners have: its own process, its
+    /// own scrolling.
+    private func extendChromeCheck(_ chrome: URL) async -> (Bool, String) {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("copypal-selbsttest-seite.html")
+        guard (try? Self.longPage.write(to: file, atomically: true, encoding: .utf8)) != nil else {
+            return (false, "Testseite nicht geschrieben")
+        }
+        let open = Process()
+        open.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        open.arguments = [
+            "-n", "-a", chrome.path, file.path, "--args",
+            "--no-first-run", "--no-default-browser-check", "--new-window", "--window-position=160,80", "--window-size=900,720",
+        ]
+        guard (try? open.run()) != nil else {
+            return (false, "Chrome startet nicht")
+        }
+        var browser: NSRunningApplication?
+        var found: WindowInfo?
+        defer {
+            browser?.terminate()
+            NSApp.activate()
+            focusTextView()
+        }
+        _ = await waitUntil(timeout: 15_000) {
+            browser = NSRunningApplication.runningApplications(withBundleIdentifier: "com.google.Chrome").first
+            guard let pid = browser?.processIdentifier else { return false }
+            found = WindowList.onScreen().first { $0.ownerPID == pid && $0.layer == 0 && $0.frame.height > 300 }
+            return found != nil
+        }
+        guard let window = found else {
+            return (false, "kein Chrome-Fenster")
+        }
+        await sleep(2_000)
+        // Below the tab strip and the toolbar.
+        return await extendCheck(in: window.frame, topInset: 130, snapshot: "5-erweitern-chrome")
+    }
+
+    /// ⌘⇧A, a frame over the page below `topInset`, ↓ twice: each step has to add a
+    /// section. Reports what every step did.
+    private func extendCheck(in frame: CGRect, topInset: CGFloat, snapshot: String) async -> (Bool, String) {
+        await press(0, flags: [.maskCommand, .maskShift])
+        guard await waitUntil(timeout: 5_000, { self.app.screenshot.isOverlayVisible }) else {
+            app.screenshot.cancel()
+            return (false, "Aufnahme nicht geöffnet")
+        }
+        await sleep(300)
+        await drag(from: CGPoint(x: frame.minX + 12, y: frame.maxY - topInset), to: CGPoint(x: frame.maxX - 12, y: frame.minY + 12))
+        guard await waitUntil(timeout: 2_000, { !self.app.screenshot.actionsForSelfTest.isEmpty }) else {
+            app.screenshot.cancel()
+            return (false, "keine Auswahl")
+        }
+        var steps: [String] = []
+        for _ in 1...2 {
+            await press(125, flags: [])
+            let finished = await waitUntil(timeout: 8_000) { !self.app.screenshot.isExtendingForSelfTest }
+            steps.append(finished ? (app.screenshot.lastStepDescription ?? "–") : "läuft nach 8 s noch")
+        }
+        let sections = app.screenshot.stitchedSectionsForSelfTest
+        await saveSnapshot(snapshot)
+        app.screenshot.cancel()
+        _ = await waitUntil { !self.app.screenshot.isActive }
+        return (sections >= 2, "Abschnitte: \(sections) · " + steps.joined(separator: " | "))
     }
 
     /// CI: the screen as the user sees it, kept as a job artifact (the folder in

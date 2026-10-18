@@ -452,6 +452,8 @@ struct OverlayChrome: View {
                     OverlayKeycap(keys: hint.keys, size: prominent ? 12 : 11)
                     Text(verbatim: hint.label)
                         .font(.system(size: prominent ? 13 : 11, weight: prominent ? .medium : .regular))
+                        .lineLimit(1)
+                        .fixedSize()
                         .foregroundStyle(prominent ? Color.white : Theme.Notch.textSecondary)
                 }
             }

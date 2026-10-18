@@ -44,6 +44,12 @@ public enum ScrollPlanner {
         min(max((selectionHeight * 0.6).rounded(.down), minimumStepPoints), maximumStepPoints)
     }
 
+    /// Wheel notches for about `points` in browsers (WebKit and Chromium scroll 40 px
+    /// per line); native views scroll less per notch, which only makes the step smaller.
+    public static func lines(forPoints points: CGFloat) -> Int {
+        max(Int((points / 40).rounded()), 3)
+    }
+
     /// `delta` points as scroll-wheel deltas of at most `maximumChunkPoints` each.
     /// Negative values scroll down (macOS convention); `reversed` flips them.
     public static func chunks(deltaPoints delta: CGFloat, direction: ScrollDirection, reversed: Bool) -> [Int32] {

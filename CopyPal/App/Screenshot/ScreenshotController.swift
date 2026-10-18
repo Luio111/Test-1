@@ -58,6 +58,8 @@ final class ScreenshotController {
     /// After ⌫ the screen is a step ahead of the stitched part: the next step takes the
     /// current view without scrolling first.
     @ObservationIgnored private var needsResync = false
+    /// The content ignored pixel scrolling but followed wheel notches: keep to those.
+    @ObservationIgnored private var scrollsByLines = false
     @ObservationIgnored private var warpedFrom: CGPoint?
     /// ⇧⏎: the text in the selection instead of the picture.
     @ObservationIgnored private var wantsText = false
@@ -508,6 +510,7 @@ final class ScreenshotController {
         liveFrame = nil
         stepWindowNumber = nil
         needsResync = false
+        scrollsByLines = false
     }
 
     /// The rungs under `point`: element, text block and flat region from the contrast
@@ -871,14 +874,28 @@ final class ScreenshotController {
             if !scrollsWithoutCursorWarp {
                 warpedFrom = ScrollSynthesizer.warpCursor(to: location)
             }
+            // The window server needs a moment before events pass through the overlay to
+            // the window under the moved cursor; otherwise the first ones land on the
+            // overlay and the content does not move.
+            try? await Task.sleep(for: .milliseconds(50))
             let delta = ScrollPlanner.stepPoints(selectionHeight: rect.height)
-            await ScrollSynthesizer.post(chunks: ScrollPlanner.chunks(deltaPoints: delta, direction: direction, reversed: reversed), at: location)
-            next = await Self.settledFrame(pixels, of: display, excluding: excluded)
-            // Some apps ignore pixel deltas: one line-based retry on the first step.
-            if let session, session.steps == 0, let frame = next, frame == session.stitcher.latestFrame {
-                let lines: Int32 = (direction == .down) != reversed ? -3 : 3
-                ScrollSynthesizer.postLines(lines, at: location)
+            let down = (direction == .down) != reversed
+            let lines = ScrollPlanner.lines(forPoints: delta)
+            if scrollsByLines {
+                await ScrollSynthesizer.post(lines: lines, down: down, at: location)
                 next = await Self.settledFrame(pixels, of: display, excluding: excluded)
+            } else {
+                await ScrollSynthesizer.post(chunks: ScrollPlanner.chunks(deltaPoints: delta, direction: direction, reversed: reversed), at: location)
+                next = await Self.settledFrame(pixels, of: display, excluding: excluded)
+                // Some content ignores pixel deltas: wheel notches instead, and from then
+                // on when they move it.
+                if let session, let frame = next, frame == session.stitcher.latestFrame {
+                    await ScrollSynthesizer.post(lines: lines, down: down, at: location)
+                    if let retried = await Self.settledFrame(pixels, of: display, excluding: excluded) {
+                        scrollsByLines = retried != frame
+                        next = retried
+                    }
+                }
             }
             if let warpedFrom {
                 ScrollSynthesizer.restoreCursor(warpedFrom)
@@ -906,8 +923,9 @@ final class ScreenshotController {
         session = updated
         liveFrame = live
         lastStepDescription = String(
-            format: "%@ · %.0f ms · %ld Abschnitte · %ld px",
-            String(describing: outcome), Self.milliseconds(since: started), updated.info.sections, updated.info.heightPixels
+            format: "%@ · %.0f ms · %ld Abschnitte · %ld px%@",
+            String(describing: outcome), Self.milliseconds(since: started), updated.info.sections, updated.info.heightPixels,
+            scrollsByLines ? " · Zeilen" : ""
         )
         finishStep(outcome, generation: current)
     }
@@ -1184,6 +1202,16 @@ final class ScreenshotController {
     // MARK: Self-test
 
     #if DEBUG
+    /// Self-test: sections joined so far in the running capture.
+    var stitchedSectionsForSelfTest: Int {
+        session?.stitcher.sectionCount ?? 0
+    }
+
+    var isExtendingForSelfTest: Bool {
+        if case .extending = machine.state { return true }
+        return false
+    }
+
     /// Self-test: the buttons under the selection, on any screen.
     var actionsForSelfTest: [ScreenshotAction] {
         screens.flatMap { $0.panel.overlayView.visibleActions }

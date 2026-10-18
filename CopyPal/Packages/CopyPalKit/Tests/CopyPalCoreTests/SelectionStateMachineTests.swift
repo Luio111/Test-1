@@ -607,6 +607,8 @@ struct ScrollSessionTests {
     @Test func plannerSizesAndChunks() {
         #expect(ScrollPlanner.stepPoints(selectionHeight: 100) == 200)
         #expect(ScrollPlanner.stepPoints(selectionHeight: 500) == 300)
+        #expect(ScrollPlanner.lines(forPoints: 300) == 8)
+        #expect(ScrollPlanner.lines(forPoints: 40) == 3)
         #expect(ScrollPlanner.stepPoints(selectionHeight: 10_000) == 1_600)
         #expect(ScrollPlanner.chunks(deltaPoints: 300, direction: .down, reversed: false) == [-160, -140])
         #expect(ScrollPlanner.chunks(deltaPoints: 300, direction: .up, reversed: false) == [160, 140])
