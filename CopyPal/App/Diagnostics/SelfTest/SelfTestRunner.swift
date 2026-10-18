@@ -178,8 +178,11 @@ final class SelfTestRunner {
             }
             await check("Bildschirmfoto trägt App und Fenster und ist darüber auffindbar") {
                 let title = self.app.visuals.title(for: item)
+                // The runner may use English: compare with the localized row text.
+                let caption = "CopyPal Selbsttest"
+                let expected = String(localized: "Bildschirmfoto · \(caption)")
                 let found = HistorySearch.filter(self.app.history.items, query: "bildschirmfoto selbsttest").first?.id == item.id
-                return (title == "Bildschirmfoto · CopyPal Selbsttest" && found, "Zeile: „\(title)“, Suche findet es: \(found)")
+                return (title == expected && found, "Zeile: „\(title)“ (erwartet „\(expected)“), Suche findet es: \(found)")
             }
         case let .pasteboardOnly(reason):
             await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
