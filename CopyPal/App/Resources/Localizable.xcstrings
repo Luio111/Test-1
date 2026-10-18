@@ -281,6 +281,16 @@
         }
       }
     },
+    "Abschnitt zurück" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo Section"
+          }
+        }
+      }
+    },
     "Absturzbericht kopieren" : {
       "localizations" : {
         "en" : {
@@ -317,6 +327,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ad hoc – not stable"
+          }
+        }
+      }
+    },
+    "Aktionen für die Auswahl" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actions for the selection"
           }
         }
       }
@@ -611,6 +631,16 @@
         }
       }
     },
+    "Auswahl verwerfen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard selection"
+          }
+        }
+      }
+    },
     "Bearbeiten" : {
       "localizations" : {
         "en" : {
@@ -741,6 +771,16 @@
         }
       }
     },
+    "Bereich wählen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select an area"
+          }
+        }
+      }
+    },
     "Bericht kopieren" : {
       "localizations" : {
         "en" : {
@@ -787,6 +827,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Image %lld × %lld"
+          }
+        }
+      }
+    },
+    "Bild kopieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Image"
           }
         }
       }
@@ -1037,6 +1087,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quit CopyPal"
+          }
+        }
+      }
+    },
+    "CopyPal liest die Schrift im Rahmen, ohne Internet. Nach dem Aufziehen eines Bereichs stehen alle Möglichkeiten als Knöpfe darunter." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal reads the writing in the frame, without the internet. After you drag out an area, every option is a button below it."
           }
         }
       }
@@ -1391,6 +1451,16 @@
         }
       }
     },
+    "Ecken ziehen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag corners"
+          }
+        }
+      }
+    },
     "Einmalcodes erkennen" : {
       "localizations" : {
         "en" : {
@@ -1561,6 +1631,16 @@
         }
       }
     },
+    "Erweitern" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extend"
+          }
+        }
+      }
+    },
     "Erweitert …" : {
       "localizations" : {
         "en" : {
@@ -1657,6 +1737,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Window"
+          }
+        }
+      }
+    },
+    "Fenster kopieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Window"
           }
         }
       }
@@ -1787,6 +1877,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opened with %@"
+          }
+        }
+      }
+    },
+    "Größe ändern" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "resize"
           }
         }
       }
@@ -2011,12 +2111,22 @@
         }
       }
     },
-    "Klick nimmt auf · Ziehen wählt frei · ⇥ größer · Leertaste nur Fenster · ↓ erweitern · Esc" : {
+    "Klick" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Click captures · drag selects · ⇥ larger · Space windows only · ↓ extend · Esc"
+            "value" : "Click"
+          }
+        }
+      }
+    },
+    "Klick daneben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click outside"
           }
         }
       }
@@ -2101,6 +2211,16 @@
         }
       }
     },
+    "Kopieren und als Datei sichern" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy and save as a file"
+          }
+        }
+      }
+    },
     "Kopiert" : {
       "localizations" : {
         "en" : {
@@ -2151,6 +2271,16 @@
         }
       }
     },
+    "Leertaste" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space"
+          }
+        }
+      }
+    },
     "Lesetest" : {
       "localizations" : {
         "en" : {
@@ -2167,6 +2297,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Forget Last Copy"
+          }
+        }
+      }
+    },
+    "Letzten Abschnitt entfernen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove the last section"
           }
         }
       }
@@ -2317,6 +2457,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Move Down"
+          }
+        }
+      }
+    },
+    "Nach unten scrollen und anfügen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scroll down and append"
           }
         }
       }
@@ -2501,16 +2651,6 @@
         }
       }
     },
-    "Nur Fenster · Leertaste zurück" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Windows only · Space back"
-          }
-        }
-      }
-    },
     "OK" : {
       "localizations" : {
         "en" : {
@@ -2677,6 +2817,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Check failed: %@"
+          }
+        }
+      }
+    },
+    "Quadrat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "square"
           }
         }
       }
@@ -3021,6 +3171,16 @@
         }
       }
     },
+    "Text kopieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Text"
+          }
+        }
+      }
+    },
     "Text kopiert · %lld Zeilen" : {
       "localizations" : {
         "en" : {
@@ -3341,6 +3501,16 @@
         }
       }
     },
+    "Weiter scrollen und anfügen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scroll further and append"
+          }
+        }
+      }
+    },
     "Willkommen bei CopyPal" : {
       "localizations" : {
         "en" : {
@@ -3417,6 +3587,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Time offset: %lld days"
+          }
+        }
+      }
+    },
+    "Ziehen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag"
           }
         }
       }
@@ -3511,6 +3691,16 @@
         }
       }
     },
+    "alle Rahmen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "all frames"
+          }
+        }
+      }
+    },
     "aus" : {
       "localizations" : {
         "en" : {
@@ -3527,6 +3717,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "in use"
+          }
+        }
+      }
+    },
+    "bis zum Ende" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to the end"
+          }
+        }
+      }
+    },
+    "erst auswählen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "select first"
           }
         }
       }
@@ -3557,6 +3767,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "just now"
+          }
+        }
+      }
+    },
+    "größerer Rahmen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "larger frame"
           }
         }
       }
@@ -3631,6 +3851,16 @@
         }
       }
     },
+    "neu wählen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "select again"
+          }
+        }
+      }
+    },
     "noch %lld min" : {
       "localizations" : {
         "en" : {
@@ -3651,12 +3881,72 @@
         }
       }
     },
+    "nur Fenster" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "windows only"
+          }
+        }
+      }
+    },
     "oder" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "or"
+          }
+        }
+      }
+    },
+    "scrollen und verlängern" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "scroll and extend"
+          }
+        }
+      }
+    },
+    "stoppen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "stop"
+          }
+        }
+      }
+    },
+    "verschieben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "move"
+          }
+        }
+      }
+    },
+    "von der Mitte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "from the center"
+          }
+        }
+      }
+    },
+    "weiter scrollen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "keep scrolling"
           }
         }
       }
@@ -3711,12 +4001,12 @@
         }
       }
     },
-    "↓ halten für mehr · ⌥↓ bis zum Ende · Esc stoppt" : {
+    "↓ halten" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hold ↓ for more · ⌥↓ to the end · Esc stops"
+            "value" : "Hold ↓"
           }
         }
       }
@@ -3741,12 +4031,32 @@
         }
       }
     },
-    "⇧ Quadrat · ⌥ von der Mitte · Leertaste verschieben" : {
+    "⇧ Klick" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⇧ square · ⌥ from the center · Space moves"
+            "value" : "⇧ Click"
+          }
+        }
+      }
+    },
+    "⇧ Klick kopiert nur den Text" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧ Click copies just the text"
+          }
+        }
+      }
+    },
+    "⌘ Pfeile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘ Arrows"
           }
         }
       }
@@ -3811,22 +4121,12 @@
         }
       }
     },
-    "⏎ aufnehmen · ⇧⏎ als Text · ⌘S als Datei · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc" : {
+    "⌥ Klick" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⏎ capture · ⇧⏎ as text · ⌘S as file · ↓ ↑ extend · ⌘ arrows move · Esc"
-          }
-        }
-      }
-    },
-    "⏎ aufnehmen · ⇧⏎ als Text · ⌘S als Datei · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⏎ capture · ⇧⏎ as text · ⌘S as file · ↓ ↑ continue · ⌫ remove section · Esc"
+            "value" : "⌥ Click"
           }
         }
       }

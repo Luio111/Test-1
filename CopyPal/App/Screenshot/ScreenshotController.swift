@@ -291,6 +291,9 @@ final class ScreenshotController {
             view.onEntered = { [weak panel] in
                 panel?.makeKey()
             }
+            view.onAction = { [weak self] action in
+                self?.perform(action)
+            }
             return ScreenState(
                 frame: target.screen.frame,
                 bounds: Self.capturableBounds(of: target.screen),
@@ -318,8 +321,8 @@ final class ScreenshotController {
         apply(machine.start())
         handle(.mouseMoved(pointer))
         analyzeRegions(generation: current)
-        if let hint = hintText() {
-            speak(hint)
+        if let hints = hints() {
+            speak(hints.spoken)
         }
         Log.app.info("Bildschirmfoto: Overlay auf \(self.screens.count, privacy: .public) Bildschirm(en), eingefroren in \(self.lastFreezeMilliseconds ?? 0, privacy: .public) ms")
     }
@@ -399,6 +402,11 @@ final class ScreenshotController {
             wantsFile = savePending
             savePending = false
         }
+        if case let .mouseDown(_, modifiers) = input {
+            // ⇧-click on a frame or into the selection: its text instead of the picture.
+            wantsText = modifiers.contains(.shift)
+            wantsFile = false
+        }
         switch input {
         case let .mouseMoved(point), let .mouseDown(point, _), let .mouseDragged(point, _), let .mouseUp(point, _):
             pointer = point
@@ -408,6 +416,29 @@ final class ScreenshotController {
         apply(machine.handle(input))
         if case .mouseMoved = input, case .hovering = machine.state, isOverlayVisible {
             redraw()
+        }
+    }
+
+    /// A button under the selection: the same as its key.
+    private func perform(_ action: ScreenshotAction) {
+        guard isOverlayVisible else { return }
+        switch action {
+        case .copyImage:
+            handle(.keyDown(.confirm, [], isRepeat: false))
+        case .copyText:
+            handle(.keyDown(.confirm, [.shift], isRepeat: false))
+        case .save:
+            savePending = true
+            handle(.keyDown(.confirm, [], isRepeat: false))
+            savePending = false
+        case .extend:
+            // One step, like a short press of ↓.
+            handle(.keyDown(.down, [], isRepeat: false))
+            handle(.keyUp(.down))
+        case .undoSection:
+            handle(.keyDown(.delete, [], isRepeat: false))
+        case .discard:
+            handle(.keyDown(.escape, [], isRepeat: false))
         }
     }
 
@@ -946,6 +977,8 @@ final class ScreenshotController {
             return rect.offsetBy(dx: -origin.x, dy: -origin.y)
         }
         var selection: CGRect?
+        /// A finished selection: its buttons go on the screen it lies on.
+        var finished: ScreenshotSelectionState.Selection?
         switch machine.state {
         case let .hovering(hover):
             scene.candidate = local(hover.candidate?.rect)
@@ -961,6 +994,7 @@ final class ScreenshotController {
         case let .selected(selected):
             selection = selected.rect
             scene.handlesVisible = true
+            finished = selected
         case let .extending(extensionState):
             selection = extensionState.selection.rect
         case .idle, .finished:
@@ -968,14 +1002,19 @@ final class ScreenshotController {
         }
         if let selection, let rect = local(selection) {
             scene.selection = rect
-            scene.sizeText = "\(Int(selection.width.rounded()).formatted()) × \(Int(selection.height.rounded()).formatted())"
+            let sizeText = "\(Int(selection.width.rounded()).formatted()) × \(Int(selection.height.rounded()).formatted())"
+            if let finished, state.frame.contains(CGPoint(x: finished.rect.midX, y: finished.rect.midY)) {
+                scene.actions = ScreenshotActionBar.Content(sizeText: sizeText, stitched: finished.stitched != nil)
+            } else {
+                scene.sizeText = sizeText
+            }
             scene.live = liveFrame
         }
         // Hint and status on the screen the user works on.
         let focus = selection.map { CGPoint(x: $0.midX, y: $0.midY) } ?? pointer
         let isActiveScreen = state.frame.contains(focus) || (screens.first?.frame == state.frame && !screens.contains { $0.frame.contains(focus) })
         if isActiveScreen {
-            scene.hintText = hintText()
+            scene.hints = hints()
             scene.statusText = statusText()
         }
         if showsDetectedRegions, let map = state.regionMap {
@@ -984,20 +1023,57 @@ final class ScreenshotController {
         return scene
     }
 
-    private func hintText() -> String? {
+    /// The hint bar: what a click, a drag and the keys do right now. Once a selection
+    /// stands, its buttons say the rest; the bar keeps only the extras.
+    private func hints() -> OverlayHints? {
+        let copyText = OverlayHint(keys: String(localized: "⇧ Klick"), label: String(localized: "Text kopieren"))
+        let cancel = OverlayHint(keys: "Esc", label: String(localized: "Abbrechen"))
         switch machine.hint {
         case .hovering:
-            return String(localized: "Klick nimmt auf · Ziehen wählt frei · ⇥ größer · Leertaste nur Fenster · ↓ erweitern · Esc")
+            return OverlayHints(
+                primary: [
+                    OverlayHint(keys: String(localized: "Klick"), label: String(localized: "Bild kopieren")),
+                    copyText,
+                    OverlayHint(keys: String(localized: "Ziehen"), label: String(localized: "Bereich wählen")),
+                    cancel,
+                ],
+                secondary: [
+                    OverlayHint(keys: "⇥", label: String(localized: "größerer Rahmen")),
+                    OverlayHint(keys: String(localized: "Leertaste"), label: String(localized: "nur Fenster")),
+                    OverlayHint(keys: String(localized: "⌥ Klick"), label: String(localized: "erst auswählen")),
+                    OverlayHint(keys: "↓", label: String(localized: "scrollen und verlängern")),
+                ]
+            )
         case .windowsOnly:
-            return String(localized: "Nur Fenster · Leertaste zurück")
+            return OverlayHints(primary: [
+                OverlayHint(keys: String(localized: "Klick"), label: String(localized: "Fenster kopieren")),
+                copyText,
+                OverlayHint(keys: String(localized: "Leertaste"), label: String(localized: "alle Rahmen")),
+                cancel,
+            ])
         case .dragging:
-            return String(localized: "⇧ Quadrat · ⌥ von der Mitte · Leertaste verschieben")
+            return OverlayHints(primary: [
+                OverlayHint(keys: "⇧", label: String(localized: "Quadrat")),
+                OverlayHint(keys: "⌥", label: String(localized: "von der Mitte")),
+                OverlayHint(keys: String(localized: "Leertaste"), label: String(localized: "verschieben")),
+            ])
         case .selected:
-            return String(localized: "⏎ aufnehmen · ⇧⏎ als Text · ⌘S als Datei · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc")
+            return OverlayHints(secondary: [
+                OverlayHint(keys: String(localized: "Ecken ziehen"), label: String(localized: "Größe ändern")),
+                OverlayHint(keys: String(localized: "⌘ Pfeile"), label: String(localized: "verschieben")),
+                OverlayHint(keys: String(localized: "Klick daneben"), label: String(localized: "neu wählen")),
+            ])
         case .selectedStitched:
-            return String(localized: "⏎ aufnehmen · ⇧⏎ als Text · ⌘S als Datei · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc")
+            return OverlayHints(secondary: [
+                OverlayHint(keys: "⌥↓", label: String(localized: "bis zum Ende")),
+                OverlayHint(keys: String(localized: "Klick daneben"), label: String(localized: "neu wählen")),
+            ])
         case .extending:
-            return String(localized: "↓ halten für mehr · ⌥↓ bis zum Ende · Esc stoppt")
+            return OverlayHints(primary: [
+                OverlayHint(keys: String(localized: "↓ halten"), label: String(localized: "weiter scrollen")),
+                OverlayHint(keys: "⌥↓", label: String(localized: "bis zum Ende")),
+                OverlayHint(keys: "Esc", label: String(localized: "stoppen")),
+            ])
         case nil:
             return nil
         }
@@ -1108,6 +1184,23 @@ final class ScreenshotController {
     // MARK: Self-test
 
     #if DEBUG
+    /// Self-test: the buttons under the selection, on any screen.
+    var actionsForSelfTest: [ScreenshotAction] {
+        screens.flatMap { $0.panel.overlayView.visibleActions }
+    }
+
+    /// Self-test: the centre of `action`'s button in AppKit screen coordinates, to click
+    /// it like the user does.
+    func actionButtonCenterForSelfTest(_ action: ScreenshotAction) -> CGPoint? {
+        for state in screens {
+            let view = state.panel.overlayView
+            guard let frame = view.actionButtonFrame(for: action) else { continue }
+            let onScreen = state.panel.convertToScreen(view.convert(frame, to: nil))
+            return CGPoint(x: onScreen.midX, y: onScreen.midY)
+        }
+        return nil
+    }
+
     /// ⌘S as a file of `rect`, without the overlay; the caller removes the file.
     func saveFileForSelfTest(rect: CGRect) async -> URL? {
         guard let screen = NSScreen.screens.first(where: { $0.frame.contains(CGPoint(x: rect.midX, y: rect.midY)) }),
@@ -1143,7 +1236,7 @@ final class ScreenshotController {
     }
 
     /// A capture of `rect` straight into the pasteboard and the history, without the
-    /// overlay (CI cannot click and drag).
+    /// overlay.
     func captureForSelfTest(rect: CGRect) async -> SelfTestCapture {
         guard let screen = NSScreen.screens.first(where: { $0.frame.contains(CGPoint(x: rect.midX, y: rect.midY)) }),
               let display = ScreenCaptureEngine.display(for: screen) else {

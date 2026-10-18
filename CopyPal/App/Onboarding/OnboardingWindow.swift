@@ -313,6 +313,7 @@ struct OnboardingView: View {
                 subtitle: "Das Bild landet sofort in der Zwischenablage und im Verlauf – bereit für ⌘V."
             )
             explanationRow("macwindow", title: "Klick nimmt ein Fenster oder einen Bereich auf", text: "Der Rahmen rastet dort ein, wo der Zeiger steht. Ziehen wählt frei, Esc bricht ab.")
+            explanationRow("text.viewfinder", title: "⇧ Klick kopiert nur den Text", text: "CopyPal liest die Schrift im Rahmen, ohne Internet. Nach dem Aufziehen eines Bereichs stehen alle Möglichkeiten als Knöpfe darunter.")
             explanationRow("arrow.down.to.line", title: "↓ erweitert die Aufnahme", text: "CopyPal scrollt weiter und setzt alles zu einem Bild zusammen – auch, was unterhalb des sichtbaren Bereichs liegt.")
             HStack(spacing: Theme.Spacing.m) {
                 Text("Bildschirmaufnahme").font(Theme.Typography.bodyMedium)

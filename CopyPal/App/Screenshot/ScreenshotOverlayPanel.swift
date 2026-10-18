@@ -51,7 +51,9 @@ struct OverlayScene: Equatable {
     var live: ImageBox?
     var sizeText: String?
     var statusText: String?
-    var hintText: String?
+    var hints: OverlayHints?
+    /// The buttons under a finished selection (they carry the size then).
+    var actions: ScreenshotActionBar.Content?
     var coordinatesText: String?
     var pointer: CGPoint?
     /// Lab: every detected element and panel box.
@@ -60,17 +62,40 @@ struct OverlayScene: Equatable {
     static func == (lhs: OverlayScene, rhs: OverlayScene) -> Bool {
         lhs.frozen === rhs.frozen && lhs.candidate == rhs.candidate && lhs.selection == rhs.selection
             && lhs.handlesVisible == rhs.handlesVisible && lhs.live === rhs.live && lhs.sizeText == rhs.sizeText
-            && lhs.statusText == rhs.statusText && lhs.hintText == rhs.hintText && lhs.coordinatesText == rhs.coordinatesText
-            && lhs.pointer == rhs.pointer && lhs.debugBoxes == rhs.debugBoxes
+            && lhs.statusText == rhs.statusText && lhs.hints == rhs.hints && lhs.actions == rhs.actions
+            && lhs.coordinatesText == rhs.coordinatesText && lhs.pointer == rhs.pointer && lhs.debugBoxes == rhs.debugBoxes
+    }
+}
+
+/// One entry of the hint bar: the key or mouse action in a keycap, then what it does.
+struct OverlayHint: Hashable {
+    var keys: String
+    var label: String
+}
+
+/// The hint bar at the bottom centre: what to do now, and below it, smaller, what
+/// else is possible.
+struct OverlayHints: Equatable {
+    var primary: [OverlayHint] = []
+    var secondary: [OverlayHint] = []
+
+    /// What VoiceOver reads.
+    var spoken: String {
+        (primary + secondary).map { "\($0.keys) \($0.label)" }.joined(separator: ", ")
     }
 }
 
 /// Layer-backed drawing of the scene plus a SwiftUI layer for the capsules, which
-/// never takes mouse events. Keys are handled by the controller's event monitor.
+/// never takes mouse events, and the buttons under a finished selection, which do.
+/// Keys are handled by the controller's event monitor.
 final class ScreenshotOverlayView: NSView {
     var onInput: ((ScreenshotInput) -> Void)?
     /// The pointer arrived on this screen: the controller makes this panel key.
     var onEntered: (() -> Void)?
+    /// A button under the selection was clicked.
+    var onAction: ((ScreenshotAction) -> Void)? {
+        didSet { actionBar.onAction = onAction }
+    }
 
     private let frozenLayer = CALayer()
     private let dimLayer = CAShapeLayer()
@@ -80,6 +105,7 @@ final class ScreenshotOverlayView: NSView {
     private let selectionLayer = CAShapeLayer()
     private let handlesLayer = CAShapeLayer()
     private let chrome: PassthroughHostingView<OverlayChrome>
+    private let actionBar = ScreenshotActionBar(frame: .zero)
     private var trackingArea: NSTrackingArea?
     private var scene = OverlayScene()
     private let animates: Bool
@@ -121,6 +147,8 @@ final class ScreenshotOverlayView: NSView {
         chrome.frame = bounds
         chrome.autoresizingMask = [.width, .height]
         addSubview(chrome)
+        actionBar.isHidden = true
+        addSubview(actionBar)
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
         setAccessibilityLabel(String(localized: "Bildschirmfoto-Auswahl"))
@@ -281,10 +309,50 @@ final class ScreenshotOverlayView: NSView {
             selection: newScene.selection,
             sizeText: newScene.sizeText,
             statusText: newScene.statusText,
-            hintText: newScene.hintText,
+            hints: newScene.hints,
             coordinatesText: newScene.coordinatesText,
             pointer: newScene.pointer
         ))
+
+        if let actions = newScene.actions, let selection = newScene.selection {
+            actionBar.update(actions)
+            actionBar.layoutSubtreeIfNeeded()
+            actionBar.frame = Self.actionBarFrame(size: actionBar.fittingSize, selection: selection, in: bounds)
+            actionBar.isHidden = false
+        } else {
+            actionBar.isHidden = true
+        }
+    }
+
+    /// Under the selection; above it when the hint bar at the bottom is in the way;
+    /// inside its lower edge when the selection fills the screen.
+    static func actionBarFrame(size: CGSize, selection: CGRect, in bounds: CGRect) -> CGRect {
+        let gap: CGFloat = 8
+        // Hint bar and status capsule at the bottom centre, menu bar at the top.
+        let bottomReserve: CGFloat = 110
+        let topReserve: CGFloat = 40
+        var y = selection.minY - gap - size.height
+        if y < bounds.minY + bottomReserve {
+            let above = selection.maxY + gap
+            if above + size.height <= bounds.maxY - topReserve {
+                y = above
+            } else {
+                y = max(selection.minY + gap, bounds.minY + bottomReserve)
+            }
+        }
+        let x = min(max(selection.midX - size.width / 2, bounds.minX + gap), bounds.maxX - gap - size.width)
+        return CGRect(x: x.rounded(), y: y.rounded(), width: size.width, height: size.height)
+    }
+
+    /// The buttons shown under the selection on this screen.
+    var visibleActions: [ScreenshotAction] {
+        actionBar.isHidden ? [] : actionBar.actions
+    }
+
+    /// `action`'s button in this view's coordinates, when the bar is shown.
+    func actionButtonFrame(for action: ScreenshotAction) -> CGRect? {
+        guard !actionBar.isHidden, let frame = actionBar.buttonFrame(for: action) else { return nil }
+        return actionBar.convert(frame, to: self)
     }
 }
 
@@ -300,13 +368,13 @@ struct ChromeScene: Equatable {
     var selection: CGRect?
     var sizeText: String?
     var statusText: String?
-    var hintText: String?
+    var hints: OverlayHints?
     var coordinatesText: String?
     var pointer: CGPoint?
 }
 
-/// The capsules: size under the selection, status and hint at the bottom centre,
-/// coordinates next to the pointer when nothing is highlighted (Docs/Design.md).
+/// The capsules: size under the selection, status and the hint bar at the bottom
+/// centre, coordinates next to the pointer when nothing is highlighted (Docs/Design.md).
 struct OverlayChrome: View {
     let scene: ChromeScene
 
@@ -324,8 +392,8 @@ struct OverlayChrome: View {
                 if let statusText = scene.statusText {
                     capsule(statusText, font: Theme.Typography.label, color: Theme.Notch.textPrimary)
                 }
-                if let hintText = scene.hintText {
-                    capsule(hintText, font: Theme.Typography.label, color: Theme.Notch.textSecondary)
+                if let hints = scene.hints {
+                    hintBar(hints)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
@@ -350,6 +418,48 @@ struct OverlayChrome: View {
             return below
         }
         return flipped(selection.maxY) - 6 - capsuleHeight / 2
+    }
+
+    private func hintBar(_ hints: OverlayHints) -> some View {
+        VStack(spacing: Theme.Spacing.xs + Theme.Spacing.xxs) {
+            if !hints.primary.isEmpty {
+                hintRow(hints.primary, prominent: true)
+            }
+            if !hints.secondary.isEmpty {
+                hintRow(hints.secondary, prominent: false)
+            }
+        }
+        .padding(.horizontal, Theme.Spacing.m)
+        .padding(.vertical, Theme.Spacing.s)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
+                .fill(Theme.Notch.fill)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
+                        .strokeBorder(Theme.Notch.divider)
+                )
+        )
+        .fixedSize()
+    }
+
+    /// Keycap, then what it does. The first row is what to do now (white 92 %), the
+    /// second the extras (smaller, white 60 %).
+    private func hintRow(_ hints: [OverlayHint], prominent: Bool) -> some View {
+        HStack(spacing: prominent ? Theme.Spacing.l : Theme.Spacing.m) {
+            ForEach(hints, id: \.self) { hint in
+                HStack(spacing: Theme.Spacing.xs + Theme.Spacing.xxs) {
+                    Text(verbatim: hint.keys)
+                        .font(.system(size: prominent ? 12 : 11, weight: .medium))
+                        .foregroundStyle(Theme.Notch.textPrimary)
+                        .padding(.horizontal, Theme.Spacing.xs + 1)
+                        .padding(.vertical, 1)
+                        .background(Theme.Notch.control, in: RoundedRectangle(cornerRadius: Theme.Radius.tag))
+                    Text(verbatim: hint.label)
+                        .font(.system(size: prominent ? 12 : 11))
+                        .foregroundStyle(prominent ? Theme.Notch.textPrimary : Theme.Notch.textSecondary)
+                }
+            }
+        }
     }
 
     private func capsule(_ text: String, font: Font, color: Color) -> some View {

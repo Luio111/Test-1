@@ -645,14 +645,14 @@ Plan und Auswahl: `Docs/Ideen-und-Design-Review.md`, Abschnitt „Umsetzungsplan
 - **Pop-up:** Favoritennamen in der Zeile; Vorschau mit → (Text bis 4.000 Zeichen, ganzer Link, Bild, Farbe, Dateien; ← und Esc zurück); sensible Einträge zählen herunter („noch 42 s“, „⌘P behalten“); VoiceOver hört Öffnen, Auswahl, Trefferzahl und Hinweise.
 - **Suche:** findet auch App-Namen und Typwörter (bild, link, farbe, datei, bildschirmfoto), nach den Inhaltstreffern.
 - **Bildschirmfreigabe:** Pop-up und Hinweise bitten Freigaben, sie wegzulassen (abschaltbar). Präsentationsmodus (Menü, Einstellungen): Zeilen zeigen nur Art, App und Alter; endet nach 2 Stunden.
-- **Bildschirmfoto:** App und Fenstertitel in Zeile und Suche; ⇧⏎ kopiert den Text der Auswahl; ⌘S legt zusätzlich ein PNG dort ab, wo macOS Bildschirmfotos ablegt.
+- **Bildschirmfoto:** App und Fenstertitel in Zeile und Suche; ⇧⏎ oder ⇧-Klick kopiert den Text; ⌘S legt zusätzlich ein PNG dort ab, wo macOS Bildschirmfotos ablegt. Hinweisleiste mit Tasten-Kappen („Klick Bild kopieren · ⇧ Klick Text kopieren · …“) und klickbare Knöpfe unter der Auswahl (Bild kopieren, Text kopieren, Sichern, Erweitern, Verwerfen).
 - **Texterkennung (Vision, auf diesem Mac):** Bilder werden durchsuchbar; eine IBAN, Karte oder ein Schlüssel im Bild macht den Eintrag sensibel. Abschaltbar. Vision läuft in einem Hilfsprozess, der sich nach der Arbeit beendet (ADR 0005).
 - **Kleinigkeiten mit Wirkung:** ⇧-Einfügen entfernt Tracking-Parameter aus Links; „Letzte Kopie vergessen“ im Menü; „Neuer Favorit …“ aus eingetipptem Text; CopyPal-Fenster geben beim Schließen den Fokus an die vorherige App zurück.
 
 **Fertig wenn**
 - [ ] Alle Punkte aus `Docs/Testplaene/M12.md` am Mac geprüft.
 - [ ] Kern (Suche, Link-Bereinigung, Lesereihenfolge, Texterkennung im Speicher, Favoriten) auf Linux getestet. *(CI)*
-- [ ] Selbsttest: Präsentationsmodus, Vorschau, saubere Links, „Letzte Kopie vergessen“, Kürzel-Karte, Bildschirmfoto-Zeile, Texterkennung (im Hilfsprozess, der sich danach beendet; Speicher der App unter 100 MB), ⌘S, neuer Favorit. *(CI)*
+- [ ] Selbsttest: Präsentationsmodus, Vorschau, saubere Links, „Letzte Kopie vergessen“, Kürzel-Karte, Bildschirmfoto-Zeile, Texterkennung (im Hilfsprozess, der sich danach beendet; Speicher der App unter 100 MB), Knöpfe unter der Auswahl und ⇧-Klick (echtes Ziehen und Klicken), ⌘S, neuer Favorit. *(CI)*
 - [ ] Null Compiler-Warnungen. *(CI)*
 
 ---

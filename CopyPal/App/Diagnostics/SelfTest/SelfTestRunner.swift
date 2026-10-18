@@ -218,6 +218,12 @@ final class SelfTestRunner {
                 let stored = await self.waitUntil { self.app.history.items.contains { $0.preview.searchText.contains("4711") } }
                 return (recognized && stored, "erkannt: „\(text.replacingOccurrences(of: "\n", with: " ⏎ "))“, im Verlauf: \(stored)")
             }
+            await check("Rahmen aufziehen zeigt Knöpfe darunter, „Text kopieren“ kopiert den Text") {
+                await self.overlayTextCheck(in: window.frame, marker: "5822", shiftClick: false)
+            }
+            await check("⇧-Klick in die Auswahl kopiert ihren Text") {
+                await self.overlayTextCheck(in: window.frame, marker: "6933", shiftClick: true)
+            }
         case let .pasteboardOnly(reason):
             await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
                 (false, "nur in der Zwischenablage: \(reason)")
@@ -767,6 +773,67 @@ final class SelfTestRunner {
         return (switched && open, "Favoritenliste: \(switched), Pop-up noch offen: \(open)")
     }
 
+    /// The overlay as a user meets it: ⌘⇧A, drag a frame over the test window, then
+    /// either the "Text kopieren" button under it or a ⇧-click into it. The text of the
+    /// window has to land in the history as text.
+    private func overlayTextCheck(in frame: CGRect, marker: String, shiftClick: Bool) async -> (Bool, String) {
+        textView.string = "Overlay Selbsttest \(marker)"
+        await sleep(300)
+        await press(0, flags: [.maskCommand, .maskShift])
+        guard await waitUntil(timeout: 5_000, { self.app.screenshot.isOverlayVisible }) else {
+            app.screenshot.cancel()
+            focusTextView()
+            return (false, "Aufnahme nicht geöffnet")
+        }
+        await sleep(300)
+        await drag(from: CGPoint(x: frame.minX + 8, y: frame.maxY - 32), to: CGPoint(x: frame.maxX - 8, y: frame.minY + 8))
+        let shown = await waitUntil(timeout: 2_000) { !self.app.screenshot.actionsForSelfTest.isEmpty }
+        let buttons = app.screenshot.actionsForSelfTest.map { "\($0)" }.joined(separator: ", ")
+        let target: CGPoint? = shiftClick
+            ? CGPoint(x: frame.midX, y: frame.midY)
+            : app.screenshot.actionButtonCenterForSelfTest(.copyText)
+        guard let target else {
+            app.screenshot.cancel()
+            focusTextView()
+            return (false, "keine Knöpfe unter der Auswahl (gezeigt: \(shown))")
+        }
+        await click(at: target, flags: shiftClick ? .maskShift : [])
+        let closed = await waitUntil(timeout: 3_000) { !self.app.screenshot.isActive }
+        if !closed {
+            app.screenshot.cancel()
+        }
+        let stored = await waitUntil(timeout: 10_000) {
+            guard let top = self.app.history.items.first else { return false }
+            return top.kind == .text && top.preview.searchText.contains(marker)
+        }
+        focusTextView()
+        await sleep(200)
+        let detail = "Knöpfe: \(buttons.isEmpty ? "keine" : buttons), geschlossen: \(closed), Text im Verlauf: \(stored)"
+        return ((shiftClick || shown) && closed && stored, detail)
+    }
+
+    private func drag(from start: CGPoint, to end: CGPoint) async {
+        Self.postMouse(.mouseMoved, at: start)
+        await sleep(150)
+        Self.postMouse(.leftMouseDown, at: start)
+        await sleep(40)
+        for step in 1...12 {
+            let fraction = CGFloat(step) / 12
+            Self.postMouse(.leftMouseDragged, at: CGPoint(x: start.x + (end.x - start.x) * fraction, y: start.y + (end.y - start.y) * fraction))
+            await sleep(16)
+        }
+        Self.postMouse(.leftMouseUp, at: end)
+        await sleep(150)
+    }
+
+    private func click(at point: CGPoint, flags: CGEventFlags = []) async {
+        Self.postMouse(.mouseMoved, at: point, flags: flags)
+        await sleep(150)
+        Self.postMouse(.leftMouseDown, at: point, flags: flags)
+        await sleep(40)
+        Self.postMouse(.leftMouseUp, at: point, flags: flags)
+    }
+
     /// The pointer rests on the menu bar icon: the card with the shortcuts appears below
     /// it and goes again when the pointer leaves.
     private func menuBarHintCheck() async -> (Bool, String) {
@@ -1016,12 +1083,14 @@ final class SelfTestRunner {
     }
 
     /// Posts like a mouse would; `point` in AppKit coordinates.
-    nonisolated private static func postMouse(_ type: CGEventType, at point: CGPoint) {
+    nonisolated private static func postMouse(_ type: CGEventType, at point: CGPoint, flags: CGEventFlags = []) {
         // CGEvent coordinates: origin top left of the main display, y down.
         let height = CGDisplayBounds(CGMainDisplayID()).height
         let location = CGPoint(x: point.x, y: height - point.y)
         let source = CGEventSource(stateID: .hidSystemState)
-        CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: location, mouseButton: .left)?.post(tap: .cghidEventTap)
+        let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: location, mouseButton: .left)
+        event?.flags = flags
+        event?.post(tap: .cghidEventTap)
     }
 
     private func sleep(_ milliseconds: Int) async {
