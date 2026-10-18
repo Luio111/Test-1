@@ -7,8 +7,12 @@ import CopyPalCore
 
 /// The text in an image, recognized with Vision on this Mac (no network): accurate,
 /// German and English, without language correction so codes and IBANs stay as they
-/// are. Synchronous and comparatively slow – call it off the main thread.
+/// are. Synchronous and comparatively slow – call it off the main thread. The app
+/// calls it in its helper process (``TextRecognitionXPC``), not in its own.
 public enum TextRecognizer {
+    /// Larger pictures are read scaled down to this many pixels.
+    public static let defaultMaxPixels = 16_000_000
+
     public static func text(in image: CGImage) -> String? {
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
@@ -30,7 +34,7 @@ public enum TextRecognizer {
     /// The same for encoded image data (PNG, TIFF …). Pictures above `maxPixels` are
     /// read scaled down to that size, decoded straight at the smaller size: a long
     /// stitched screenshot never needs hundreds of megabytes just to be searchable.
-    public static func text(inImageData data: Data, maxPixels: Int = 16_000_000) -> String? {
+    public static func text(inImageData data: Data, maxPixels: Int = defaultMaxPixels) -> String? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
         let image: CGImage?
         if let size = pixelSize(of: source), size.width * size.height > maxPixels {

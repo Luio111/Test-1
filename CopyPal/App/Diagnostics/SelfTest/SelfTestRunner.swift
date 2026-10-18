@@ -616,9 +616,26 @@ final class SelfTestRunner {
         // New images are read in the background once; idle means after that.
         let indexed = await waitUntil(timeout: 60_000) { self.app.textIndexer.isIdle }
         Self.write("Texterkennung im Hintergrund \(indexed ? "fertig" : "nach 60 s noch beschäftigt")")
+        await check("Texterkennung läuft im Hilfsprozess, der sich danach beendet") {
+            let recognition = self.app.textRecognition
+            guard recognition.hasHelper else {
+                return (false, "\(TextRecognitionHelper.bundleName) fehlt im App-Bundle")
+            }
+            guard let pid = await recognition.lastHelperPID else {
+                return (false, "kein Bild über den Hilfsprozess gelesen")
+            }
+            // The connection closes 5 s after the last answer; the helper ends with it.
+            let ended = await self.waitUntil(timeout: 15_000) { kill(pid, 0) == -1 && errno == ESRCH }
+            return (pid != getpid() && ended, "Prozess \(pid), danach beendet: \(ended)")
+        }
         let idle = await Self.cpuUsage(during: 5)
         Self.write(String(format: "Messwert CPU im Leerlauf (5 s): %.2f %%", idle * 100))
-        Self.write(String(format: "Messwert Speicher: %.0f MB bei %ld Einträgen", Self.memoryFootprint() / 1_000_000, app.history.items.count))
+        let memory = Self.memoryFootprint() / 1_000_000
+        Self.write(String(format: "Messwert Speicher: %.0f MB bei %ld Einträgen", memory, app.history.items.count))
+        // Vision's models used to stay here after the first image (121–129 MB, R32).
+        await check("Speicher nach der Texterkennung unter 100 MB") {
+            (memory < 100, String(format: "%.0f MB", memory))
+        }
     }
 
     // MARK: Helpers

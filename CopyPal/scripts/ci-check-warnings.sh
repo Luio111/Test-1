@@ -4,7 +4,7 @@
 # Usage: ci-check-warnings.sh <log> [<log> ...]
 set -euo pipefail
 
-pattern='/CopyPal/(App|Packages/CopyPalKit/(Sources|Tests))/[^:]+\.swift:[0-9]+:[0-9]+: warning:'
+pattern='/CopyPal/(App|XPCServices|Packages/CopyPalKit/(Sources|Tests))/[^:]+\.swift:[0-9]+:[0-9]+: warning:'
 warnings="$(cat "$@" | grep -E "$pattern" | sort -u || true)"
 
 if [ -n "$warnings" ]; then

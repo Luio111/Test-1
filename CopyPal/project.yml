@@ -50,6 +50,30 @@ targets:
       - package: CopyPalKit
         product: CopyPalServices
       - package: Sparkle
+      # Embedded in Contents/XPCServices.
+      - target: CopyPalTextRecognition
+
+  # Text recognition in its own process, which ends after the work: Vision's models
+  # never stay in CopyPal's memory (ADR 0005, ROADMAP R32). Inherits signing, hardened
+  # runtime and the Swift settings from the project's xcconfig files.
+  CopyPalTextRecognition:
+    type: xpc-service
+    platform: macOS
+    sources:
+      - path: XPCServices/TextRecognition
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Config/TextRecognition-Info.plist
+        SKIP_INSTALL: YES
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_PREFIX).CopyPal.dev.TextRecognition
+        Release:
+          PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_PREFIX).CopyPal.TextRecognition
+    dependencies:
+      - package: CopyPalKit
+        product: CopyPalSystem
 
 schemes:
   CopyPal:

@@ -70,14 +70,12 @@ enum ScreenshotResultWriter {
         case failed(String)
     }
 
-    /// ⇧⏎ in the overlay: the text in the picture, recognized on this Mac, goes to the
-    /// pasteboard and through the normal capture into the history – masking, expiry
-    /// and "this Mac only" apply as for any copy. Pause and the ignore list keep it
-    /// out of the history.
+    /// ⇧⏎ in the overlay: the text in the picture, recognized on this Mac (in the helper
+    /// process, ``TextRecognitionClient``), goes to the pasteboard and through the
+    /// normal capture into the history – masking, expiry and "this Mac only" apply as
+    /// for any copy. Pause and the ignore list keep it out of the history.
     static func publishText(_ image: ImageBox, sourceBundleID: String?, app: AppController) async -> TextOutcome {
-        let recognized = await Task.detached(priority: .userInitiated) {
-            TextRecognizer.text(in: image.image)
-        }.value
+        let recognized = await app.textRecognition.text(in: image)
         guard let text = recognized, !text.isEmpty else {
             return .noText
         }

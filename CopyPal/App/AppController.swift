@@ -25,6 +25,8 @@ final class AppController {
     let presentation: PresentationMode
     /// Text in images: searchable, checked for sensitive content.
     let textIndexer: ImageTextIndexer
+    /// Vision in a helper process that ends after the work (ROADMAP R32).
+    let textRecognition: TextRecognitionClient
     let hotKey = GlobalHotKey()
     /// ⌘⇧A (M11); a second Carbon slot, dispatched by id like the first.
     let screenshotHotKey = GlobalHotKey()
@@ -84,7 +86,9 @@ final class AppController {
         self.paster = paster
         let presentation = PresentationMode()
         self.presentation = presentation
-        textIndexer = ImageTextIndexer(history: history)
+        let textRecognition = TextRecognitionClient()
+        self.textRecognition = textRecognition
+        textIndexer = ImageTextIndexer(history: history, recognition: textRecognition)
         popup = PopupController(history: history, visuals: visuals, paster: paster, presentation: presentation)
     }
 

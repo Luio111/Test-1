@@ -646,13 +646,13 @@ Plan und Auswahl: `Docs/Ideen-und-Design-Review.md`, Abschnitt „Umsetzungsplan
 - **Suche:** findet auch App-Namen und Typwörter (bild, link, farbe, datei, bildschirmfoto), nach den Inhaltstreffern.
 - **Bildschirmfreigabe:** Pop-up und Hinweise bitten Freigaben, sie wegzulassen (abschaltbar). Präsentationsmodus (Menü, Einstellungen): Zeilen zeigen nur Art, App und Alter; endet nach 2 Stunden.
 - **Bildschirmfoto:** App und Fenstertitel in Zeile und Suche; ⇧⏎ kopiert den Text der Auswahl; ⌘S legt zusätzlich ein PNG dort ab, wo macOS Bildschirmfotos ablegt.
-- **Texterkennung (Vision, auf diesem Mac):** Bilder werden durchsuchbar; eine IBAN, Karte oder ein Schlüssel im Bild macht den Eintrag sensibel. Abschaltbar.
+- **Texterkennung (Vision, auf diesem Mac):** Bilder werden durchsuchbar; eine IBAN, Karte oder ein Schlüssel im Bild macht den Eintrag sensibel. Abschaltbar. Vision läuft in einem Hilfsprozess, der sich nach der Arbeit beendet (ADR 0005).
 - **Kleinigkeiten mit Wirkung:** ⇧-Einfügen entfernt Tracking-Parameter aus Links; „Letzte Kopie vergessen“ im Menü; „Neuer Favorit …“ aus eingetipptem Text; CopyPal-Fenster geben beim Schließen den Fokus an die vorherige App zurück.
 
 **Fertig wenn**
 - [ ] Alle Punkte aus `Docs/Testplaene/M12.md` am Mac geprüft.
 - [ ] Kern (Suche, Link-Bereinigung, Lesereihenfolge, Texterkennung im Speicher, Favoriten) auf Linux getestet. *(CI)*
-- [ ] Selbsttest: Präsentationsmodus, Vorschau, saubere Links, „Letzte Kopie vergessen“, Kürzel-Karte, Bildschirmfoto-Zeile, Texterkennung, ⌘S, neuer Favorit. *(CI)*
+- [ ] Selbsttest: Präsentationsmodus, Vorschau, saubere Links, „Letzte Kopie vergessen“, Kürzel-Karte, Bildschirmfoto-Zeile, Texterkennung (im Hilfsprozess, der sich danach beendet; Speicher der App unter 100 MB), ⌘S, neuer Favorit. *(CI)*
 - [ ] Null Compiler-Warnungen. *(CI)*
 
 ---
@@ -696,7 +696,7 @@ Plan und Auswahl: `Docs/Ideen-und-Design-Review.md`, Abschnitt „Umsetzungsplan
 ### 4.4 Performance-Ziele
 
 - CPU im Leerlauf etwa 0 %
-- Speicher unter 50 MB (ohne Texterkennung; Stand 18.10.2026: 51 MB vor, 129 MB nach der ersten Texterkennung, siehe R32)
+- Speicher unter 50 MB (Stand 18.10.2026: 51 MB; die Texterkennung läuft im Hilfsprozess und zählt nicht mit, siehe R32)
 - Pop-up unter 100 ms (p90) nach Erreichen der Schwelle
 
 ---
@@ -736,7 +736,7 @@ Plan und Auswahl: `Docs/Ideen-und-Design-Review.md`, Abschnitt „Umsetzungsplan
 | R29 | Bildschirmaufnahme auf den GitHub-Runnern | Stand 13.10.2026 auf macOS 15.7: freigegeben, der Selbsttest nimmt wirklich auf. Fehlt sie auf einem Runner, überspringt der Selbsttest die Aufnahme-Prüfung mit `::warning::`; die Logik ist auf Linux getestet | M11 |
 | R30 | Klicks neben der Notch („Verlauf \| Favoriten“) landen bei Menüleisten-Symbolen oder der über Vollbild eingeblendeten Menüleiste (gemeldet 18.10.2026) | Pop-up, Rückzug und Hinweis auf Ebene `screenSaver` statt `statusBar`; der Selbsttest klickt „Favoriten“ mit echten Mausereignissen, auch über Vollbild mit eingeblendeter Menüleiste und mit einer anderen App vorne. Auf dem Runner (ohne Notch, Symbole weit rechts) klappte der Klick auch mit der alten Ebene – auf dem MacBook mit Notch noch zu bestätigen | M7, M11 |
 | R31 | ⌘⇧A „tut nichts“: Overlay oder Berechtigungsfenster landen über einer Vollbild-App auf dem Schreibtisch-Space; ein offenes Kürzel-Feld schaltet die Kürzel ab; ein Systemdialog hält die Aufnahme an (gemeldet 18.10.2026) | Overlay und Fenster werden auf den aktiven Space geholt (wie das Pop-up); Kürzel-Feld endet, sobald das Fenster den Fokus verliert; nach 1,5 s „Wartet auf macOS …“; belegtes Kürzel als Hinweis im Menü; Selbsttest ⌘⇧A über Vollbild | M11 |
-| R32 | Vision hält seine Modelle nach der ersten Texterkennung im Speicher (Selbsttest: 51 → 129 MB; CPU im Leerlauf danach 0,2 %) | Große Bilder werden verkleinert gelesen (16 MP); abschaltbar unter Datenschutz. Falls zu viel: Texterkennung in einen Hilfsprozess (XPC) verlegen, der sich nach getaner Arbeit beendet | M12 |
+| R32 | Vision hält seine Modelle nach der ersten Texterkennung im Speicher (im App-Prozess: 51 → 129 MB) | Texterkennung in einem XPC-Hilfsprozess, der 5 s nach der letzten Antwort endet (ADR 0005); der Selbsttest prüft das Ende des Prozesses und den Speicher der App (< 100 MB). Große Bilder werden verkleinert gelesen (16 MP); abschaltbar unter Datenschutz | M12 |
 
 ---
 

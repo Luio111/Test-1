@@ -1,22 +1,24 @@
 import Foundation
 import CopyPalCore
 import CopyPalServices
-import CopyPalSystem
 
 /// Recognizes the text in images of the history, on this Mac: new copies and
 /// screenshots at once, older images one by one after launch. The text makes an image
 /// searchable; an IBAN, a card number or a key in it turns the entry sensitive like a
-/// copied one. One image at a time, at utility priority.
+/// copied one. One image at a time, at utility priority, in the helper process
+/// (``TextRecognitionClient``).
 @MainActor
 final class ImageTextIndexer {
     private let history: HistoryModel
+    private let recognition: TextRecognitionClient
     private var queue: [UUID] = []
     private var isRunning = false
     /// Something changed that the lists should show (new search text, a sensitive hit).
     private var needsReload = false
 
-    init(history: HistoryModel) {
+    init(history: HistoryModel, recognition: TextRecognitionClient) {
         self.history = history
+        self.recognition = recognition
     }
 
     /// Nothing queued or running (self-test: measure idle CPU only after this).
@@ -54,8 +56,9 @@ final class ImageTextIndexer {
         isRunning = true
         let id = queue.removeFirst()
         let engine = history.engine
-        Task {
-            let found = await Self.recognize(id, engine: engine)
+        let recognition = self.recognition
+        Task(priority: .utility) {
+            let found = await Self.recognize(id, engine: engine, recognition: recognition)
             needsReload = true
             if found {
                 // A sensitive image must not stay visible unmasked until the queue is done.
@@ -68,13 +71,11 @@ final class ImageTextIndexer {
     }
 
     /// True when the image turned out to contain sensitive content.
-    nonisolated private static func recognize(_ id: UUID, engine: HistoryEngine) async -> Bool {
+    nonisolated private static func recognize(_ id: UUID, engine: HistoryEngine, recognition: TextRecognitionClient) async -> Bool {
         guard let png = try? await engine.representations(of: id).first(where: { $0.type == PasteboardTypeID.png })?.data else {
             return false
         }
-        let text = await Task.detached(priority: .utility) {
-            TextRecognizer.text(inImageData: png)
-        }.value
+        let text = await recognition.text(inImageData: png)
         let sensitivity = try? await engine.applyRecognizedText(id, text: text)
         return sensitivity != nil
     }

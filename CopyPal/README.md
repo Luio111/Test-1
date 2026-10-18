@@ -68,6 +68,7 @@ Danach ein neues Terminal-Fenster öffnen. Fehlt der Befehl später einmal (neue
 | Ordner | Inhalt |
 |---|---|
 | `App/` | App-Target: Menüleiste, Fenster, SwiftUI-Ansichten, Design-System |
+| `XPCServices/TextRecognition/` | Hilfsprozess für die Texterkennung (Vision), endet nach der Arbeit (ADR 0005) |
 | `Packages/CopyPalKit/` | Logik als Swift-Package: `CopyPalCore` (plattformneutral), `CopyPalStorage`, `CopyPalSystem` (macOS-Adapter), `CopyPalServices` |
 | `Config/` | Build-Einstellungen (`.xcconfig`) |
 | `scripts/` | `update.sh` (`copypal-update`), `bootstrap.sh`, `reset-dev-state.sh`, `ci-check-warnings.sh` |
