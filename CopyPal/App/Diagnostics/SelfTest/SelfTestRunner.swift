@@ -343,6 +343,24 @@ final class SelfTestRunner {
             await self.favoritesClick(fromTopEdge: false)
         }
 
+        await check("Klick auf „Favoriten“, während eine andere App vorne ist") {
+            // As in daily use: CopyPal stays inactive, the popup takes the first click.
+            guard let finder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first else {
+                return (true, "übersprungen: Finder läuft nicht")
+            }
+            NSApp.yieldActivation(to: finder)
+            _ = finder.activate(options: [])
+            guard await self.waitUntil(timeout: 3_000, { !NSApp.isActive }) else {
+                self.focusTextView()
+                return (true, "übersprungen: Finder kam nicht nach vorne")
+            }
+            let result = await self.favoritesClick(fromTopEdge: false, otherAppInFront: true)
+            let stayedInactive = !NSApp.isActive
+            self.focusTextView()
+            _ = await self.waitUntil(timeout: 3_000) { NSApp.isActive }
+            return (result.0 && stayedInactive, "\(result.1), CopyPal blieb im Hintergrund: \(stayedInactive)")
+        }
+
         await check("Klick auf „Favoriten“ über einem Vollbild-Fenster, Menüleiste eingeblendet") {
             let result = await self.inFullScreen { () -> (Bool, String) in
                 // For comparison only: the level the popup had until the fix.
@@ -578,9 +596,11 @@ final class SelfTestRunner {
     /// Opens the popup and clicks "Favoriten" beside the notch with real mouse events,
     /// routed by the window server like the user's mouse. `fromTopEdge`: the pointer
     /// touches the top edge first, so a menu bar hidden for a full-screen window slides
-    /// in – the case where the click used to land on the menu bar.
-    private func favoritesClick(fromTopEdge: Bool) async -> (Bool, String) {
-        await prepare(clipboard: nil)
+    /// in. `otherAppInFront`: CopyPal stays inactive, as in daily use.
+    private func favoritesClick(fromTopEdge: Bool, otherAppInFront: Bool = false) async -> (Bool, String) {
+        if !otherAppInFront {
+            await prepare(clipboard: nil)
+        }
         await openPopup()
         guard await waitUntil({ self.app.popup.isVisible }) else { return (false, "Pop-up nicht geöffnet") }
         await sleep(450) // the opening spring
