@@ -33,7 +33,7 @@ final class PopupController {
     private var noticeTask: Task<Void, Never>?
 
     init(history: HistoryModel, visuals: ClipVisuals, paster: PasteController) {
-        model = PopupModel(history: history)
+        model = PopupModel(history: history, visuals: visuals)
         self.visuals = visuals
         self.paster = paster
         // Created now, so the first ⌘V hold does not pay for building the panels.

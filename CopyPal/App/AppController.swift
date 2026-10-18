@@ -51,6 +51,8 @@ final class AppController {
     private var storageOutcome: OpenOutcome = .created
     private var holdSignpost: OSSignpostIntervalState?
     private var hotKeysSuspended = false
+    /// The entry the last copy made or moved up ("Letzte Kopie vergessen").
+    private var lastCopiedID: UUID?
 
     init() {
         AppSettings.registerDefaults()
@@ -102,7 +104,10 @@ final class AppController {
         }
         applyHotKey()
 
-        capture.onStored = { [weak self] _ in self?.didStoreCopy() }
+        capture.onStored = { [weak self] item in
+            self?.lastCopiedID = item.id
+            self?.didStoreCopy()
+        }
         capture.start()
 
         statusItem = StatusItemController(app: self)
@@ -162,6 +167,19 @@ final class AppController {
             toast.show(String(localized: "Kopiert"), systemImage: "checkmark")
         }
         scheduleExpiry()
+    }
+
+    /// The last copy was a mistake (a password from an app that does not mark it):
+    /// empties the pasteboard and deletes the entry, unless it is a favorite.
+    func forgetLastCopy() {
+        let pasteboard = capture.monitor.pasteboard
+        pasteboard.clearContents()
+        capture.registerOwnWrite(changeCount: pasteboard.changeCount)
+        if let id = lastCopiedID, !history.favorites.contains(where: { $0.id == id }) {
+            Task { await history.perform { try await $0.delete([id]) } }
+        }
+        lastCopiedID = nil
+        toast.show(String(localized: "Letzte Kopie vergessen"), systemImage: "eraser")
     }
 
     func pauseCapture(for duration: TimeInterval?) {

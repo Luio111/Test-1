@@ -302,3 +302,27 @@ Alles andere in diesem Bericht ist offen und wartet auf deine Entscheidung.
    - Abschnitt „Bewusst nicht“ in der ROADMAP (#16).
 5. **Den M11-Handtest abschließen, dann die Texterkennung (#1):** zuerst ⇧⏎ als Text, dann die Prüfung auf sensible Inhalte und die Suche in Bildern. Danach Schwärzen (#7) auf derselben Grundlage.
 6. **Die Taste → festlegen**, dann Vorschau (#6) und Präsentationsmodus (#4, zweiter Teil) bauen. Danach App-Regeln (#8).
+
+## Umsetzungsplan (18.10.2026)
+
+Auftrag: die fünf wichtigsten Erweiterungen umsetzen, weitere Ideen prüfen und nur das bauen, was CopyPal für Nutzer rund macht. Jedes Paket geht einzeln durch die CI (Linux-Tests, macOS-Build ohne Warnungen, Selbsttest).
+
+**Neu dazugekommen (eigene Ideen):**
+- **Kürzel-Karte unter dem Menüleisten-Symbol** – schon umgesetzt.
+- **Bildschirmfoto als Datei (⌘S im Overlay):** legt ein PNG dort ab, wo macOS auch seine Bildschirmfotos ablegt (Standard: Schreibtisch). Wer eine Datei braucht, muss sonst den Umweg über Vorschau gehen.
+- **„Letzte Kopie vergessen“ im Menü:** löscht den neuesten Eintrag und leert die Zwischenablage, wenn sie ihn noch hält – für das versehentlich kopierte Passwort aus einer App ohne Markierung.
+- **Restzeit sensibler Einträge:** Die Zeile zeigt „noch 42 s“, die Fußzeile „⌘P behalten“. Erklärt, warum Einträge verschwinden (Idee #11).
+- **Saubere Links beim Einfügen ohne Formatierung (⇧):** entfernt utm_*, fbclid, gclid und ähnliche Parameter (Idee #12), abschaltbar unter Datenschutz.
+- **Favoriten anlegen:** „Neuer Favorit …“ auf der Seite Favoriten – Textvorlagen ohne Umweg über die Zwischenablage (Idee #18).
+
+**Pakete:**
+
+| Paket | Inhalt |
+|---|---|
+| P1 | Favoritennamen im Pop-up (#2) · Bildschirmfotos mit App und Fenstertitel, Suche nach App und Typ (#3) · Restzeit sensibler Einträge · saubere Links · „Letzte Kopie vergessen“ |
+| P2 | Pop-up aus Bildschirmfreigaben heraushalten, Präsentationsmodus (#4) |
+| P3 | Vorschau mit → im Pop-up (#6) |
+| P4 | Texterkennung: ⇧⏎ kopiert Text, Bilder werden durchsuchbar und auf Sensibles geprüft (#1) |
+| P5 | Fenster geben den Fokus zurück (M1) · Verlaufsfenster per Tastatur (H4) · VoiceOver im Pop-up (H3, M16) · Bildschirmfoto als Datei · Favoriten anlegen |
+
+**Bewusst noch nicht:** App-Regeln (#8) und Automation (#9) brauchen eigene Entscheidungen zu Datenschutz und Oberfläche. Umwandeln (#10) und Sammeln (#19) konkurrieren um → und wiederholtes ⌘V. Schwärzen (#7) kommt nach der Texterkennung. Ergebnis-Kapsel (#20), Selbstauslöser (#15), Schweben (#21) und seitliches Erweitern (#22) sind Nischen.

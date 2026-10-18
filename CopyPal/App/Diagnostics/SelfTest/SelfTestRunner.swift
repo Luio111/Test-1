@@ -176,6 +176,11 @@ final class SelfTestRunner {
                 let passed = item.kind == .image && abs(width - expectedWidth) <= 2 && onPasteboard && isTop
                 return (passed, "Art: \(item.kind.rawValue), Breite \(width) px (erwartet \(expectedWidth)), PNG+TIFF: \(onPasteboard), oben im Verlauf: \(isTop)")
             }
+            await check("Bildschirmfoto trägt App und Fenster und ist darüber auffindbar") {
+                let title = self.app.visuals.title(for: item)
+                let found = HistorySearch.filter(self.app.history.items, query: "bildschirmfoto selbsttest").first?.id == item.id
+                return (title == "Bildschirmfoto · CopyPal Selbsttest" && found, "Zeile: „\(title)“, Suche findet es: \(found)")
+            }
         case let .pasteboardOnly(reason):
             await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
                 (false, "nur in der Zwischenablage: \(reason)")
@@ -469,6 +474,20 @@ final class SelfTestRunner {
             await self.press(53, flags: [])
             _ = await self.waitUntil { !self.app.popup.isVisible }
             return (opened && self.textView.string.isEmpty, "geöffnet: \(opened)")
+        }
+
+        await check("⇧ fügt Links ohne Tracking-Parameter ein") {
+            await self.copy("https://example.com/artikel?utm_source=newsletter&id=7&fbclid=abc")
+            return await self.pasteFromPopup(keys: [(18, .maskShift)], expected: "https://example.com/artikel?id=7", seedClipboard: false)
+        }
+
+        await check("„Letzte Kopie vergessen“ löscht den Eintrag und leert die Zwischenablage") {
+            await self.copy("Versehentlich kopiert \(self.secretMarker)")
+            let stored = await self.waitUntil { self.app.history.items.contains { $0.preview.title.hasPrefix("Versehentlich kopiert") } }
+            self.app.forgetLastCopy()
+            let gone = await self.waitUntil { !self.app.history.items.contains { $0.preview.title.hasPrefix("Versehentlich kopiert") } }
+            let cleared = NSPasteboard.general.string(forType: .string) == nil
+            return (stored && gone && cleared, "gespeichert: \(stored), gelöscht: \(gone), Zwischenablage leer: \(cleared)")
         }
 
         await check("Zeiger auf dem Menüleisten-Symbol zeigt die Tastenkürzel darunter") {

@@ -71,3 +71,26 @@ struct TextFoldingTests {
         #expect(TextFolding.lineCount(of: "") == 1)
     }
 }
+
+struct LinkCleanerTests {
+    @Test func removesTrackingParameters() {
+        #expect(LinkCleaner.clean("https://example.com/a?utm_source=x&utm_medium=y&id=7") == "https://example.com/a?id=7")
+        #expect(LinkCleaner.clean("https://shop.example.com/p?fbclid=abc") == "https://shop.example.com/p")
+        #expect(LinkCleaner.clean("https://example.com/?gclid=1&q=caf%C3%A9") == "https://example.com/?q=caf%C3%A9")
+    }
+
+    @Test func keepsFragmentAndOtherParameters() {
+        #expect(LinkCleaner.clean("https://example.com/doc?page=2&UTM_Campaign=z#section") == "https://example.com/doc?page=2#section")
+    }
+
+    @Test func untouchedWhenNothingToRemove() {
+        #expect(LinkCleaner.clean("https://example.com/a?id=7") == nil)
+        #expect(LinkCleaner.clean("https://example.com/a") == nil)
+    }
+
+    @Test func onlySingleLinks() {
+        #expect(LinkCleaner.clean("Siehe https://example.com/?utm_source=x") == nil)
+        #expect(LinkCleaner.clean("ftp://example.com/?utm_source=x") == nil)
+        #expect(LinkCleaner.clean("  https://example.com/?utm_source=x \n") == "https://example.com/")
+    }
+}

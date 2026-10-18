@@ -158,4 +158,28 @@ struct HistorySearchTests {
         let items = [item("max@example.com", label: "E-Mail privat")]
         #expect(HistorySearch.filter(items, query: "privat").count == 1)
     }
+
+    @Test func appNameAndKindAreSearchableButRankLast() {
+        let screenshot = ClipItem(
+            createdAt: Date(),
+            kind: .image,
+            preview: ClipPreview(title: "", searchText: TextFolding.fold("Safari – JIRA-1234"), capturedFrom: "Safari – JIRA-1234"),
+            sourceBundleID: "com.apple.Safari"
+        )
+        let note = item("Safari Tipps")
+        let names = ["com.apple.Safari": "Safari"]
+        // Content matches first, the screenshot (found by its window title) too.
+        #expect(HistorySearch.filter([screenshot, note], query: "safari", appNames: names).map(\.kind) == [.image, .text])
+        #expect(HistorySearch.filter([screenshot, note], query: "jira", appNames: names).map(\.kind) == [.image])
+        // Found through the kind or the source app only: after content matches.
+        #expect(HistorySearch.filter([screenshot, note], query: "bildschirmfoto", appNames: names).map(\.kind) == [.image])
+        #expect(HistorySearch.filter([screenshot, note], query: "bild safari", appNames: names).map(\.kind) == [.image])
+        #expect(HistorySearch.filter([note, screenshot], query: "text", appNames: names).map(\.kind) == [.text])
+    }
+
+    @Test func contextMatchesComeAfterContentMatches() {
+        let link = ClipItem(createdAt: Date(), kind: .link, preview: ClipPreview(title: "example.com", searchText: "example.com"))
+        let mention = item("Ein Link zur Doku")
+        #expect(HistorySearch.filter([link, mention], query: "link").map(\.kind) == [.text, .link])
+    }
 }

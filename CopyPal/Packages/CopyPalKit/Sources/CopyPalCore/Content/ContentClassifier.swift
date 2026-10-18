@@ -25,7 +25,7 @@ public enum ContentClassifier {
             return textual(text, content: content)
         }
         if let png = content.data(for: PasteboardTypeID.png) {
-            return image(png)
+            return image(png, capturedFrom: content.hints.capturedFrom)
         }
         if let color = content.hints.color {
             return Classification(
@@ -59,10 +59,18 @@ public enum ContentClassifier {
         )
     }
 
-    private static func image(_ png: Data) -> Classification {
+    private static func image(_ png: Data, capturedFrom: String?) -> Classification {
         Classification(
             kind: .image,
-            preview: ClipPreview(title: "", lineCount: 1, characterCount: 0, imageSize: PNGInfo.size(of: png)),
+            preview: ClipPreview(
+                title: "",
+                lineCount: 1,
+                characterCount: 0,
+                imageSize: PNGInfo.size(of: png),
+                // The window title makes a screenshot findable (its pixels are not text).
+                searchText: TextFolding.fold(String((capturedFrom ?? "").prefix(searchTextLimit))),
+                capturedFrom: capturedFrom
+            ),
             fingerprintSource: Data("image:".utf8) + png,
             text: nil
         )

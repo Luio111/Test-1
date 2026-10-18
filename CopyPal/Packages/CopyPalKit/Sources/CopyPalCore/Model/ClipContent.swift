@@ -54,9 +54,12 @@ public struct ClipRepresentation: Sendable, Equatable, Codable {
 public struct ContentHints: Sendable, Equatable {
     /// Decoded `NSColor` from the pasteboard.
     public var color: ColorValue?
+    /// CopyPal's own screenshot: the app and window it shows (see `ClipPreview`).
+    public var capturedFrom: String?
 
-    public init(color: ColorValue? = nil) {
+    public init(color: ColorValue? = nil, capturedFrom: String? = nil) {
         self.color = color
+        self.capturedFrom = capturedFrom
     }
 }
 

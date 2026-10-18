@@ -587,6 +587,7 @@ final class ScreenshotController {
         let pixels = ScreenshotGeometry.pixels(ScreenshotGeometry.displayLocal(rect, in: state.frame), scale: display.scale)
         let excluded = overlayWindowIDs
         let source = sourceBundleID(for: rect)
+        let caption = capturedFrom(for: rect)
         Task {
             let result: Result<ImageBox, ScreenCaptureEngine.Failure>
             do {
@@ -600,7 +601,7 @@ final class ScreenshotController {
             switch result {
             case let .success(image):
                 self.endSession()
-                await self.publish(image, scale: display.scale, sourceBundleID: source)
+                await self.publish(image, scale: display.scale, sourceBundleID: source, capturedFrom: caption)
             case let .failure(failure):
                 self.sessionFailed(failure)
             }
@@ -621,6 +622,7 @@ final class ScreenshotController {
         let current = generation
         let scale = state.display.scale
         let source = sourceBundleID(for: rect)
+        let caption = capturedFrom(for: rect)
         let snapshot = session
         Task {
             let image = await Task.detached(priority: .userInitiated) { () -> ImageBox? in
@@ -629,15 +631,15 @@ final class ScreenshotController {
             guard current == self.generation else { return }
             self.endSession()
             if let image {
-                await self.publish(image, scale: scale, sourceBundleID: source)
+                await self.publish(image, scale: scale, sourceBundleID: source, capturedFrom: caption)
             } else {
                 self.app.toast.show(String(localized: "Bildschirmfoto fehlgeschlagen"), systemImage: "exclamationmark.triangle")
             }
         }
     }
 
-    private func publish(_ image: ImageBox, scale: CGFloat, sourceBundleID: String?) async {
-        let outcome = await ScreenshotResultWriter.publish(image, scale: scale, sourceBundleID: sourceBundleID, app: app)
+    private func publish(_ image: ImageBox, scale: CGFloat, sourceBundleID: String?, capturedFrom: String) async {
+        let outcome = await ScreenshotResultWriter.publish(image, scale: scale, sourceBundleID: sourceBundleID, capturedFrom: capturedFrom, app: app)
         let symbol = "camera.viewfinder"
         switch outcome {
         case let .stored(_, downscaled: downscaled):
@@ -680,6 +682,16 @@ final class ScreenshotController {
             return bundleID
         }
         return sourceApp?.bundleIdentifier
+    }
+
+    /// "Safari – JIRA-1234": the app and the title of the window under the selection's
+    /// centre, so the screenshot can be told apart and found in the history.
+    private func capturedFrom(for rect: CGRect) -> String {
+        guard let window = WindowGeometry.window(at: CGPoint(x: rect.midX, y: rect.midY), in: windows) else {
+            return WindowGeometry.caption(appName: sourceApp?.localizedName, windowTitle: nil)
+        }
+        let appName = NSRunningApplication(processIdentifier: window.ownerPID)?.localizedName
+        return WindowGeometry.caption(appName: appName, windowTitle: window.title)
     }
 
     private var overlayWindowIDs: Set<CGWindowID> {
@@ -1047,7 +1059,7 @@ final class ScreenshotController {
         let pixels = ScreenshotGeometry.pixels(ScreenshotGeometry.displayLocal(clipped, in: screen.frame), scale: display.scale)
         do {
             let image = try await ScreenCaptureEngine.capture(pixels, of: display)
-            switch await ScreenshotResultWriter.publish(image, scale: display.scale, sourceBundleID: nil, app: app) {
+            switch await ScreenshotResultWriter.publish(image, scale: display.scale, sourceBundleID: nil, capturedFrom: "CopyPal Selbsttest", app: app) {
             case let .stored(item, downscaled: _):
                 return .stored(item)
             case let .pasteboardOnly(reason):

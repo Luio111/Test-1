@@ -469,6 +469,14 @@ private struct PrivacySettingsPage: View {
 
         Hairline()
 
+        SectionBlock(title: "Links") {
+            SettingRow(title: "Tracking-Parameter entfernen", detail: "Beim Einfügen ohne Formatierung (⇧) fallen utm_*, fbclid, gclid und ähnliche Zusätze weg, die verraten, woher ein Link kommt.") {
+                RowSwitch(isOn: $settings.cleanLinks)
+            }
+        }
+
+        Hairline()
+
         SectionBlock(title: "Ignorierte Apps") {
             SettingRow(title: "Kopien aus diesen Apps nie speichern", detail: "Voreingestellt: Passwortmanager, Schlüsselbund, Passwörter-App, Banking.") {
                 Button("Bearbeiten …") { editingIgnore = true }

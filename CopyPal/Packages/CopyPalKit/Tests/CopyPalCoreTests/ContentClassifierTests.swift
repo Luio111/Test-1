@@ -73,6 +73,26 @@ struct ContentClassifierTests {
         let result = try #require(ContentClassifier.classify(content))
         #expect(result.kind == .image)
         #expect(result.preview.imageSize == PixelSize(width: 1920, height: 1080))
+        #expect(result.preview.capturedFrom == nil)
+        #expect(result.preview.searchText.isEmpty)
+    }
+
+    @Test func screenshotKeepsWhereItWasTaken() throws {
+        let content = CapturedContent(
+            representations: [ClipRepresentation(type: PasteboardTypeID.png, data: Self.png(width: 800, height: 600))],
+            hints: ContentHints(capturedFrom: "Safari – JIRA-1234 Übersicht")
+        )
+        let result = try #require(ContentClassifier.classify(content))
+        #expect(result.kind == .image)
+        #expect(result.preview.capturedFrom == "Safari – JIRA-1234 Übersicht")
+        #expect(result.preview.searchText == "safari – jira-1234 ubersicht")
+    }
+
+    @Test func previewsStoredBeforeDecodeWithoutCapturedFrom() throws {
+        let old = Data(#"{"title":"Hallo","lineCount":1,"characterCount":5,"fileNames":[],"isFormatted":false,"searchText":"hallo"}"#.utf8)
+        let preview = try JSONDecoder().decode(ClipPreview.self, from: old)
+        #expect(preview.title == "Hallo")
+        #expect(preview.capturedFrom == nil)
     }
 
     @Test func nothingUsable() {

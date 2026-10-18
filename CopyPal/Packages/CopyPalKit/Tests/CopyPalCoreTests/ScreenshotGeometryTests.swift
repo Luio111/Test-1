@@ -115,6 +115,15 @@ struct WindowGeometryTests {
         #expect(WindowGeometry.window(at: CGPoint(x: 50, y: 50), in: targets)?.id == 1)
         #expect(WindowGeometry.window(at: CGPoint(x: 900, y: 900), in: targets) == nil)
     }
+
+    @Test func captionNamesAppAndWindow() {
+        #expect(WindowGeometry.caption(appName: "Safari", windowTitle: " JIRA-1234 Übersicht ") == "Safari – JIRA-1234 Übersicht")
+        #expect(WindowGeometry.caption(appName: "Finder", windowTitle: "Finder") == "Finder")
+        #expect(WindowGeometry.caption(appName: "Notizen", windowTitle: nil) == "Notizen")
+        #expect(WindowGeometry.caption(appName: nil, windowTitle: "Ohne App") == "Ohne App")
+        #expect(WindowGeometry.caption(appName: nil, windowTitle: "") == "")
+        #expect(WindowGeometry.caption(appName: "A", windowTitle: String(repeating: "x", count: 300), maxLength: 10) == "A – xxxxxx…")
+    }
 }
 
 struct ScreenshotKeyMapTests {

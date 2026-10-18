@@ -53,4 +53,20 @@ public enum WindowGeometry {
     public static func window(at point: CGPoint, in targets: [WindowInfo]) -> WindowInfo? {
         targets.first { $0.frame.contains(point) }
     }
+
+    /// Where a screenshot was taken, for its history row and the search: "Safari –
+    /// JIRA-1234 Übersicht". The app alone when the title is missing or repeats it;
+    /// empty when neither is known.
+    public static func caption(appName: String?, windowTitle: String?, maxLength: Int = 160) -> String {
+        let app = appName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let title = windowTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let caption: String = if title.isEmpty || title == app {
+            app
+        } else if app.isEmpty {
+            title
+        } else {
+            app + " – " + title
+        }
+        return caption.count > maxLength ? String(caption.prefix(maxLength)) + "…" : caption
+    }
 }

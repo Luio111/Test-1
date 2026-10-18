@@ -151,6 +151,16 @@
         }
       }
     },
+    "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P behalten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1–8 paste · ⇧ without formatting · ⇥ favorites · ⌘P keep"
+          }
+        }
+      }
+    },
     "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Verlauf · ⌘P Favorit entfernen" : {
       "localizations" : {
         "en" : {
@@ -631,6 +641,16 @@
         }
       }
     },
+    "Beim Einfügen ohne Formatierung (⇧) fallen utm_*, fbclid, gclid und ähnliche Zusätze weg, die verraten, woher ein Link kommt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When pasting without formatting (⇧), utm_*, fbclid, gclid and similar additions that reveal where a link came from are removed."
+          }
+        }
+      }
+    },
     "Beispiele kopiert ✓" : {
       "localizations" : {
         "en" : {
@@ -857,6 +877,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Screenshot copied scaled down – too large for the history"
+          }
+        }
+      }
+    },
+    "Bildschirmfoto · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot · %@"
           }
         }
       }
@@ -1941,6 +1971,16 @@
         }
       }
     },
+    "Letzte Kopie vergessen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forget Last Copy"
+          }
+        }
+      }
+    },
     "Letzter Absturz" : {
       "localizations" : {
         "en" : {
@@ -1967,6 +2007,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reads only the change count and formats, no content. Watch whether macOS shows a notice."
+          }
+        }
+      }
+    },
+    "Links" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links"
           }
         }
       }
@@ -2651,6 +2701,16 @@
         }
       }
     },
+    "Tracking-Parameter entfernen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove tracking parameters"
+          }
+        }
+      }
+    },
     "Umbenennen …" : {
       "localizations" : {
         "en" : {
@@ -3197,6 +3257,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "macOS applies the permission only after CopyPal relaunches."
+          }
+        }
+      }
+    },
+    "noch %lld min" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min left"
+          }
+        }
+      }
+    },
+    "noch %lld s" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld s left"
           }
         }
       }

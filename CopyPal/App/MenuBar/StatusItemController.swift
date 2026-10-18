@@ -139,6 +139,9 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             menu.addItem(screenshotItem())
         }
         menu.addItem(pauseItem())
+        menu.addItem(makeItem(String(localized: "Letzte Kopie vergessen"), symbol: "eraser") { app in
+            app.forgetLastCopy()
+        })
         menu.addItem(makeItem(String(localized: "Verlauf löschen …")) { app in
             app.confirmClearHistory()
         })

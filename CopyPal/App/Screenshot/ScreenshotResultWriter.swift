@@ -21,8 +21,8 @@ enum ScreenshotResultWriter {
     }
 
     /// `sourceBundleID` is the app whose window the selection covers (ignore list,
-    /// history icon).
-    static func publish(_ image: ImageBox, scale: CGFloat, sourceBundleID: String?, app: AppController) async -> Outcome {
+    /// history icon); `capturedFrom` names app and window for the row and the search.
+    static func publish(_ image: ImageBox, scale: CGFloat, sourceBundleID: String?, capturedFrom: String, app: AppController) async -> Outcome {
         let maxBytes = AppSettings.retentionPolicy.maxImageBytes
         let encoded = await Task.detached(priority: .userInitiated) { () -> (ImageConversion.FittedPNG, Data)? in
             guard let fitted = ImageConversion.pngFitting(image.image, scale: scale, maxBytes: maxBytes, maximumHalvings: 1),
@@ -61,7 +61,8 @@ enum ScreenshotResultWriter {
         let content = CapturedContent(
             representations: [ClipRepresentation(type: PasteboardTypeID.png, data: fitted.data)],
             // The captured app, so the history shows its icon (CopyPal when unknown).
-            sourceBundleID: sourceBundleID ?? Bundle.main.bundleIdentifier
+            sourceBundleID: sourceBundleID ?? Bundle.main.bundleIdentifier,
+            hints: ContentHints(capturedFrom: capturedFrom)
         )
         do {
             switch try await app.engine.capture(content) {

@@ -41,6 +41,10 @@ final class ClipVisuals {
         }
         switch item.kind {
         case .image:
+            if let source = item.preview.capturedFrom {
+                // A screenshot: where it was taken is what tells two of them apart.
+                return source.isEmpty ? String(localized: "Bildschirmfoto") : String(localized: "Bildschirmfoto · \(source)")
+            }
             if let size = item.preview.imageSize {
                 return String(localized: "Bild \(size.width) × \(size.height)")
             }
@@ -91,6 +95,25 @@ final class ClipVisuals {
         }
     }
 
+    /// A favorite's own name, shown instead of its first line where room is short.
+    func favoriteName(for item: ClipItem) -> String? {
+        guard item.isPinned, let label = item.pinLabel?.trimmingCharacters(in: .whitespacesAndNewlines), !label.isEmpty else {
+            return nil
+        }
+        return label
+    }
+
+    /// "noch 42 s" while a sensitive entry counts down to its deletion; nil otherwise.
+    func remainingTime(for item: ClipItem, now: Date = Date()) -> String? {
+        guard !item.isPinned, let expiresAt = item.expiresAt else { return nil }
+        let seconds = max(Int(expiresAt.timeIntervalSince(now).rounded(.up)), 0)
+        if seconds < 90 {
+            return String(localized: "noch \(seconds) s")
+        }
+        let minuteCount = Int((Double(seconds) / 60).rounded())
+        return String(localized: "noch \(minuteCount) min")
+    }
+
     func relativeTime(for item: ClipItem, now: Date = Date()) -> String {
         if now.timeIntervalSince(item.lastUsedAt) < 60 {
             return String(localized: "gerade eben")
@@ -108,6 +131,15 @@ final class ClipVisuals {
         icon.size = NSSize(width: 32, height: 32)
         appIcons[bundleID] = icon
         return icon
+    }
+
+    /// Names of the source apps of `items`, for the search (bundle ID → name).
+    func appNames(for items: [ClipItem]) -> [String: String] {
+        var names: [String: String] = [:]
+        for bundleID in Set(items.compactMap(\.sourceBundleID)) {
+            names[bundleID] = appName(for: bundleID)
+        }
+        return names
     }
 
     func appName(for bundleID: String?) -> String? {
@@ -237,10 +269,21 @@ struct ClipTrailingDetails: View {
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .accessibilityLabel(Text("Vom iPhone"))
             }
-            Text(verbatim: visuals.relativeTime(for: item))
-                .font(Theme.Typography.caption)
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .lineLimit(1)
+            if item.expiresAt != nil, !item.isPinned {
+                // Counts down every second until the entry is deleted.
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    Text(verbatim: visuals.remainingTime(for: item, now: context.date) ?? "")
+                        .font(Theme.Typography.caption)
+                        .monospacedDigit()
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .lineLimit(1)
+                }
+            } else {
+                Text(verbatim: visuals.relativeTime(for: item))
+                    .font(Theme.Typography.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .lineLimit(1)
+            }
             if let icon = visuals.appIcon(for: item.sourceBundleID) {
                 Image(nsImage: icon)
                     .resizable()

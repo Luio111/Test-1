@@ -236,6 +236,10 @@ private struct PopupContent: View {
         if model.list == .favorites {
             return "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Verlauf · ⌘P Favorit entfernen"
         }
+        if let selected = model.selectedItem, selected.isSensitive, !selected.isPinned {
+            // A sensitive entry is deleted soon; a favorite stays.
+            return "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P behalten"
+        }
         return model.selectedItem?.isPinned == true
             ? "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit entfernen"
             : "1–8 einfügen · ⇧ ohne Formatierung · ⇥ Favoriten · ⌘P Favorit hinzufügen"
@@ -258,11 +262,25 @@ private struct PopupRow: View {
                 .background(Theme.Notch.control, in: RoundedRectangle(cornerRadius: 4))
                 .accessibilityHidden(true)
             ClipLeadingVisual(item: item, visuals: visuals, size: 18)
-            Text(verbatim: visuals.title(for: item))
-                .font(.system(size: 13))
-                .foregroundStyle(item.isRemotePlaceholder ? Theme.Notch.textSecondary : Theme.Notch.textPrimary)
-                .lineLimit(1)
-                .truncationMode(.tail)
+            if let name = visuals.favoriteName(for: item) {
+                // Favorites that start alike are told apart by their names.
+                Text(verbatim: name)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.Notch.textPrimary)
+                    .lineLimit(1)
+                    .layoutPriority(1)
+                Text(verbatim: visuals.title(for: item))
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.Notch.textSecondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            } else {
+                Text(verbatim: visuals.title(for: item))
+                    .font(.system(size: 13))
+                    .foregroundStyle(item.isRemotePlaceholder ? Theme.Notch.textSecondary : Theme.Notch.textPrimary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
             if item.preview.lineCount > 1, item.kind == .text || item.kind == .richText, item.sensitivity == nil {
                 Text(verbatim: "+\(item.preview.lineCount - 1)")
                     .font(.system(size: 11))
@@ -278,7 +296,15 @@ private struct PopupRow: View {
         .background(isSelected ? Theme.Notch.selection : .clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(verbatim: "\(number): \(visuals.title(for: item))"))
+        .accessibilityLabel(Text(verbatim: accessibilityTitle))
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
+    }
+
+    private var accessibilityTitle: String {
+        let title = visuals.title(for: item)
+        if let name = visuals.favoriteName(for: item) {
+            return "\(number): \(name), \(title)"
+        }
+        return "\(number): \(title)"
     }
 }

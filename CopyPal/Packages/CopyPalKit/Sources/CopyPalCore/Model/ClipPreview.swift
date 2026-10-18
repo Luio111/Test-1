@@ -66,6 +66,9 @@ public struct ClipPreview: Sendable, Equatable, Codable {
     public var masked: String?
     /// Case- and accent-folded text the search runs on (truncated).
     public var searchText: String
+    /// Set for screenshots: the app and window they show ("Safari – JIRA-1234"), empty
+    /// when unknown. Nil for every other entry (also in previews stored before).
+    public var capturedFrom: String?
 
     public init(
         title: String,
@@ -77,7 +80,8 @@ public struct ClipPreview: Sendable, Equatable, Codable {
         imageSize: PixelSize? = nil,
         isFormatted: Bool = false,
         masked: String? = nil,
-        searchText: String = ""
+        searchText: String = "",
+        capturedFrom: String? = nil
     ) {
         self.title = title
         self.lineCount = lineCount
@@ -89,5 +93,6 @@ public struct ClipPreview: Sendable, Equatable, Codable {
         self.isFormatted = isFormatted
         self.masked = masked
         self.searchText = searchText
+        self.capturedFrom = capturedFrom
     }
 }

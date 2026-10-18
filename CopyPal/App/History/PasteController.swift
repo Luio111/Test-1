@@ -96,6 +96,7 @@ final class PasteController {
     }
 
     private func putOnPasteboard(_ item: ClipItem, representations: [ClipRepresentation], plainText: Bool) {
+        let representations = plainText ? Self.cleaned(representations, of: item) : representations
         let options = PasteboardWriter.Options(
             plainTextOnly: plainText,
             localOnly: item.localOnly || item.isSensitive,
@@ -106,6 +107,17 @@ final class PasteController {
         if item.isSensitive {
             sensitiveWrites[item.id] = changeCount
         }
+    }
+
+    /// Without formatting, a link loses its tracking parameters (utm_*, fbclid …).
+    private static func cleaned(_ representations: [ClipRepresentation], of item: ClipItem) -> [ClipRepresentation] {
+        guard AppSettings.cleanLinks, item.kind == .link,
+              let plain = representations.first(where: { $0.type == PasteboardTypeID.plainText }),
+              let text = String(data: plain.data, encoding: .utf8),
+              let clean = LinkCleaner.clean(text) else {
+            return representations
+        }
+        return [ClipRepresentation(type: PasteboardTypeID.plainText, data: Data(clean.utf8))]
     }
 
     /// An iPhone copy recorded from its types only: read it now, at the user's request.

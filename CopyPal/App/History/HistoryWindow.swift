@@ -66,7 +66,9 @@ private struct HistoryPage: View {
     }
 
     private var items: [ClipItem] {
-        HistorySearch.filter(list == .history ? history.items : history.favorites, query: query)
+        let source = list == .history ? history.items : history.favorites
+        let names = query.isEmpty ? [:] : visuals.appNames(for: source)
+        return HistorySearch.filter(source, query: query, appNames: names)
     }
 
     var body: some View {

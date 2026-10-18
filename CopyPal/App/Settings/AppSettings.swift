@@ -26,6 +26,7 @@ enum AppSettings {
         static let showCopyFeedback = "showCopyFeedback"
         static let animatePopup = "animatePopup"
         static let loadFavicons = "loadFavicons"
+        static let cleanLinks = "cleanLinksOnPlainPaste"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let screenshotEnabled = "screenshotEnabled"
         static let screenshotHotKey = "screenshotHotKey"
@@ -71,6 +72,7 @@ enum AppSettings {
             Key.showCopyFeedback: true,
             Key.animatePopup: true,
             Key.loadFavicons: false,
+            Key.cleanLinks: true,
             Key.hasCompletedOnboarding: false,
             Key.screenshotEnabled: true,
             Key.screenshotScrollReversed: false,
@@ -199,6 +201,12 @@ enum AppSettings {
     static var loadFavicons: Bool {
         get { defaults.bool(forKey: Key.loadFavicons) }
         set { set(newValue, for: Key.loadFavicons) }
+    }
+
+    /// Pasting without formatting (⇧) also drops tracking parameters from links.
+    static var cleanLinks: Bool {
+        get { defaults.bool(forKey: Key.cleanLinks) }
+        set { set(newValue, for: Key.cleanLinks) }
     }
 
     /// Also offer beta versions (Sparkle channel "beta").

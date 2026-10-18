@@ -124,15 +124,18 @@ final class PopupModel {
     var notice: PopupNotice?
 
     @ObservationIgnored let history: HistoryModel
+    @ObservationIgnored private let visuals: ClipVisuals
 
-    init(history: HistoryModel) {
+    init(history: HistoryModel, visuals: ClipVisuals) {
         self.history = history
+        self.visuals = visuals
     }
 
     /// At most 8 entries: the search result in the current list.
     var visibleItems: [ClipItem] {
         let source = list == .history ? history.items : history.favorites
-        return Array(HistorySearch.filter(source, query: query).prefix(PopupMetrics.maxRows))
+        let names = query.isEmpty ? [:] : visuals.appNames(for: source)
+        return Array(HistorySearch.filter(source, query: query, appNames: names).prefix(PopupMetrics.maxRows))
     }
 
     var selectedItem: ClipItem? {

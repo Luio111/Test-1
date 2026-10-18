@@ -95,6 +95,11 @@ final class SettingsModel: Observable {
         set { write(\.loadFavicons) { AppSettings.loadFavicons = newValue } }
     }
 
+    var cleanLinks: Bool {
+        get { read(\.cleanLinks) { AppSettings.cleanLinks } }
+        set { write(\.cleanLinks) { AppSettings.cleanLinks = newValue } }
+    }
+
     // MARK: Privacy
 
     var sensitiveLifetimeSeconds: Int {
