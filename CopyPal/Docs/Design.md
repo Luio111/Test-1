@@ -62,6 +62,13 @@ Entschieden (12.10.2026): **Variante A „dunkel wie die Notch“.** Das Pop-up 
 - **Maus:** Darüberfahren wählt eine Zeile aus (erst nach einer echten Mausbewegung), Klick fügt ein. „Verlauf“ und „Favoriten“ neben der Notch sind anklickbar (wie ⇥).
 - **Hinweiszeile:** ⌘P heißt „Favorit hinzufügen“ bzw. „Favorit entfernen“, je nach ausgewähltem Eintrag.
 
+## Pop-up: Vorschau, Präsentationsmodus, Favoritennamen (M12)
+
+- **Vorschau (→):** ersetzt die Liste in derselben schwarzen Form, so hoch wie acht Zeilen. Kopfzeile wie eine Zeile (Nummer, Name, Art, Zeit, App), darunter Text in 12,5 pt Weiß 92 % (bis 11 Zeilen, Links bis 6 mit Kürzung in der Mitte), Bild mit Radius 6 und Pixelmaß in SF Mono 11, Farbe als 72-pt-Feld mit Hex und RGB, Dateien als Liste. Fußzeile „↩ einfügen · ⇧ ohne Formatierung · ↑↓ blättern · ← zurück“.
+- **Präsentationsmodus:** Zeilen zeigen nur das Symbol und die Art („Link“, „Bild“) in Weiß 60 %, dazu Zeit und App; keine Vorschaubilder, Farbfelder, Tags oder Favoritennamen. Fußzeile mit `eye.slash`. Das Menüleisten-Symbol wird `eye.slash`.
+- **Favoritennamen:** Name in Weiß 92 %, dahinter die erste Zeile in 12 pt Weiß 60 %.
+- **Sensible Einträge:** statt der Zeit „noch 42 s“ (Ziffern gleich breit), Fußzeile „⌘P behalten“; ein Bild mit erkannter IBAN zeigt nur sein Symbol.
+
 ## Bildschirmfoto-Overlay (M11)
 
 Das Overlay gehört zur Notch-Welt: immer dunkel, eine Akzentfarbe, Werte in SF Mono.
