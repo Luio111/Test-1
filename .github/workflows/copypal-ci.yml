@@ -109,8 +109,6 @@ jobs:
           ls -d "$resources"/*.lproj
           test -e "$resources/en.lproj/Localizable.strings" || test -e "$resources/en.lproj/Localizable.stringsdict" \
             || { echo "::error::Englische Übersetzung fehlt im App-Bundle"; exit 1; }
-      # Runs the app's end-to-end check of the ⌘V gesture with simulated key presses.
-      # GitHub's macOS runners grant Accessibility to processes started from job steps.
       # Chrome on the runner comes from Homebrew with the quarantine flag: Gatekeeper
       # would ask before its first start and the self-test's web page check wait for
       # a window that never comes.
@@ -119,6 +117,8 @@ jobs:
           if [ -d "/Applications/Google Chrome.app" ]; then
             sudo xattr -dr com.apple.quarantine "/Applications/Google Chrome.app" || true
           fi
+      # Runs the app's end-to-end check of the ⌘V gesture with simulated key presses.
+      # GitHub's macOS runners grant Accessibility to processes started from job steps.
       - name: Self-test (capture, history, ⌘V gesture, popup)
         timeout-minutes: 4
         env:
