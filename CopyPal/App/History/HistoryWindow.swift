@@ -23,8 +23,13 @@ final class HistoryWindowController: NSObject, NSWindowDelegate {
         let window = window ?? makeWindow(list: list)
         self.window = window
         Task { await history.reload() }
+        FocusReturn.remember()
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        FocusReturn.windowWillClose(window)
     }
 
     private func makeWindow(list: PopupList) -> NSWindow {

@@ -11,6 +11,16 @@
         }
       }
     },
+    "%@, %lld Einträge" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld entries"
+          }
+        }
+      }
+    },
     "%lld Abschnitte · %@ px" : {
       "localizations" : {
         "en" : {
@@ -67,6 +77,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld days"
+          }
+        }
+      }
+    },
+    "%lld Treffer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld matches"
           }
         }
       }
@@ -821,6 +841,16 @@
         }
       }
     },
+    "Bildschirmfoto %@ um %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot %1$@ at %2$@"
+          }
+        }
+      }
+    },
     "Bildschirmfoto aufnehmen" : {
       "localizations" : {
         "en" : {
@@ -1111,6 +1141,16 @@
         }
       }
     },
+    "CopyPal-Verlauf, %lld Einträge" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal history, %lld entries"
+          }
+        }
+      }
+    },
     "Damit CopyPal erkennt, ob du ⌘V kurz drückst oder hältst, und den gewählten Eintrag einfügen kann. CopyPal liest dabei keine Tastatureingaben mit." : {
       "localizations" : {
         "en" : {
@@ -1157,6 +1197,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "File"
+          }
+        }
+      }
+    },
+    "Datei konnte nicht gesichert werden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save the file"
           }
         }
       }
@@ -2061,6 +2111,16 @@
         }
       }
     },
+    "Kopiert und gesichert in „%@“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied and saved to “%@”"
+          }
+        }
+      }
+    },
     "Kopiert ✓" : {
       "localizations" : {
         "en" : {
@@ -2291,6 +2351,26 @@
         }
       }
     },
+    "Neuer Favorit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Favorite"
+          }
+        }
+      }
+    },
+    "Neuer Favorit …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Favorite …"
+          }
+        }
+      }
+    },
     "Neuer Verlauf angelegt" : {
       "localizations" : {
         "en" : {
@@ -2381,12 +2461,12 @@
         }
       }
     },
-    "Noch keine Favoriten. Im Pop-up macht ⌘P den ausgewählten Eintrag zum Favoriten." : {
+    "Noch keine Favoriten. Im Pop-up macht ⌘P den ausgewählten Eintrag zum Favoriten – oder lege hier einen an." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No favorites yet. In the popup, ⌘P makes the selected entry a favorite."
+            "value" : "No favorites yet. In the pop-up, ⌘P makes the selected entry a favorite – or create one here."
           }
         }
       }
@@ -2917,6 +2997,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Text"
+          }
+        }
+      }
+    },
+    "Text des Favoriten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text of the favorite"
           }
         }
       }
@@ -3721,22 +3811,22 @@
         }
       }
     },
-    "⏎ aufnehmen · ⇧⏎ als Text · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc" : {
+    "⏎ aufnehmen · ⇧⏎ als Text · ⌘S als Datei · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⏎ capture · ⇧⏎ as text · ↓ ↑ extend · ⌘ arrows move · Esc"
+            "value" : "⏎ capture · ⇧⏎ as text · ⌘S as file · ↓ ↑ extend · ⌘ arrows move · Esc"
           }
         }
       }
     },
-    "⏎ aufnehmen · ⇧⏎ als Text · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc" : {
+    "⏎ aufnehmen · ⇧⏎ als Text · ⌘S als Datei · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⏎ capture · ⇧⏎ as text · ↓ ↑ continue · ⌫ remove section · Esc"
+            "value" : "⏎ capture · ⇧⏎ as text · ⌘S as file · ↓ ↑ continue · ⌫ remove section · Esc"
           }
         }
       }

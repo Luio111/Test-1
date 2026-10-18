@@ -43,6 +43,35 @@ func screenshot(_ caption: String?, salt: UInt8 = 0) -> CapturedContent {
 
 @Suite(.serialized)
 struct HistoryEngineTests {
+    @Test func newFavoriteFromTypedText() async throws {
+        let fixture = try EngineFixture()
+        defer { fixture.cleanUp() }
+        let favorite = try #require(try await fixture.engine.addFavorite(text: "Musterstraße 1\n12345 Berlin", label: " Adresse "))
+        #expect(favorite.isPinned)
+        #expect(favorite.pinLabel == "Adresse")
+        #expect(favorite.preview.title == "Musterstraße 1")
+        #expect(try await fixture.engine.snapshot().favorites.map(\.id) == [favorite.id])
+
+        // Text already in the history becomes that favorite, no second entry.
+        _ = try await fixture.engine.capture(copied("Gruß, Max"))
+        let existing = try #require(try await fixture.engine.addFavorite(text: "Gruß, Max", label: nil))
+        #expect(existing.isPinned)
+        #expect(try await fixture.engine.snapshot().items.count == 2)
+
+        #expect(try await fixture.engine.addFavorite(text: "   ", label: "leer") == nil)
+    }
+
+    @Test func sensitiveFavoriteIsMaskedButKept() async throws {
+        let fixture = try EngineFixture()
+        defer { fixture.cleanUp() }
+        let favorite = try #require(try await fixture.engine.addFavorite(text: "DE89 3704 0044 0532 0130 00", label: "Konto"))
+        #expect(favorite.sensitivity == .iban)
+        #expect(favorite.expiresAt == nil)
+        fixture.time.advance(by: 3_600)
+        try await fixture.engine.removeExpired()
+        #expect(try await fixture.engine.snapshot().favorites.count == 1)
+    }
+
     @Test func recognizedTextMakesImagesSearchable() async throws {
         let fixture = try EngineFixture()
         defer { fixture.cleanUp() }

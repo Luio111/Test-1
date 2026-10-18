@@ -180,6 +180,27 @@ public actor HistoryEngine {
         }
     }
 
+    /// "Neuer Favorit": typed text becomes a favorite with an optional name. It goes
+    /// through the normal capture (sensitive text is masked; favorites never expire);
+    /// text that is already in the history becomes that favorite instead of a second
+    /// entry. Nil when the text is empty or too large.
+    @discardableResult
+    public func addFavorite(text: String, label: String?) throws -> ClipItem? {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        let content = CapturedContent(representations: [ClipRepresentation(type: PasteboardTypeID.plainText, data: Data(text.utf8))])
+        guard case let .stored(result) = try capture(content) else { return nil }
+        let name = label?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanName = (name?.isEmpty ?? true) ? nil : name
+        if result.item.isPinned {
+            if let cleanName {
+                try store.setPinLabel(result.item.id, label: cleanName)
+            }
+        } else {
+            try store.pin(result.item.id, label: cleanName)
+        }
+        return try store.item(id: result.item.id)
+    }
+
     public func setPinLabel(_ id: UUID, label: String?) throws {
         try store.setPinLabel(id, label: label)
     }

@@ -120,6 +120,8 @@ final class PopupController {
         }
         panel.makeKey()
         installMonitors()
+        let entryCount = model.visibleItems.count
+        announce(String(localized: "CopyPal-Verlauf, \(entryCount) Einträge"))
 
         DispatchQueue.main.async { [weak self] in
             MainActor.assumeIsolated {
@@ -181,6 +183,10 @@ final class PopupController {
 
     /// A short confirmation in the footer ("Zu Favoriten hinzugefügt").
     private func showNotice(_ notice: PopupNotice) {
+        switch notice {
+        case .favoriteAdded: announce(String(localized: "Zu Favoriten hinzugefügt"))
+        case .favoriteRemoved: announce(String(localized: "Aus Favoriten entfernt"))
+        }
         noticeTask?.cancel()
         withAnimation(Theme.Motion.quick) {
             model.notice = notice
@@ -277,9 +283,11 @@ final class PopupController {
         case .moveUp:
             model.selectedIndex = max(model.selectedIndex - 1, 0)
             previewSelection()
+            announceSelection()
         case .moveDown:
             model.selectedIndex = min(model.selectedIndex + 1, max(model.visibleItems.count - 1, 0))
             previewSelection()
+            announceSelection()
         case .showPreview:
             showPreview()
         case .hidePreview:
@@ -406,6 +414,33 @@ final class PopupController {
         withAnimation(PopupMotion.resize) {
             updateLayout()
         }
+        let resultCount = model.visibleItems.count
+        if model.query.isEmpty {
+            let listName = model.list == .favorites ? String(localized: "Favoriten") : String(localized: "Verlauf")
+            announce(String(localized: "\(listName), \(resultCount) Einträge"))
+        } else {
+            announce(String(localized: "\(resultCount) Treffer"))
+        }
+    }
+
+    // MARK: VoiceOver
+
+    /// Tells VoiceOver users what changed; the popup never moves the VoiceOver cursor
+    /// away from the app being pasted into.
+    private func announce(_ message: String, priority: NSAccessibilityPriorityLevel = .medium) {
+        guard NSWorkspace.shared.isVoiceOverEnabled else { return }
+        NSAccessibility.post(
+            element: NSApp as Any,
+            notification: .announcementRequested,
+            userInfo: [.announcement: message, .priority: priority.rawValue]
+        )
+    }
+
+    /// ↑/↓: number and title of the new row (the kind only in presentation mode).
+    private func announceSelection() {
+        guard let item = model.selectedItem else { return }
+        let title = model.concealsContent ? visuals.kindLabel(for: item) : (visuals.favoriteName(for: item) ?? visuals.title(for: item))
+        announce("\(model.selectedIndex + 1): \(title)", priority: .high)
     }
 
     private func paste(at index: Int, plainText: Bool) {

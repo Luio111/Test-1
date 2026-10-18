@@ -61,6 +61,9 @@ final class ScreenshotController {
     @ObservationIgnored private var warpedFrom: CGPoint?
     /// ⇧⏎: the text in the selection instead of the picture.
     @ObservationIgnored private var wantsText = false
+    /// ⌘S: the picture also as a file.
+    @ObservationIgnored private var wantsFile = false
+    @ObservationIgnored private var savePending = false
     @ObservationIgnored private var keyMonitor: Any?
     @ObservationIgnored private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
@@ -218,6 +221,8 @@ final class ScreenshotController {
         guard !isActive else { return }
         isActive = true
         wantsText = false
+        wantsFile = false
+        savePending = false
         generation += 1
         let current = generation
         sourceApp = NSWorkspace.shared.frontmostApplication
@@ -391,6 +396,8 @@ final class ScreenshotController {
         guard isOverlayVisible else { return }
         if case let .keyDown(.confirm, modifiers, _) = input {
             wantsText = modifiers.contains(.shift)
+            wantsFile = savePending
+            savePending = false
         }
         switch input {
         case let .mouseMoved(point), let .mouseDown(point, _), let .mouseDragged(point, _), let .mouseUp(point, _):
@@ -511,8 +518,9 @@ final class ScreenshotController {
             let keyCode = event.keyCode
             let modifiers = KeyModifiers(event.modifierFlags)
             let isRepeat = type == .keyDown && event.isARepeat
+            let characters = type == .flagsChanged ? nil : event.charactersIgnoringModifiers
             let consumed = MainActor.assumeIsolated {
-                self?.handleKey(type: type, keyCode: keyCode, modifiers: modifiers, isRepeat: isRepeat) ?? false
+                self?.handleKey(type: type, keyCode: keyCode, modifiers: modifiers, characters: characters, isRepeat: isRepeat) ?? false
             }
             return consumed ? nil : event
         }
@@ -537,13 +545,22 @@ final class ScreenshotController {
         observers.removeAll()
     }
 
-    private func handleKey(type: NSEvent.EventType, keyCode: UInt16, modifiers: KeyModifiers, isRepeat: Bool) -> Bool {
+    private func handleKey(type: NSEvent.EventType, keyCode: UInt16, modifiers: KeyModifiers, characters: String?, isRepeat: Bool) -> Bool {
         guard isOverlayVisible else { return false }
         switch type {
         case .flagsChanged:
             handle(.flagsChanged(modifiers))
             return false
         case .keyDown:
+            if modifiers.contains(.command), characters?.lowercased() == "s" {
+                // ⌘S: like ⏎, and also a file.
+                if !isRepeat {
+                    savePending = true
+                    handle(.keyDown(.confirm, [], isRepeat: false))
+                    savePending = false
+                }
+                return true
+            }
             if let key = ScreenshotKeyMap.key(forKeyCode: keyCode) {
                 handle(.keyDown(key, modifiers, isRepeat: isRepeat))
             }
@@ -595,6 +612,7 @@ final class ScreenshotController {
         let source = sourceBundleID(for: rect)
         let caption = capturedFrom(for: rect)
         let asText = wantsText
+        let asFile = wantsFile
         Task {
             let result: Result<ImageBox, ScreenCaptureEngine.Failure>
             do {
@@ -611,7 +629,7 @@ final class ScreenshotController {
                 if asText {
                     await self.publishText(image, sourceBundleID: source)
                 } else {
-                    await self.publish(image, scale: display.scale, sourceBundleID: source, capturedFrom: caption)
+                    await self.publish(image, scale: display.scale, sourceBundleID: source, capturedFrom: caption, asFile: asFile)
                 }
             case let .failure(failure):
                 self.sessionFailed(failure)
@@ -635,6 +653,7 @@ final class ScreenshotController {
         let source = sourceBundleID(for: rect)
         let caption = capturedFrom(for: rect)
         let asText = wantsText
+        let asFile = wantsFile
         let snapshot = session
         Task {
             let image = await Task.detached(priority: .userInitiated) { () -> ImageBox? in
@@ -645,16 +664,33 @@ final class ScreenshotController {
             if let image, asText {
                 await self.publishText(image, sourceBundleID: source)
             } else if let image {
-                await self.publish(image, scale: scale, sourceBundleID: source, capturedFrom: caption)
+                await self.publish(image, scale: scale, sourceBundleID: source, capturedFrom: caption, asFile: asFile)
             } else {
                 self.app.toast.show(String(localized: "Bildschirmfoto fehlgeschlagen"), systemImage: "exclamationmark.triangle")
             }
         }
     }
 
-    private func publish(_ image: ImageBox, scale: CGFloat, sourceBundleID: String?, capturedFrom: String) async {
+    private func publish(_ image: ImageBox, scale: CGFloat, sourceBundleID: String?, capturedFrom: String, asFile: Bool) async {
+        // ⌘S: the file first, in full resolution; the pasteboard and history as always.
+        var file: URL?
+        if asFile {
+            file = await ScreenshotResultWriter.saveFile(image, scale: scale)
+        }
         let outcome = await ScreenshotResultWriter.publish(image, scale: scale, sourceBundleID: sourceBundleID, capturedFrom: capturedFrom, app: app)
         let symbol = "camera.viewfinder"
+        if asFile {
+            if let file {
+                let folder = FileManager.default.displayName(atPath: file.deletingLastPathComponent().path)
+                app.toast.show(String(localized: "Kopiert und gesichert in „\(folder)“"), systemImage: "square.and.arrow.down")
+            } else {
+                app.toast.show(String(localized: "Datei konnte nicht gesichert werden"), systemImage: "exclamationmark.triangle")
+            }
+            if case let .failed(message) = outcome {
+                Log.app.error("Bildschirmfoto nicht gespeichert: \(message, privacy: .public)")
+            }
+            return
+        }
         switch outcome {
         case let .stored(_, downscaled: downscaled):
             // The halved image is also what lies on the pasteboard: say so.
@@ -957,9 +993,9 @@ final class ScreenshotController {
         case .dragging:
             return String(localized: "⇧ Quadrat · ⌥ von der Mitte · Leertaste verschieben")
         case .selected:
-            return String(localized: "⏎ aufnehmen · ⇧⏎ als Text · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc")
+            return String(localized: "⏎ aufnehmen · ⇧⏎ als Text · ⌘S als Datei · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc")
         case .selectedStitched:
-            return String(localized: "⏎ aufnehmen · ⇧⏎ als Text · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc")
+            return String(localized: "⏎ aufnehmen · ⇧⏎ als Text · ⌘S als Datei · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc")
         case .extending:
             return String(localized: "↓ halten für mehr · ⌥↓ bis zum Ende · Esc stoppt")
         case nil:
@@ -1072,6 +1108,18 @@ final class ScreenshotController {
     // MARK: Self-test
 
     #if DEBUG
+    /// ⌘S as a file of `rect`, without the overlay; the caller removes the file.
+    func saveFileForSelfTest(rect: CGRect) async -> URL? {
+        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(CGPoint(x: rect.midX, y: rect.midY)) }),
+              let display = ScreenCaptureEngine.display(for: screen) else {
+            return nil
+        }
+        let clipped = rect.intersection(screen.frame)
+        let pixels = ScreenshotGeometry.pixels(ScreenshotGeometry.displayLocal(clipped, in: screen.frame), scale: display.scale)
+        guard let image = try? await ScreenCaptureEngine.capture(pixels, of: display) else { return nil }
+        return await ScreenshotResultWriter.saveFile(image, scale: display.scale)
+    }
+
     /// The text in `rect` as ⇧⏎ copies it, without the overlay.
     func captureTextForSelfTest(rect: CGRect) async -> String? {
         guard let screen = NSScreen.screens.first(where: { $0.frame.contains(CGPoint(x: rect.midX, y: rect.midY)) }),

@@ -190,6 +190,18 @@ final class SelfTestRunner {
                 }
                 return (done, "erkannt: \(done)")
             }
+            await check("⌘S legt das Bildschirmfoto als PNG-Datei ab") {
+                guard let url = await self.app.screenshot.saveFileForSelfTest(rect: window.frame) else {
+                    return (false, "keine Datei")
+                }
+                defer { try? FileManager.default.removeItem(at: url) }
+                let data = (try? Data(contentsOf: url)) ?? Data()
+                let size = PNGInfo.size(of: data)
+                let scale = window.backingScaleFactor
+                let expectedWidth = Int((window.frame.width * scale).rounded())
+                let ok = size.map { abs($0.width - expectedWidth) <= 2 } ?? false
+                return (ok, "\(url.lastPathComponent), \(size.map { "\($0.width) × \($0.height)" } ?? "kein PNG")")
+            }
             await check("⇧⏎ kopiert den Text einer Auswahl") {
                 self.textView.string = "Texterkennung Selbsttest 4711"
                 self.textView.font = NSFont.systemFont(ofSize: 28)
@@ -548,6 +560,15 @@ final class SelfTestRunner {
             let gone = await self.waitUntil { !self.app.history.items.contains { $0.preview.title.hasPrefix("Versehentlich kopiert") } }
             let cleared = NSPasteboard.general.string(forType: .string) == nil
             return (stored && gone && cleared, "gespeichert: \(stored), gelöscht: \(gone), Zwischenablage leer: \(cleared)")
+        }
+
+        await check("Neuer Favorit aus eingetipptem Text, mit Name") {
+            await self.app.history.perform { engine in
+                _ = try await engine.addFavorite(text: "Musterstraße 1, 12345 Berlin", label: "Adresse")
+            }
+            let favorite = self.app.history.favorites.first { $0.pinLabel == "Adresse" }
+            let named = favorite.map { self.app.visuals.favoriteName(for: $0) == "Adresse" } ?? false
+            return (favorite != nil && named, "angelegt: \(favorite != nil), Name im Pop-up: \(named)")
         }
 
         await check("Zeiger auf dem Menüleisten-Symbol zeigt die Tastenkürzel darunter") {

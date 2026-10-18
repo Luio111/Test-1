@@ -21,6 +21,7 @@ final class ScreenshotPermissionWindowController: NSObject, NSWindowDelegate {
         let window = window ?? makeWindow()
         self.window = window
         model?.startMonitoring()
+        FocusReturn.remember()
         NSApp.activate()
         // ⌘⇧A may come from a full-screen app: the window opens on that Space, in front
         // even if macOS does not let CopyPal become active.
@@ -34,6 +35,7 @@ final class ScreenshotPermissionWindowController: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         model?.stopMonitoring()
+        FocusReturn.windowWillClose(window)
         controller.permissionWindowDidClose()
     }
 

@@ -20,6 +20,50 @@ enum ScreenshotResultWriter {
         case failed(String)
     }
 
+    /// ⌘S: the picture as a PNG in full resolution, where macOS puts its own
+    /// screenshots (set in the Screenshot app, `com.apple.screencapture location`),
+    /// else on the desktop. "Bildschirmfoto 2026-10-18 um 15.30.12.png"; never
+    /// overwrites a file.
+    static func saveFile(_ image: ImageBox, scale: CGFloat) async -> URL? {
+        let url = uniqueURL(in: screenshotFolder(), name: fileName(for: Date()))
+        let written = await Task.detached(priority: .userInitiated) { () -> Bool in
+            guard let data = ImageConversion.png(image.image, scale: scale) else { return false }
+            return (try? data.write(to: url, options: .withoutOverwriting)) != nil
+        }.value
+        return written ? url : nil
+    }
+
+    static func screenshotFolder() -> URL {
+        if let path = UserDefaults(suiteName: "com.apple.screencapture")?.string(forKey: "location") {
+            let expanded = (path as NSString).expandingTildeInPath
+            var isDirectory: ObjCBool = false
+            if FileManager.default.fileExists(atPath: expanded, isDirectory: &isDirectory), isDirectory.boolValue {
+                return URL(fileURLWithPath: expanded, isDirectory: true)
+            }
+        }
+        return FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)[0]
+    }
+
+    private static func fileName(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        let day = formatter.string(from: date)
+        formatter.dateFormat = "HH.mm.ss"
+        let time = formatter.string(from: date)
+        return String(localized: "Bildschirmfoto \(day) um \(time)")
+    }
+
+    private static func uniqueURL(in folder: URL, name: String) -> URL {
+        var url = folder.appendingPathComponent(name).appendingPathExtension("png")
+        var number = 2
+        while FileManager.default.fileExists(atPath: url.path) {
+            url = folder.appendingPathComponent("\(name) (\(number))").appendingPathExtension("png")
+            number += 1
+        }
+        return url
+    }
+
     enum TextOutcome {
         case copied(lineCount: Int)
         case noText

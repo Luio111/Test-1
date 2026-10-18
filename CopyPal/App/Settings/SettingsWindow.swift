@@ -17,8 +17,13 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         let window = window ?? makeWindow(page: page)
         self.window = window
         app.loginItem.refresh()
+        FocusReturn.remember()
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        FocusReturn.windowWillClose(window)
     }
 
     private func makeWindow(page: SettingsPage) -> NSWindow {
@@ -649,12 +654,22 @@ private struct AppListEditor: View {
 private struct FavoritesSettings: View {
     let history: HistoryModel
     @State private var labels: [UUID: String] = [:]
+    @State private var creating = false
 
     var body: some View {
         PageHeader(systemImage: "pin", title: "Favoriten", subtitle: "Benennen, sortieren, löschen. Favoriten überstehen „Verlauf löschen“ und jede Aufbewahrungsfrist.")
 
+        HStack {
+            Spacer()
+            Button("Neuer Favorit …") { creating = true }
+                .buttonStyle(SubtleButtonStyle())
+        }
+        .sheet(isPresented: $creating) {
+            NewFavoriteSheet(history: history)
+        }
+
         if history.favorites.isEmpty {
-            Text("Noch keine Favoriten. Im Pop-up macht ⌘P den ausgewählten Eintrag zum Favoriten.")
+            Text("Noch keine Favoriten. Im Pop-up macht ⌘P den ausgewählten Eintrag zum Favoriten – oder lege hier einen an.")
                 .font(Theme.Typography.body)
                 .foregroundStyle(Theme.Colors.textSecondary)
         } else {
@@ -694,6 +709,59 @@ private struct FavoritesSettings: View {
     private func remove(_ item: ClipItem) {
         let id = item.id
         Task { await history.perform { try await $0.togglePin(id) } }
+    }
+}
+
+/// A favorite from typed text – an address, a greeting, a template – without first
+/// copying it somewhere.
+private struct NewFavoriteSheet: View {
+    let history: HistoryModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var text = ""
+
+    private var isEmpty: Bool {
+        text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.m) {
+            Text("Neuer Favorit")
+                .font(Theme.Typography.bodyMedium)
+                .foregroundStyle(Theme.Colors.textPrimary)
+            TextField("Name (optional)", text: $name)
+                .textFieldStyle(.roundedBorder)
+            TextEditor(text: $text)
+                .font(Theme.Typography.body)
+                .scrollContentBackground(.hidden)
+                .padding(Theme.Spacing.s)
+                .frame(minHeight: 140)
+                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.control))
+                .accessibilityLabel(Text("Text des Favoriten"))
+            HStack(spacing: Theme.Spacing.s) {
+                Spacer()
+                Button("Abbrechen") { dismiss() }
+                    .buttonStyle(SubtleButtonStyle())
+                    .keyboardShortcut(.cancelAction)
+                Button("Hinzufügen") { add() }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(isEmpty)
+            }
+        }
+        .padding(Theme.Spacing.xl)
+        .frame(width: 460)
+        .background(Theme.Colors.background)
+    }
+
+    private func add() {
+        let typed = self.text
+        let label = self.name
+        Task {
+            await history.perform { engine in
+                _ = try await engine.addFavorite(text: typed, label: label)
+            }
+            dismiss()
+        }
     }
 }
 

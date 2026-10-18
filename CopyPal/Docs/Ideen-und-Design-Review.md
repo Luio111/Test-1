@@ -323,6 +323,6 @@ Auftrag: die fünf wichtigsten Erweiterungen umsetzen, weitere Ideen prüfen und
 | P2 | Pop-up aus Bildschirmfreigaben heraushalten, Präsentationsmodus (#4) |
 | P3 | Vorschau mit → im Pop-up (#6) |
 | P4 | Texterkennung: ⇧⏎ kopiert Text, Bilder werden durchsuchbar und auf Sensibles geprüft (#1) |
-| P5 | Fenster geben den Fokus zurück (M1) · Verlaufsfenster per Tastatur (H4) · VoiceOver im Pop-up (H3, M16) · Bildschirmfoto als Datei · Favoriten anlegen |
+| P5 | Fenster geben den Fokus zurück (M1) · VoiceOver im Pop-up (H3) · Bildschirmfoto als Datei (⌘S) · Favoriten anlegen |
 
-**Bewusst noch nicht:** App-Regeln (#8) und Automation (#9) brauchen eigene Entscheidungen zu Datenschutz und Oberfläche. Umwandeln (#10) und Sammeln (#19) konkurrieren um → und wiederholtes ⌘V. Schwärzen (#7) kommt nach der Texterkennung. Ergebnis-Kapsel (#20), Selbstauslöser (#15), Schweben (#21) und seitliches Erweitern (#22) sind Nischen.
+**Bewusst noch nicht:** Das Verlaufsfenster per Tastatur (H4) braucht eine eigene Auswahl-Logik mit lesbaren Farben auf der Systemauswahl; das lässt sich nur am Mac sauber abstimmen. App-Regeln (#8) und Automation (#9) brauchen eigene Entscheidungen zu Datenschutz und Oberfläche. Umwandeln (#10) und Sammeln (#19) konkurrieren um → und wiederholtes ⌘V. Schwärzen (#7) kommt nach der Texterkennung. Ergebnis-Kapsel (#20), Selbstauslöser (#15), Schweben (#21) und seitliches Erweitern (#22) sind Nischen.

@@ -33,6 +33,7 @@ Schwerpunkte sind Datenschutz und Einfachheit. Die iPhone-App ist ausdrücklich 
 | M9 | Beta-Vertrieb: Developer ID, Notarisierung, Sparkle | vorbereitet (Sparkle, `scripts/release.sh`, Anleitungen) · braucht Developer-Account (D10) |
 | M10 | Release 1.0 | vorbereitet (Website, Rechtstexte als Vorlage, Checkliste) · braucht D11 und deine Angaben |
 | M11 | Bildschirmfoto: ⌘⇧A, Einrasten an Fenstern und Kontrastbereichen, Scroll-Aufnahme | umgesetzt, Kernlogik auf Linux getestet, CI-Selbsttest · Handtest offen (`Docs/Testplaene/M11.md`) |
+| M12 | Abrundung: Texterkennung, Präsentationsmodus, Vorschau, Favoritennamen, Kürzel-Karte | umgesetzt, Kern auf Linux getestet, CI-Selbsttest · Handtest offen (`Docs/Testplaene/M12.md`) |
 
 ### Reihenfolge (schwierigste Risiken zuerst)
 
@@ -634,6 +635,25 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 - [ ] Alle Kern-Algorithmen sind auf Linux getestet (Automat, Kandidaten, Kontrastbereiche, Zusammensetzen, Scroll-Planung). *(CI)*
 - [ ] Einfügen klappt in TextEdit, Mail, Safari (TIFF) und Chrome, Slack, Figma (PNG).
 - [ ] Null Compiler-Warnungen; der Selbsttest bleibt grün. *(CI)*
+
+### M12: Abrundung – was CopyPal im Alltag rund macht
+
+Plan und Auswahl: `Docs/Ideen-und-Design-Review.md`, Abschnitt „Umsetzungsplan“.
+
+**Aufgaben**
+- **Kürzel-Karte:** Ruht der Zeiger auf dem Menüleisten-Symbol, zeigt eine Karte darunter die Kürzel (Pop-up, Bildschirmfoto) und was fehlt oder pausiert ist. Das Onboarding stellt ⌘⇧A vor und bietet die Freigabe an.
+- **Pop-up:** Favoritennamen in der Zeile; Vorschau mit → (Text bis 4.000 Zeichen, ganzer Link, Bild, Farbe, Dateien; ← und Esc zurück); sensible Einträge zählen herunter („noch 42 s“, „⌘P behalten“); VoiceOver hört Öffnen, Auswahl, Trefferzahl und Hinweise.
+- **Suche:** findet auch App-Namen und Typwörter (bild, link, farbe, datei, bildschirmfoto), nach den Inhaltstreffern.
+- **Bildschirmfreigabe:** Pop-up und Hinweise bitten Freigaben, sie wegzulassen (abschaltbar). Präsentationsmodus (Menü, Einstellungen): Zeilen zeigen nur Art, App und Alter; endet nach 2 Stunden.
+- **Bildschirmfoto:** App und Fenstertitel in Zeile und Suche; ⇧⏎ kopiert den Text der Auswahl; ⌘S legt zusätzlich ein PNG dort ab, wo macOS Bildschirmfotos ablegt.
+- **Texterkennung (Vision, auf diesem Mac):** Bilder werden durchsuchbar; eine IBAN, Karte oder ein Schlüssel im Bild macht den Eintrag sensibel. Abschaltbar.
+- **Kleinigkeiten mit Wirkung:** ⇧-Einfügen entfernt Tracking-Parameter aus Links; „Letzte Kopie vergessen“ im Menü; „Neuer Favorit …“ aus eingetipptem Text; CopyPal-Fenster geben beim Schließen den Fokus an die vorherige App zurück.
+
+**Fertig wenn**
+- [ ] Alle Punkte aus `Docs/Testplaene/M12.md` am Mac geprüft.
+- [ ] Kern (Suche, Link-Bereinigung, Lesereihenfolge, Texterkennung im Speicher, Favoriten) auf Linux getestet. *(CI)*
+- [ ] Selbsttest: Präsentationsmodus, Vorschau, saubere Links, „Letzte Kopie vergessen“, Kürzel-Karte, Bildschirmfoto-Zeile, Texterkennung, ⌘S, neuer Favorit. *(CI)*
+- [ ] Null Compiler-Warnungen. *(CI)*
 
 ---
 

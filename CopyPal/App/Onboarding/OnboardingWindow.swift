@@ -20,12 +20,14 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         let window = window ?? makeWindow()
         self.window = window
         model?.startMonitoring()
+        FocusReturn.remember()
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
     }
 
     func windowWillClose(_ notification: Notification) {
         model?.stopMonitoring()
+        FocusReturn.windowWillClose(window)
     }
 
     private func makeWindow() -> NSWindow {
