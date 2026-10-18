@@ -15,6 +15,8 @@ final class ImageTextIndexer {
     private var isRunning = false
     /// Something changed that the lists should show (new search text, a sensitive hit).
     private var needsReload = false
+    /// Bytes handed back to the system after the last batch (self-test).
+    private(set) var releasedBytes = 0
 
     init(history: HistoryModel, recognition: TextRecognitionClient) {
         self.history = history
@@ -51,6 +53,9 @@ final class ImageTextIndexer {
                 needsReload = false
                 Task { await history.reload() }
             }
+            // Each image was decrypted whole (up to 200 MB for a long screenshot): hand the
+            // freed pages back now instead of leaving them with the allocator.
+            releasedBytes = malloc_zone_pressure_relief(nil, 0)
             return
         }
         isRunning = true

@@ -27,6 +27,8 @@ final class SelfTestRunner {
     private var skipped = 0
     private let pasteKey: UInt16
     private let secretMarker = "SelbsttestGeheimwort\(Int.random(in: 1_000...9_999))"
+    /// Memory after each group of checks: shows where the footprint grows.
+    private var memorySteps: [String] = []
 
     init(app: AppController) {
         self.app = app
@@ -73,10 +75,15 @@ final class SelfTestRunner {
         app.input.tap.diagnostics.isRecording = true
         Self.write(String(format: "Event-Tap läuft · ⌘V-Taste %ld · Halteschwelle %.2f s", Int(pasteKey), AppSettings.holdThreshold))
 
+        noteMemory("Erfassen")
         await gestureChecks()
+        noteMemory("Geste")
         await popupChecks()
+        noteMemory("Pop-up")
         await screenshotChecks()
+        noteMemory("Bildschirmfoto")
         await robustnessChecks()
+        noteMemory("100 Kopien")
         await performanceChecks()
 
         if let popup = app.input.tap.diagnostics.snapshot().popup {
@@ -613,9 +620,14 @@ final class SelfTestRunner {
             ))
         }
 
+        noteMemory("großes Bild")
+
         // New images are read in the background once; idle means after that.
         let indexed = await waitUntil(timeout: 60_000) { self.app.textIndexer.isIdle }
-        Self.write("Texterkennung im Hintergrund \(indexed ? "fertig" : "nach 60 s noch beschäftigt")")
+        Self.write(indexed
+            ? String(format: "Texterkennung im Hintergrund fertig · %.0f MB an das System zurückgegeben", Double(app.textIndexer.releasedBytes) / 1_000_000)
+            : "Texterkennung im Hintergrund nach 60 s noch beschäftigt")
+        noteMemory("Texterkennung")
         await check("Texterkennung läuft im Hilfsprozess, der sich danach beendet") {
             let recognition = self.app.textRecognition
             guard recognition.hasHelper else {
@@ -632,6 +644,7 @@ final class SelfTestRunner {
         Self.write(String(format: "Messwert CPU im Leerlauf (5 s): %.2f %%", idle * 100))
         let memory = Self.memoryFootprint() / 1_000_000
         Self.write(String(format: "Messwert Speicher: %.0f MB bei %ld Einträgen", memory, app.history.items.count))
+        Self.write("Messwert Speicher-Verlauf (MB): " + memorySteps.joined(separator: " · "))
         // Vision's models used to stay here after the first image (121–129 MB, R32).
         await check("Speicher nach der Texterkennung unter 100 MB") {
             (memory < 100, String(format: "%.0f MB", memory))
@@ -639,6 +652,10 @@ final class SelfTestRunner {
     }
 
     // MARK: Helpers
+
+    private func noteMemory(_ phase: String) {
+        memorySteps.append(String(format: "%@ %.0f", phase, Self.memoryFootprint() / 1_000_000))
+    }
 
     private func check(_ name: String, _ body: () async -> (Bool, String)) async {
         let (passed, detail) = await body()
