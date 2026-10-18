@@ -59,6 +59,8 @@ final class ScreenshotController {
     /// current view without scrolling first.
     @ObservationIgnored private var needsResync = false
     @ObservationIgnored private var warpedFrom: CGPoint?
+    /// ⇧⏎: the text in the selection instead of the picture.
+    @ObservationIgnored private var wantsText = false
     @ObservationIgnored private var keyMonitor: Any?
     @ObservationIgnored private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
@@ -215,6 +217,7 @@ final class ScreenshotController {
         startPending = false
         guard !isActive else { return }
         isActive = true
+        wantsText = false
         generation += 1
         let current = generation
         sourceApp = NSWorkspace.shared.frontmostApplication
@@ -386,6 +389,9 @@ final class ScreenshotController {
 
     private func handle(_ input: ScreenshotInput) {
         guard isOverlayVisible else { return }
+        if case let .keyDown(.confirm, modifiers, _) = input {
+            wantsText = modifiers.contains(.shift)
+        }
         switch input {
         case let .mouseMoved(point), let .mouseDown(point, _), let .mouseDragged(point, _), let .mouseUp(point, _):
             pointer = point
@@ -588,6 +594,7 @@ final class ScreenshotController {
         let excluded = overlayWindowIDs
         let source = sourceBundleID(for: rect)
         let caption = capturedFrom(for: rect)
+        let asText = wantsText
         Task {
             let result: Result<ImageBox, ScreenCaptureEngine.Failure>
             do {
@@ -601,7 +608,11 @@ final class ScreenshotController {
             switch result {
             case let .success(image):
                 self.endSession()
-                await self.publish(image, scale: display.scale, sourceBundleID: source, capturedFrom: caption)
+                if asText {
+                    await self.publishText(image, sourceBundleID: source)
+                } else {
+                    await self.publish(image, scale: display.scale, sourceBundleID: source, capturedFrom: caption)
+                }
             case let .failure(failure):
                 self.sessionFailed(failure)
             }
@@ -623,6 +634,7 @@ final class ScreenshotController {
         let scale = state.display.scale
         let source = sourceBundleID(for: rect)
         let caption = capturedFrom(for: rect)
+        let asText = wantsText
         let snapshot = session
         Task {
             let image = await Task.detached(priority: .userInitiated) { () -> ImageBox? in
@@ -630,7 +642,9 @@ final class ScreenshotController {
             }.value
             guard current == self.generation else { return }
             self.endSession()
-            if let image {
+            if let image, asText {
+                await self.publishText(image, sourceBundleID: source)
+            } else if let image {
                 await self.publish(image, scale: scale, sourceBundleID: source, capturedFrom: caption)
             } else {
                 self.app.toast.show(String(localized: "Bildschirmfoto fehlgeschlagen"), systemImage: "exclamationmark.triangle")
@@ -657,6 +671,23 @@ final class ScreenshotController {
         case let .failed(message):
             Log.app.error("Bildschirmfoto nicht gespeichert: \(message, privacy: .public)")
             app.toast.show(String(localized: "Bildschirmfoto fehlgeschlagen"), systemImage: "exclamationmark.triangle")
+        }
+    }
+
+    /// ⇧⏎: the recognized text goes to the pasteboard and the history, like a copy.
+    private func publishText(_ image: ImageBox, sourceBundleID: String?) async {
+        let symbol = "text.viewfinder"
+        switch await ScreenshotResultWriter.publishText(image, sourceBundleID: sourceBundleID, app: app) {
+        case let .copied(lineCount):
+            app.toast.show(
+                lineCount == 1 ? String(localized: "Text kopiert · 1 Zeile") : String(localized: "Text kopiert · \(lineCount) Zeilen"),
+                systemImage: symbol
+            )
+        case .noText:
+            app.toast.show(String(localized: "Kein Text erkannt"), systemImage: symbol)
+        case let .failed(message):
+            Log.app.error("Text nicht übernommen: \(message, privacy: .public)")
+            app.toast.show(String(localized: "Texterkennung fehlgeschlagen"), systemImage: "exclamationmark.triangle")
         }
     }
 
@@ -926,9 +957,9 @@ final class ScreenshotController {
         case .dragging:
             return String(localized: "⇧ Quadrat · ⌥ von der Mitte · Leertaste verschieben")
         case .selected:
-            return String(localized: "⏎ aufnehmen · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc")
+            return String(localized: "⏎ aufnehmen · ⇧⏎ als Text · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc")
         case .selectedStitched:
-            return String(localized: "⏎ aufnehmen · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc")
+            return String(localized: "⏎ aufnehmen · ⇧⏎ als Text · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc")
         case .extending:
             return String(localized: "↓ halten für mehr · ⌥↓ bis zum Ende · Esc stoppt")
         case nil:
@@ -1041,6 +1072,21 @@ final class ScreenshotController {
     // MARK: Self-test
 
     #if DEBUG
+    /// The text in `rect` as ⇧⏎ copies it, without the overlay.
+    func captureTextForSelfTest(rect: CGRect) async -> String? {
+        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(CGPoint(x: rect.midX, y: rect.midY)) }),
+              let display = ScreenCaptureEngine.display(for: screen) else {
+            return nil
+        }
+        let clipped = rect.intersection(screen.frame)
+        let pixels = ScreenshotGeometry.pixels(ScreenshotGeometry.displayLocal(clipped, in: screen.frame), scale: display.scale)
+        guard let image = try? await ScreenCaptureEngine.capture(pixels, of: display),
+              case .copied = await ScreenshotResultWriter.publishText(image, sourceBundleID: nil, app: app) else {
+            return nil
+        }
+        return NSPasteboard.general.string(forType: .string)
+    }
+
     enum SelfTestCapture {
         case stored(ClipItem)
         case pasteboardOnly(String)

@@ -28,6 +28,7 @@ enum AppSettings {
         static let loadFavicons = "loadFavicons"
         static let cleanLinks = "cleanLinksOnPlainPaste"
         static let hideFromScreenSharing = "hideFromScreenSharing"
+        static let recognizeTextInImages = "recognizeTextInImages"
         static let presentationUntil = "presentationUntil"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let screenshotEnabled = "screenshotEnabled"
@@ -76,6 +77,7 @@ enum AppSettings {
             Key.loadFavicons: false,
             Key.cleanLinks: true,
             Key.hideFromScreenSharing: true,
+            Key.recognizeTextInImages: true,
             Key.hasCompletedOnboarding: false,
             Key.screenshotEnabled: true,
             Key.screenshotScrollReversed: false,
@@ -186,6 +188,13 @@ enum AppSettings {
             return value > 0 ? Date(timeIntervalSince1970: value) : nil
         }
         set { set(newValue?.timeIntervalSince1970 ?? 0, for: Key.pausedUntil) }
+    }
+
+    /// Text in images is recognized on this Mac: images become searchable and are
+    /// checked for sensitive content.
+    static var recognizeTextInImages: Bool {
+        get { defaults.bool(forKey: Key.recognizeTextInImages) }
+        set { set(newValue, for: Key.recognizeTextInImages) }
     }
 
     /// Presentation mode is on until then (see `PresentationMode`).

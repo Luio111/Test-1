@@ -23,6 +23,8 @@ final class AppController {
     let popup: PopupController
     /// Popup without content while the screen is shared.
     let presentation: PresentationMode
+    /// Text in images: searchable, checked for sensitive content.
+    let textIndexer: ImageTextIndexer
     let hotKey = GlobalHotKey()
     /// ⌘⇧A (M11); a second Carbon slot, dispatched by id like the first.
     let screenshotHotKey = GlobalHotKey()
@@ -82,6 +84,7 @@ final class AppController {
         self.paster = paster
         let presentation = PresentationMode()
         self.presentation = presentation
+        textIndexer = ImageTextIndexer(history: history)
         popup = PopupController(history: history, visuals: visuals, paster: paster, presentation: presentation)
     }
 
@@ -114,6 +117,9 @@ final class AppController {
 
         capture.onStored = { [weak self] item in
             self?.lastCopiedID = item.id
+            if item.kind == .image {
+                self?.textIndexer.enqueue(item.id)
+            }
             self?.didStoreCopy()
         }
         capture.start()
@@ -141,6 +147,11 @@ final class AppController {
         }
         if !AppSettings.hasCompletedOnboarding, !Self.isSelfTest {
             showOnboarding()
+        }
+        // Older images, once the launch has settled.
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.isSelfTest ? 1 : 20))
+            self?.textIndexer.catchUp()
         }
     }
 

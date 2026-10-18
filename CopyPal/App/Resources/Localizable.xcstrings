@@ -1881,6 +1881,16 @@
         }
       }
     },
+    "Kein Text erkannt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No text found"
+          }
+        }
+      }
+    },
     "Kein Übergang gefunden – bisheriger Teil bleibt" : {
       "localizations" : {
         "en" : {
@@ -2187,6 +2197,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete"
+          }
+        }
+      }
+    },
+    "Macht Bilder und Bildschirmfotos durchsuchbar und prüft sie auf IBAN, Kartennummern und Schlüssel – direkt auf diesem Mac, ohne Netz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Makes images and screenshots searchable and checks them for IBANs, card numbers and keys – on this Mac, without the network."
           }
         }
       }
@@ -2897,6 +2917,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Text"
+          }
+        }
+      }
+    },
+    "Text in Bildern erkennen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recognize text in images"
+          }
+        }
+      }
+    },
+    "Text kopiert · %lld Zeilen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text copied · %lld lines"
+          }
+        }
+      }
+    },
+    "Text kopiert · 1 Zeile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text copied · 1 line"
+          }
+        }
+      }
+    },
+    "Texterkennung fehlgeschlagen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text recognition failed"
           }
         }
       }
@@ -3661,22 +3721,22 @@
         }
       }
     },
-    "⏎ aufnehmen · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc" : {
+    "⏎ aufnehmen · ⇧⏎ als Text · ↓ ↑ erweitern · ⌘-Pfeile verschieben · Esc" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⏎ capture · ↓ ↑ extend · ⌘ arrows move · Esc"
+            "value" : "⏎ capture · ⇧⏎ as text · ↓ ↑ extend · ⌘ arrows move · Esc"
           }
         }
       }
     },
-    "⏎ aufnehmen · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc" : {
+    "⏎ aufnehmen · ⇧⏎ als Text · ↓ ↑ weiter · ⌫ Abschnitt zurück · Esc" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "⏎ capture · ↓ ↑ continue · ⌫ remove section · Esc"
+            "value" : "⏎ capture · ⇧⏎ as text · ↓ ↑ continue · ⌫ remove section · Esc"
           }
         }
       }

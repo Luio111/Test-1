@@ -465,6 +465,9 @@ private struct PrivacySettingsPage: View {
             SettingRow(title: "Zwischenablage danach leeren", detail: "Liegt ein sensibler Eintrag beim Ablauf noch in der Zwischenablage, wird sie geleert.") {
                 RowSwitch(isOn: $settings.clearPasteboardAfterSensitive)
             }
+            SettingRow(title: "Text in Bildern erkennen", detail: "Macht Bilder und Bildschirmfotos durchsuchbar und prüft sie auf IBAN, Kartennummern und Schlüssel – direkt auf diesem Mac, ohne Netz.") {
+                RowSwitch(isOn: $settings.recognizeTextInImages)
+            }
         }
 
         Hairline()

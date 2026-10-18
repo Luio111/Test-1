@@ -184,6 +184,21 @@ final class SelfTestRunner {
                 let found = HistorySearch.filter(self.app.history.items, query: "bildschirmfoto selbsttest").first?.id == item.id
                 return (title == expected && found, "Zeile: „\(title)“ (erwartet „\(expected)“), Suche findet es: \(found)")
             }
+            await check("Bildschirmfoto wird im Hintergrund nach Text durchsucht") {
+                let done = await self.waitUntil(timeout: 20_000) {
+                    self.app.history.items.first { $0.id == item.id }?.preview.textRecognized == true
+                }
+                return (done, "erkannt: \(done)")
+            }
+            await check("⇧⏎ kopiert den Text einer Auswahl") {
+                self.textView.string = "Texterkennung Selbsttest 4711"
+                self.textView.font = NSFont.systemFont(ofSize: 28)
+                await self.sleep(300)
+                let text = await self.app.screenshot.captureTextForSelfTest(rect: window.frame) ?? ""
+                let recognized = text.contains("Texterkennung") && text.contains("4711")
+                let stored = await self.waitUntil { self.app.history.items.contains { $0.preview.searchText.contains("4711") } }
+                return (recognized && stored, "erkannt: „\(text.replacingOccurrences(of: "\n", with: " ⏎ "))“, im Verlauf: \(stored)")
+            }
         case let .pasteboardOnly(reason):
             await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
                 (false, "nur in der Zwischenablage: \(reason)")

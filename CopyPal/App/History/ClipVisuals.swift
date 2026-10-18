@@ -252,7 +252,8 @@ struct ClipLeadingVisual: View {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color(.sRGB, red: color.red, green: color.green, blue: color.blue, opacity: color.alpha))
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Theme.Colors.divider))
-            } else if let thumbnail = visuals.thumbnail(for: item) {
+            } else if item.sensitivity == nil, let thumbnail = visuals.thumbnail(for: item) {
+                // A picture found to hold an IBAN or a key shows its symbol only.
                 // Square crop in the icon column: framed before clipping, so wide
                 // screenshots do not spill over the number and the title.
                 Image(nsImage: thumbnail)

@@ -20,6 +20,49 @@ enum ScreenshotResultWriter {
         case failed(String)
     }
 
+    enum TextOutcome {
+        case copied(lineCount: Int)
+        case noText
+        case failed(String)
+    }
+
+    /// ⇧⏎ in the overlay: the text in the picture, recognized on this Mac, goes to the
+    /// pasteboard and through the normal capture into the history – masking, expiry
+    /// and "this Mac only" apply as for any copy. Pause and the ignore list keep it
+    /// out of the history.
+    static func publishText(_ image: ImageBox, sourceBundleID: String?, app: AppController) async -> TextOutcome {
+        let recognized = await Task.detached(priority: .userInitiated) {
+            TextRecognizer.text(in: image.image)
+        }.value
+        guard let text = recognized, !text.isEmpty else {
+            return .noText
+        }
+        let fromIgnoredApp = sourceBundleID.map { AppSettings.ignoredBundleIDs.contains($0) } ?? false
+        let detection = await app.engine.currentPolicy.detection
+        let sensitive = SensitiveContentDetector.detect(text, options: detection) != nil
+        let keepLocal = fromIgnoredApp || sensitive
+        let representations = [ClipRepresentation(type: PasteboardTypeID.plainText, data: Data(text.utf8))]
+        let changeCount = PasteboardWriter.write(
+            representations,
+            to: app.capture.monitor.pasteboard,
+            options: PasteboardWriter.Options(localOnly: keepLocal, concealed: keepLocal)
+        )
+        app.capture.registerOwnWrite(changeCount: changeCount)
+        let lineCount = TextFolding.lineCount(of: text)
+        guard !app.capture.isPaused, !fromIgnoredApp else {
+            return .copied(lineCount: lineCount)
+        }
+        let content = CapturedContent(representations: representations, sourceBundleID: sourceBundleID ?? Bundle.main.bundleIdentifier)
+        do {
+            if case .stored = try await app.engine.capture(content) {
+                await app.history.reload()
+            }
+            return .copied(lineCount: lineCount)
+        } catch {
+            return .failed(String(describing: error))
+        }
+    }
+
     /// `sourceBundleID` is the app whose window the selection covers (ignore list,
     /// history icon); `capturedFrom` names app and window for the row and the search.
     static func publish(_ image: ImageBox, scale: CGFloat, sourceBundleID: String?, capturedFrom: String, app: AppController) async -> Outcome {
@@ -68,6 +111,7 @@ enum ScreenshotResultWriter {
             switch try await app.engine.capture(content) {
             case let .stored(result):
                 await app.history.reload()
+                app.textIndexer.enqueue(result.item.id)
                 return .stored(result.item, downscaled: fitted.downscaled)
             case .skipped(.tooLarge):
                 return .pasteboardOnly(.tooLarge)

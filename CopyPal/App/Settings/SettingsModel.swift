@@ -100,6 +100,11 @@ final class SettingsModel: Observable {
         set { write(\.cleanLinks) { AppSettings.cleanLinks = newValue } }
     }
 
+    var recognizeTextInImages: Bool {
+        get { read(\.recognizeTextInImages) { AppSettings.recognizeTextInImages } }
+        set { write(\.recognizeTextInImages) { AppSettings.recognizeTextInImages = newValue } }
+    }
+
     var hideFromScreenSharing: Bool {
         get { read(\.hideFromScreenSharing) { AppSettings.hideFromScreenSharing } }
         set { write(\.hideFromScreenSharing) { AppSettings.hideFromScreenSharing = newValue } }
