@@ -218,6 +218,11 @@ final class AppController {
     }
 
     #if DEBUG
+    /// Self-test: the menu bar icon and its shortcuts card.
+    var statusItemController: StatusItemController? {
+        statusItem
+    }
+
     func advanceTime(days: Int) {
         timeSource.advance(by: TimeInterval(days) * 86_400)
         runMaintenance()

@@ -52,7 +52,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
 }
 
 enum OnboardingStep: Int, CaseIterable {
-    case welcome, privacy, accessibility, pasteboard, practice, finish
+    case welcome, privacy, accessibility, pasteboard, practice, screenshot, finish
 }
 
 @MainActor
@@ -61,6 +61,9 @@ final class OnboardingModel {
     var step: OnboardingStep = .welcome
     private(set) var accessibility: PermissionState = AccessibilityPermission.state
     private(set) var pasteboardAccess: PasteboardAccessStatus = PasteboardInspector.accessStatus()
+    private(set) var screenCapture: PermissionState = ScreenCapturePermission.state
+    /// The system prompt for Screen Recording comes once; afterwards only System Settings.
+    private(set) var screenCaptureAsked = AppSettings.screenshotPermissionAsked
     var practiceText = ""
     private(set) var samplesCopied = false
 
@@ -101,6 +104,22 @@ final class OnboardingModel {
     private func refresh() {
         accessibility = AccessibilityPermission.state
         pasteboardAccess = PasteboardInspector.accessStatus()
+        screenCapture = ScreenCapturePermission.state
+    }
+
+    /// The screenshot shortcut as the menu bar writes it (⌘⇧A unless changed).
+    var screenshotShortcut: String {
+        KeyboardLayout.displayString(for: AppSettings.screenshotHotKey)
+    }
+
+    func requestScreenCapture() {
+        app.screenshot.requestPermission()
+        screenCaptureAsked = true
+        refresh()
+    }
+
+    func openScreenCaptureSettings() {
+        app.screenshot.openSystemSettings()
     }
 
     func next() {
@@ -187,6 +206,7 @@ struct OnboardingView: View {
         case .accessibility: accessibility
         case .pasteboard: pasteboard
         case .practice: practice
+        case .screenshot: screenshot
         case .finish: finish
         }
     }
@@ -283,9 +303,41 @@ struct OnboardingView: View {
         }
     }
 
+    private var screenshot: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+            PageHeader(
+                systemImage: "camera.viewfinder",
+                title: "Bildschirmfoto mit \(model.screenshotShortcut)",
+                subtitle: "Das Bild landet sofort in der Zwischenablage und im Verlauf – bereit für ⌘V."
+            )
+            explanationRow("macwindow", title: "Klick nimmt ein Fenster oder einen Bereich auf", text: "Der Rahmen rastet dort ein, wo der Zeiger steht. Ziehen wählt frei, Esc bricht ab.")
+            explanationRow("arrow.down.to.line", title: "↓ erweitert die Aufnahme", text: "CopyPal scrollt weiter und setzt alles zu einem Bild zusammen – auch, was unterhalb des sichtbaren Bereichs liegt.")
+            HStack(spacing: Theme.Spacing.m) {
+                Text("Bildschirmaufnahme").font(Theme.Typography.bodyMedium)
+                if model.screenCapture == .granted {
+                    StatusTag(text: "Erteilt", style: .green)
+                    Text("Probier es aus: \(model.screenshotShortcut) drücken.").font(Theme.Typography.body)
+                } else {
+                    StatusTag(text: "Noch nicht erteilt", style: .orange)
+                    if model.screenCaptureAsked {
+                        Button("Systemeinstellungen öffnen") { model.openScreenCaptureSettings() }
+                            .buttonStyle(PrimaryButtonStyle())
+                    } else {
+                        Button("Freigabe anfordern") { model.requestScreenCapture() }
+                            .buttonStyle(PrimaryButtonStyle())
+                    }
+                }
+            }
+            Text("CopyPal nimmt nur auf, wenn du das Kürzel drückst – nie im Hintergrund. Die Freigabe geht auch später, beim ersten \(model.screenshotShortcut).")
+                .font(Theme.Typography.caption)
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     private var finish: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-            PageHeader(systemImage: "checkmark.circle", title: "Fertig", subtitle: "CopyPal läuft in der Menüleiste. Dort findest du Verlauf, Pause und Einstellungen.")
+            PageHeader(systemImage: "checkmark.circle", title: "Fertig", subtitle: "CopyPal läuft in der Menüleiste. Dort findest du Verlauf, Pause und Einstellungen – und die Tastenkürzel, sobald der Zeiger auf dem Symbol ruht.")
             LoginItemSetting(loginItem: loginItem, detail: "Empfohlen, damit dein Verlauf immer mitläuft.")
         }
     }
@@ -337,6 +389,7 @@ struct OnboardingView: View {
         switch model.step {
         case .accessibility where model.accessibility != .granted: String(localized: "Später")
         case .pasteboard where model.pasteboardAccess != .alwaysAllow && model.pasteboardAccess != .unavailable: String(localized: "Später")
+        case .screenshot where model.screenCapture != .granted: String(localized: "Später")
         case .finish: String(localized: "Los geht’s")
         default: String(localized: "Weiter")
         }

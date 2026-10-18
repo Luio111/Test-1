@@ -651,6 +651,16 @@
         }
       }
     },
+    "Berechtigung fehlt – Klick für mehr" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission missing – click for more"
+          }
+        }
+      }
+    },
     "Berechtigungen" : {
       "localizations" : {
         "en" : {
@@ -811,6 +821,16 @@
         }
       }
     },
+    "Bildschirmfoto mit %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot with %@"
+          }
+        }
+      }
+    },
     "Bildschirmfoto mit Tastenkürzel" : {
       "localizations" : {
         "en" : {
@@ -911,12 +931,12 @@
         }
       }
     },
-    "CopyPal läuft in der Menüleiste. Dort findest du Verlauf, Pause und Einstellungen." : {
+    "CopyPal läuft in der Menüleiste. Dort findest du Verlauf, Pause und Einstellungen – und die Tastenkürzel, sobald der Zeiger auf dem Symbol ruht." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CopyPal lives in the menu bar. That’s where you find the history, pause and settings."
+            "value" : "CopyPal lives in the menu bar. That's where you find the history, pause and settings – and the shortcuts once the pointer rests on the icon."
           }
         }
       }
@@ -937,6 +957,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Relaunch CopyPal"
+          }
+        }
+      }
+    },
+    "CopyPal nimmt nur auf, wenn du das Kürzel drückst – nie im Hintergrund. Die Freigabe geht auch später, beim ersten %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal only captures when you press the shortcut – never in the background. You can also grant access later, the first time you press %@."
+          }
+        }
+      }
+    },
+    "CopyPal scrollt weiter und setzt alles zu einem Bild zusammen – auch, was unterhalb des sichtbaren Bereichs liegt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CopyPal keeps scrolling and stitches everything into one image – including what lies below the visible area."
           }
         }
       }
@@ -1001,6 +1041,16 @@
         }
       }
     },
+    "Das Bild landet sofort in der Zwischenablage und im Verlauf – bereit für ⌘V." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The image goes straight to the clipboard and the history – ready for ⌘V."
+          }
+        }
+      }
+    },
     "Datenschutz" : {
       "localizations" : {
         "en" : {
@@ -1047,6 +1097,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You can paste the report into a GitHub comment. It contains no personal data."
+          }
+        }
+      }
+    },
+    "Der Rahmen rastet dort ein, wo der Zeiger steht. Ziehen wählt frei, Esc bricht ab." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The frame snaps to what's under the pointer. Drag to select freely, Esc cancels."
           }
         }
       }
@@ -1751,6 +1811,16 @@
         }
       }
     },
+    "Klick nimmt ein Fenster oder einen Bereich auf" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click captures a window or an area"
+          }
+        }
+      }
+    },
     "Klick nimmt ein Fenster oder einen Bereich auf, Ziehen wählt frei. ↓ erweitert die Aufnahme über den sichtbaren Teil hinaus." : {
       "localizations" : {
         "en" : {
@@ -2241,6 +2311,16 @@
         }
       }
     },
+    "Probier es aus: %@ drücken." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try it: press %@."
+          }
+        }
+      }
+    },
     "Prüfung fehlgeschlagen" : {
       "localizations" : {
         "en" : {
@@ -2711,6 +2791,16 @@
         }
       }
     },
+    "Verlauf-Pop-up" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History pop-up"
+          }
+        }
+      }
+    },
     "Verschlüsselt auf diesem Mac" : {
       "localizations" : {
         "en" : {
@@ -2991,6 +3081,26 @@
         }
       }
     },
+    "aus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "off"
+          }
+        }
+      }
+    },
+    "belegt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in use"
+          }
+        }
+      }
+    },
     "esc leert die Suche" : {
       "localizations" : {
         "en" : {
@@ -3017,6 +3127,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "just now"
+          }
+        }
+      }
+    },
+    "halten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hold"
           }
         }
       }
@@ -3081,6 +3201,16 @@
         }
       }
     },
+    "oder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or"
+          }
+        }
+      }
+    },
     "Ältere Einträge werden automatisch gelöscht." : {
       "localizations" : {
         "en" : {
@@ -3117,6 +3247,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show “Copied” at the notch"
+          }
+        }
+      }
+    },
+    "↓ erweitert die Aufnahme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↓ extends the capture"
           }
         }
       }

@@ -15,6 +15,10 @@ final class StatusItemController: NSObject, NSMenuDelegate {
 
     private let statusItem: NSStatusItem
     private unowned let app: AppController
+    /// The shortcuts card below the icon while the pointer rests on it.
+    private let hint = MenuBarHintController()
+    private let hoverTracker = HoverTracker()
+    private var menuIsOpen = false
 
     init(app: AppController) {
         self.app = app
@@ -23,7 +27,39 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
         statusItem.menu = menu
+        if let button = statusItem.button {
+            hoverTracker.onEnter = { [weak self] in self?.pointerEntered() }
+            hoverTracker.onExit = { [weak self] in self?.hint.hide() }
+            button.addTrackingArea(NSTrackingArea(
+                rect: .zero,
+                options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+                owner: hoverTracker,
+                userInfo: nil
+            ))
+        }
         update()
+    }
+
+    #if DEBUG
+    /// Self-test: the icon on screen and its card.
+    var iconFrameOnScreen: CGRect? {
+        iconPlace?.0
+    }
+
+    var hintController: MenuBarHintController {
+        hint
+    }
+    #endif
+
+    private var iconPlace: (CGRect, NSScreen)? {
+        guard let button = statusItem.button, let window = button.window, let screen = window.screen else { return nil }
+        return (window.convertToScreen(button.convert(button.bounds, to: nil)), screen)
+    }
+
+    private func pointerEntered() {
+        guard !menuIsOpen else { return }
+        let app = self.app
+        hint.schedule(below: { [weak self] in self?.iconPlace }, content: { MenuBarHintContent.current(app: app) })
     }
 
     /// Re-reads the state for the icon (pause, warnings).
@@ -44,10 +80,21 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         let image = NSImage(systemSymbolName: symbol, accessibilityDescription: description)
         image?.isTemplate = true
         button.image = image
-        button.toolTip = description
+        // The card below the icon replaces the tooltip; VoiceOver reads the same.
+        button.toolTip = nil
+        button.setAccessibilityHelp(MenuBarHintContent.current(app: app).spokenText)
     }
 
     // MARK: NSMenuDelegate
+
+    func menuWillOpen(_ menu: NSMenu) {
+        menuIsOpen = true
+        hint.hide()
+    }
+
+    func menuDidClose(_ menu: NSMenu) {
+        menuIsOpen = false
+    }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
@@ -198,6 +245,20 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             item.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
         }
         return item
+    }
+}
+
+/// Receives the enter and exit of the pointer over the menu bar icon.
+final class HoverTracker: NSResponder {
+    var onEnter: (() -> Void)?
+    var onExit: (() -> Void)?
+
+    override func mouseEntered(with event: NSEvent) {
+        onEnter?()
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        onExit?()
     }
 }
 

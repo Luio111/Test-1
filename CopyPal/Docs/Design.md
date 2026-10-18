@@ -75,6 +75,14 @@ Das Overlay gehört zur Notch-Welt: immer dunkel, eine Akzentfarbe, Werte in SF 
 - **Ergebnis:** die bekannte Kapsel an der Notch, „Bildschirmfoto kopiert“ mit `camera.viewfinder`.
 - **Berechtigungsfenster:** Aufbau wie das Onboarding (`PageHeader`, `StatusTag`, eine Hauptaktion), damit es als Teil von CopyPal erkennbar ist.
 
+## Kürzel-Karte unter dem Menüleisten-Symbol
+
+Ruht der Zeiger 0,35 s auf dem Symbol, erscheint darunter eine kleine Karte – wie die Kapseln an der Notch schwarz, Radius 12, 1-px-Rand Weiß 8 %. Sie ersetzt den Tooltip.
+
+- **Zeilen:** links der Name in Weiß 60 % („Verlauf-Pop-up“, „Bildschirmfoto“), rechts die Kürzel als Tasten-Kappen (Weiß 10 %, Radius 4, Schrift 12 medium Weiß 92 %), dahinter „halten“, „oder“, „belegt“ bzw. „aus“ in Weiß 60 %.
+- **Status:** Fehlt eine Berechtigung oder ist die Aufzeichnung pausiert, steht das oben, durch eine Linie getrennt.
+- **Verhalten:** ignoriert die Maus, verschwindet beim Verlassen und sobald das Menü aufgeht; 120 ms Ein- und Ausblenden (aus bei „Bewegung reduzieren“). VoiceOver liest denselben Inhalt als Hilfe des Symbols.
+
 ## Offen
 
 - App-Icon und Menüleisten-Icon (nach der Namensprüfung, D8). Bis dahin SF Symbol `doc.on.clipboard`.

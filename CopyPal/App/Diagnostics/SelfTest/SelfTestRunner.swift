@@ -470,6 +470,10 @@ final class SelfTestRunner {
             _ = await self.waitUntil { !self.app.popup.isVisible }
             return (opened && self.textView.string.isEmpty, "geöffnet: \(opened)")
         }
+
+        await check("Zeiger auf dem Menüleisten-Symbol zeigt die Tastenkürzel darunter") {
+            await self.menuBarHintCheck()
+        }
     }
 
     /// M8: many quick copies.
@@ -624,6 +628,24 @@ final class SelfTestRunner {
         }
         await sleep(200)
         return (switched && open, "Favoritenliste: \(switched), Pop-up noch offen: \(open)")
+    }
+
+    /// The pointer rests on the menu bar icon: the card with the shortcuts appears below
+    /// it and goes again when the pointer leaves.
+    private func menuBarHintCheck() async -> (Bool, String) {
+        guard let item = app.statusItemController, let icon = item.iconFrameOnScreen else {
+            return (false, "kein Menüleisten-Symbol")
+        }
+        let hint = item.hintController
+        Self.postMouse(.mouseMoved, at: CGPoint(x: icon.midX, y: icon.midY))
+        let shown = await waitUntil(timeout: 2_000) { hint.isVisible }
+        let card = hint.frame
+        let below = card.maxY <= icon.minY && card.minX < icon.maxX && card.maxX > icon.minX
+        if let screen = NSScreen.main {
+            Self.postMouse(.mouseMoved, at: CGPoint(x: screen.frame.midX, y: screen.frame.midY))
+        }
+        let gone = await waitUntil(timeout: 2_000) { !hint.isVisible }
+        return (shown && below && gone, "gezeigt: \(shown), unter dem Symbol: \(below), wieder weg: \(gone)")
     }
 
     /// ⌘⇧A over a full-screen window: the overlay must be on that Space (new panels each

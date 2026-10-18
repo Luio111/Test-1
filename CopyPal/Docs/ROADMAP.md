@@ -617,7 +617,7 @@ D8, D10, D11 und D12 sind entschieden, und es gibt keine kritischen Fehler.
 
 **Aufgaben**
 - **Tastenkürzel ⌘⇧A** (zweiter Carbon-Hotkey, in den Einstellungen änderbar und abschaltbar, Menüeintrag „Bildschirmfoto aufnehmen“). Ein Kürzel, das schon das Pop-up öffnet, wird abgelehnt.
-- **Freigabe „Bildschirmaufnahme“** erst bei der ersten Nutzung: eigenes Fenster im Onboarding-Stil, erkennt die Freigabe selbst, bietet den Neustart an, den macOS verlangt. Die Systemabfrage kommt nur über den Knopf. Nach einem Entzug zeigt die Menüleiste das Warnsymbol – nur wenn die Funktion schon einmal lief.
+- **Freigabe „Bildschirmaufnahme“** im Onboarding (eigener Schritt, überspringbar) oder bei der ersten Nutzung: eigenes Fenster im Onboarding-Stil, erkennt die Freigabe selbst, bietet den Neustart an, den macOS verlangt. Die Systemabfrage kommt nur über den Knopf. Nach einem Entzug zeigt die Menüleiste das Warnsymbol – nur wenn die Funktion schon einmal lief.
 - **Eingefrorenes Bild:** Alle Bildschirme werden einmal aufgenommen, bevor ein Overlay erscheint (ScreenCaptureKit). Das Overlay dunkelt um 45 % ab, die aktive App bleibt vorne.
 - **Einrasten:** Element → Textblock → Fläche → Fenster → Bildschirm, aus einer Kontrastanalyse des eingefrorenen Bildes und der Fensterliste. ⇥/⇧⇥ wechseln die Stufe, die Leertaste schaltet „nur Fenster“.
 - **Aufnehmen:** Klick nimmt den markierten Bereich sofort auf, Ziehen wählt frei (⇧ Quadrat, ⌥ von der Mitte, Leertaste verschiebt), ⌥-Klick lässt die Auswahl stehen. Danach Ecken ziehen, ⌘-Pfeile verschieben, ⏎ nimmt auf. Das Ergebnis ist eine frische Aufnahme ohne Overlay.
