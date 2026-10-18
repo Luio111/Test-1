@@ -30,8 +30,82 @@ func copied(_ text: String, rtf: Bool = false, source: String? = "com.apple.Text
     return CapturedContent(representations: representations, sourceBundleID: source, origin: origin)
 }
 
+/// A screenshot as the screenshot writer hands it over (the PNG header is enough).
+func screenshot(_ caption: String?, salt: UInt8 = 0) -> CapturedContent {
+    var png = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52])
+    png.append(contentsOf: [0, 0, 3, 0x20, 0, 0, 2, 0x58, salt])
+    return CapturedContent(
+        representations: [ClipRepresentation(type: PasteboardTypeID.png, data: png)],
+        sourceBundleID: "com.apple.Safari",
+        hints: ContentHints(capturedFrom: caption)
+    )
+}
+
 @Suite(.serialized)
 struct HistoryEngineTests {
+    @Test func recognizedTextMakesImagesSearchable() async throws {
+        let fixture = try EngineFixture()
+        defer { fixture.cleanUp() }
+        guard case let .stored(result) = try await fixture.engine.capture(screenshot("Safari – Rechnung")) else {
+            Issue.record("not stored")
+            return
+        }
+        #expect(try await fixture.engine.imagesAwaitingTextRecognition(limit: 10) == [result.item.id])
+        let found = try await fixture.engine.applyRecognizedText(result.item.id, text: "Rechnungsnummer 2026-118\nBetrag 49,00 €")
+        #expect(found == nil)
+        let item = try #require(try await fixture.engine.snapshot().items.first)
+        #expect(item.preview.searchText == "safari – rechnung rechnungsnummer 2026-118 betrag 49,00 €")
+        #expect(item.preview.textRecognized == true)
+        #expect(item.sensitivity == nil)
+        #expect(try await fixture.engine.imagesAwaitingTextRecognition(limit: 10).isEmpty)
+        // Once per image.
+        #expect(try await fixture.engine.applyRecognizedText(result.item.id, text: "DE89 3704 0044 0532 0130 00") == nil)
+    }
+
+    @Test func sensitiveTextInAnImageMakesItSensitive() async throws {
+        let fixture = try EngineFixture()
+        defer { fixture.cleanUp() }
+        guard case let .stored(result) = try await fixture.engine.capture(screenshot("Banking")) else {
+            Issue.record("not stored")
+            return
+        }
+        let found = try await fixture.engine.applyRecognizedText(result.item.id, text: "IBAN DE89 3704 0044 0532 0130 00")
+        #expect(found == .iban)
+        let item = try #require(try await fixture.engine.snapshot().items.first)
+        #expect(item.sensitivity == .iban)
+        #expect(item.localOnly)
+        #expect(item.preview.searchText.isEmpty)
+        #expect(item.expiresAt != nil)
+        fixture.time.advance(by: 61)
+        try await fixture.engine.removeExpired()
+        #expect(try await fixture.engine.snapshot().items.isEmpty)
+    }
+
+    @Test func imagesWithoutTextAreMarkedDone() async throws {
+        let fixture = try EngineFixture()
+        defer { fixture.cleanUp() }
+        guard case let .stored(result) = try await fixture.engine.capture(screenshot(nil, salt: 1)) else {
+            Issue.record("not stored")
+            return
+        }
+        try await fixture.engine.applyRecognizedText(result.item.id, text: nil)
+        #expect(try await fixture.engine.imagesAwaitingTextRecognition(limit: 10).isEmpty)
+        let item = try #require(try await fixture.engine.snapshot().items.first)
+        #expect(item.preview.searchText.isEmpty)
+    }
+
+    @Test func deletedImagesAreLeftAlone() async throws {
+        let fixture = try EngineFixture()
+        defer { fixture.cleanUp() }
+        guard case let .stored(result) = try await fixture.engine.capture(screenshot("Weg", salt: 2)) else {
+            Issue.record("not stored")
+            return
+        }
+        try await fixture.engine.delete([result.item.id])
+        #expect(try await fixture.engine.applyRecognizedText(result.item.id, text: "DE89 3704 0044 0532 0130 00") == nil)
+        #expect(try await fixture.engine.snapshot().items.isEmpty)
+    }
+
     @Test func capturesInOrder() async throws {
         let fixture = try EngineFixture()
         defer { fixture.cleanUp() }

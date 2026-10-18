@@ -12,7 +12,7 @@ public struct Classification: Sendable, Equatable {
 }
 
 public enum ContentClassifier {
-    static let searchTextLimit = 4_000
+    public static let searchTextLimit = 4_000
 
     /// Files win over text (Finder adds the file name as text), text wins over images
     /// (spreadsheets add a picture of the cells), an image alone is an image.

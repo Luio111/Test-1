@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 import Testing
 @testable import CopyPalCore
 
@@ -92,5 +95,26 @@ struct LinkCleanerTests {
         #expect(LinkCleaner.clean("Siehe https://example.com/?utm_source=x") == nil)
         #expect(LinkCleaner.clean("ftp://example.com/?utm_source=x") == nil)
         #expect(LinkCleaner.clean("  https://example.com/?utm_source=x \n") == "https://example.com/")
+    }
+}
+
+struct RecognizedTextTests {
+    private func line(_ text: String, x: Double, y: Double, width: Double = 0.2, height: Double = 0.04) -> RecognizedLine {
+        RecognizedLine(text: text, box: CGRect(x: x, y: y, width: width, height: height))
+    }
+
+    @Test func readsTopToBottomAndLeftToRight() {
+        let lines = [
+            line("Betrag", x: 0.1, y: 0.5),
+            line("Rechnung", x: 0.1, y: 0.8),
+            line("49,00 €", x: 0.6, y: 0.505),
+            line("Nr. 118", x: 0.5, y: 0.79),
+        ]
+        #expect(RecognizedText.join(lines) == "Rechnung Nr. 118\nBetrag 49,00 €")
+    }
+
+    @Test func emptyWhenNothingRecognized() {
+        #expect(RecognizedText.join([]) == nil)
+        #expect(RecognizedText.join([line("  ", x: 0, y: 0)]) == nil)
     }
 }

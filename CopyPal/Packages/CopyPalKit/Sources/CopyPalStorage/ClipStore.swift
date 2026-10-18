@@ -465,6 +465,35 @@ public final class ClipStore: Sendable {
         }
     }
 
+    /// The text recognized in an image: the new search text; with sensitive content
+    /// the entry turns sensitive (expires unless a favorite, stays on this Mac).
+    /// Nothing happens when the entry was deleted meanwhile.
+    public func applyRecognizedText(_ id: UUID, searchText: String, sensitivity: Sensitivity?, expiresAt: Date?) throws {
+        let now = timeSource.now().timeIntervalSince1970
+        try pool.write { db in
+            guard let row = try Row.fetchOne(db, sql: "SELECT * FROM clip_item WHERE id = ? AND deleted_at IS NULL", arguments: [id.uuidString]) else {
+                return
+            }
+            var item = try decodeItem(row)
+            item.preview.searchText = searchText
+            item.preview.textRecognized = true
+            if let sensitivity {
+                try db.execute(
+                    sql: """
+                    UPDATE clip_item SET preview_enc = ?, sensitivity = ?, expires_at = ?, local_only = 1, modified_at = ?
+                    WHERE id = ?
+                    """,
+                    arguments: [try sealPreview(item.preview, id: id), sensitivity.rawValue, expiresAt?.timeIntervalSince1970, now, id.uuidString]
+                )
+            } else {
+                try db.execute(
+                    sql: "UPDATE clip_item SET preview_enc = ?, modified_at = ? WHERE id = ?",
+                    arguments: [try sealPreview(item.preview, id: id), now, id.uuidString]
+                )
+            }
+        }
+    }
+
     /// "Not sensitive": shows the content, makes it searchable and stops the expiry.
     public func clearSensitivity(_ id: UUID) throws {
         let now = timeSource.now().timeIntervalSince1970

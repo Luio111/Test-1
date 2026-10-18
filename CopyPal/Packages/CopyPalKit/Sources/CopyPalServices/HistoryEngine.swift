@@ -188,6 +188,33 @@ public actor HistoryEngine {
         try store.reorderFavorites(ids)
     }
 
+    /// Text recognized in image `id` (nil: none found). It joins the search text after
+    /// what is there (a screenshot's app and window); sensitive content makes the entry
+    /// sensitive like a copied IBAN: not searchable, expiring, on this Mac only.
+    /// Returns the kind of sensitive content found.
+    @discardableResult
+    public func applyRecognizedText(_ id: UUID, text: String?) throws -> Sensitivity? {
+        guard let item = try store.item(id: id), item.kind == .image, item.preview.textRecognized != true else { return nil }
+        let recognized = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let match = recognized.isEmpty ? nil : SensitiveContentDetector.detect(recognized, options: policy.detection)
+        if let match {
+            let expiry = item.isPinned ? nil : HistoryRules.expiry(for: match.kind, policy: policy.retention, now: timeSource.now())
+            try store.applyRecognizedText(id, searchText: "", sensitivity: match.kind, expiresAt: expiry)
+            return match.kind
+        }
+        let combined = [item.preview.searchText, TextFolding.fold(recognized)].filter { !$0.isEmpty }.joined(separator: " ")
+        try store.applyRecognizedText(id, searchText: String(combined.prefix(ContentClassifier.searchTextLimit)), sensitivity: nil, expiresAt: nil)
+        return nil
+    }
+
+    /// Images whose text was not recognized yet, newest first (catching up older ones).
+    public func imagesAwaitingTextRecognition(limit: Int) throws -> [UUID] {
+        try store.items().lazy
+            .filter { $0.kind == .image && $0.preview.textRecognized != true && !$0.isSensitive }
+            .prefix(limit)
+            .map(\.id)
+    }
+
     public func clearSensitivity(_ id: UUID) throws {
         try store.clearSensitivity(id)
     }

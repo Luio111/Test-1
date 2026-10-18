@@ -23,6 +23,31 @@ struct ScreenshotSystemTests {
         return buffer
     }
 
+    @Test func recognizesRenderedText() throws {
+        let width = 900
+        let height = 200
+        let context = try #require(CGContext(
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ))
+        context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        // CoreText draws black by default.
+        let font = CTFontCreateWithName("Helvetica" as CFString, 56, nil)
+        let line = CTLineCreateWithAttributedString(NSAttributedString(string: "Rechnung 2026", attributes: [.font: font]))
+        context.textPosition = CGPoint(x: 40, y: 70)
+        CTLineDraw(line, context)
+        let image = try #require(context.makeImage())
+        let text = try #require(TextRecognizer.text(in: image))
+        #expect(text.contains("Rechnung"))
+        #expect(text.contains("2026"))
+    }
+
     @Test func pixelBufferAndImageRoundTrip() throws {
         let buffer = pattern()
         let image = try #require(ImageConversion.cgImage(buffer))

@@ -69,6 +69,9 @@ public struct ClipPreview: Sendable, Equatable, Codable {
     /// Set for screenshots: the app and window they show ("Safari – JIRA-1234"), empty
     /// when unknown. Nil for every other entry (also in previews stored before).
     public var capturedFrom: String?
+    /// Images: true once the text in them was recognized (also when there was none),
+    /// so it runs once per image.
+    public var textRecognized: Bool?
 
     public init(
         title: String,
@@ -81,7 +84,8 @@ public struct ClipPreview: Sendable, Equatable, Codable {
         isFormatted: Bool = false,
         masked: String? = nil,
         searchText: String = "",
-        capturedFrom: String? = nil
+        capturedFrom: String? = nil,
+        textRecognized: Bool? = nil
     ) {
         self.title = title
         self.lineCount = lineCount
@@ -94,5 +98,6 @@ public struct ClipPreview: Sendable, Equatable, Codable {
         self.masked = masked
         self.searchText = searchText
         self.capturedFrom = capturedFrom
+        self.textRecognized = textRecognized
     }
 }
