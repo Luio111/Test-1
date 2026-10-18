@@ -77,6 +77,11 @@ final class ScreenshotController {
         self.app = app
     }
 
+    /// Every overlay panel is on the Space the user sees (self-test, full screen).
+    var isOverlayOnActiveSpace: Bool {
+        !screens.isEmpty && screens.allSatisfy { $0.panel.isOnActiveSpace }
+    }
+
     /// Screen Recording worked once and is gone now: a warning in the menu bar.
     var permissionRevoked: Bool {
         AppSettings.screenshotEnabled && AppSettings.screenCaptureWasGranted && permissionState == .denied
@@ -229,6 +234,14 @@ final class ScreenshotController {
             sessionFailed(.displayNotFound)
             return
         }
+        // The capture can wait for a macOS dialog about Screen Recording, perhaps on
+        // another Space: say so instead of showing nothing.
+        let waitingHint = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(1_500))
+            guard !Task.isCancelled, let self, current == self.generation, self.isActive, !self.isOverlayVisible else { return }
+            self.app.toast.show(String(localized: "Wartet auf macOS …"), systemImage: "hourglass", duration: .seconds(3))
+        }
+        defer { waitingHint.cancel() }
         if !didWarmUp {
             await ScreenCaptureEngine.warmUp()
             didWarmUp = true
@@ -247,6 +260,10 @@ final class ScreenshotController {
         }
         guard current == generation, isActive else { return }
         lastFreezeMilliseconds = Self.milliseconds(since: started)
+        if let waited = lastFreezeMilliseconds, waited >= 1_500 {
+            // „Wartet auf macOS …“ must not end up in the picture.
+            app.toast.hide()
+        }
         if !AppSettings.screenCaptureWasGranted {
             AppSettings.screenCaptureWasGranted = true
         }
@@ -282,7 +299,11 @@ final class ScreenshotController {
         installMonitors()
         for state in screens {
             state.panel.overlayView.apply(scene(for: state))
-            state.panel.orderFrontRegardless()
+            // New panels each session: over another app's full-screen Space the first
+            // order-in can land on the desktop behind it (seen with the popup).
+            if !state.panel.orderFrontOnActiveSpace() {
+                Log.app.error("Bildschirmfoto: Overlay liegt nicht auf dem aktiven Space")
+            }
         }
         (screens.first { $0.frame.contains(pointer) } ?? screens.first)?.panel.makeKey()
         isOverlayVisible = true

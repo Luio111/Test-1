@@ -138,6 +138,13 @@ final class SelfTestRunner {
             await self.quickTap(repeats: 1, clipboard: "Nach dem Bildschirmfoto")
         }
 
+        if appeared, ScreenCapturePermission.state == .granted {
+            await check("⌘⇧A über einem Vollbild-Fenster zeigt die Aufnahme auf diesem Space") {
+                let result = await self.inFullScreen { await self.screenshotInFullScreen() }
+                return result ?? (true, "übersprungen: kein Vollbild auf diesem Mac")
+            }
+        }
+
         await check("Scroll-Zusammenfügen auf synthetischen Bildern") {
             let document = Self.syntheticDocument(width: 240, height: 900)
             let frames = [0, 180, 360].map { document.cropped(PixelRect(x: 0, y: $0, width: 240, height: 360)) }
@@ -332,6 +339,23 @@ final class SelfTestRunner {
             await self.fullScreenCheck()
         }
 
+        await check("Klick auf „Favoriten“ neben der Notch wechselt die Liste") {
+            await self.favoritesClick(fromTopEdge: false)
+        }
+
+        await check("Klick auf „Favoriten“ über einem Vollbild-Fenster, Menüleiste eingeblendet") {
+            let result = await self.inFullScreen { () -> (Bool, String) in
+                // For comparison only: the level the popup had until the fix.
+                let level = self.app.popup.panelLevel
+                self.app.popup.panelLevel = .statusBar
+                let before = await self.favoritesClick(fromTopEdge: true)
+                self.app.popup.panelLevel = level
+                let now = await self.favoritesClick(fromTopEdge: true)
+                return (now.0, "\(now.1) · zum Vergleich mit Ebene statusBar: \(before.1)")
+            }
+            return result ?? (true, "übersprungen: kein Vollbild auf diesem Mac")
+        }
+
         await check("Taste 1 fügt formatiert (fett) ein") {
             let result = await self.pasteFromPopup(keys: [(18, [])], expected: "Fett formatierter Text")
             return (result.0 && self.isBold, "\(result.1), fett: \(self.isBold)")
@@ -519,27 +543,81 @@ final class SelfTestRunner {
     /// The panel must join a full-screen Space (M7). CI can only put CopyPal's own
     /// window into full screen; another app's Space is the manual test in M7.md.
     private func fullScreenCheck() async -> (Bool, String) {
-        guard let window else { return (false, "kein Testfenster") }
+        let result = await inFullScreen { () -> (Bool, String) in
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            let opened = await self.waitUntil { self.app.popup.isVisible }
+            await self.sleep(200)
+            let onSpace = self.app.popup.isOnActiveSpace
+            let onScreen = self.app.popup.isOnScreen
+            self.app.popup.close()
+            await self.sleep(300)
+            return (opened && onSpace && onScreen, "sichtbar: \(opened), auf aktivem Space: \(onSpace), auf dem Bildschirm: \(onScreen)")
+        }
+        return result ?? (true, "übersprungen: kein Vollbild auf diesem Mac")
+    }
+
+    /// Runs `body` while the test window is in full screen; nil when this Mac has none.
+    private func inFullScreen<Value>(_ body: () async -> Value) async -> Value? {
+        guard let window else { return nil }
         window.styleMask.insert(.resizable)
         window.collectionBehavior.insert(.fullScreenPrimary)
         window.toggleFullScreen(nil)
         guard await waitUntil(timeout: 8_000, { window.styleMask.contains(.fullScreen) }) else {
-            return (true, "übersprungen: kein Vollbild auf diesem Mac")
+            return nil
         }
         await sleep(600) // the Space transition
-        await prepare(clipboard: nil)
-        await openPopup()
-        let opened = await waitUntil { self.app.popup.isVisible }
-        await sleep(200)
-        let onSpace = app.popup.isOnActiveSpace
-        let onScreen = app.popup.isOnScreen
-        app.popup.close()
-        await sleep(300)
+        let result = await body()
         window.toggleFullScreen(nil)
         _ = await waitUntil(timeout: 8_000) { !window.styleMask.contains(.fullScreen) }
         await sleep(600)
         focusTextView()
-        return (opened && onSpace && onScreen, "sichtbar: \(opened), auf aktivem Space: \(onSpace), auf dem Bildschirm: \(onScreen)")
+        return result
+    }
+
+    /// Opens the popup and clicks "Favoriten" beside the notch with real mouse events,
+    /// routed by the window server like the user's mouse. `fromTopEdge`: the pointer
+    /// touches the top edge first, so a menu bar hidden for a full-screen window slides
+    /// in – the case where the click used to land on the menu bar.
+    private func favoritesClick(fromTopEdge: Bool) async -> (Bool, String) {
+        await prepare(clipboard: nil)
+        await openPopup()
+        guard await waitUntil({ self.app.popup.isVisible }) else { return (false, "Pop-up nicht geöffnet") }
+        await sleep(450) // the opening spring
+        let point = app.popup.favoritesSwitchPoint
+        if fromTopEdge {
+            let top = NSScreen.screens.first { $0.frame.contains(point) }?.frame.maxY ?? point.y
+            Self.postMouse(.mouseMoved, at: CGPoint(x: point.x, y: top - 1))
+            await sleep(1_000)
+        }
+        Self.postMouse(.mouseMoved, at: point)
+        await sleep(150)
+        Self.postMouse(.leftMouseDown, at: point)
+        await sleep(40)
+        Self.postMouse(.leftMouseUp, at: point)
+        let switched = await waitUntil(timeout: 1_000) { self.app.popup.model.list == .favorites }
+        let open = app.popup.isVisible
+        app.popup.close()
+        _ = await waitUntil { !self.app.popup.isVisible }
+        if let screen = NSScreen.main {
+            Self.postMouse(.mouseMoved, at: CGPoint(x: screen.frame.midX, y: screen.frame.midY))
+        }
+        await sleep(200)
+        return (switched && open, "Favoritenliste: \(switched), Pop-up noch offen: \(open)")
+    }
+
+    /// ⌘⇧A over a full-screen window: the overlay must be on that Space (new panels each
+    /// session; the first order-in could land on the desktop behind it).
+    private func screenshotInFullScreen() async -> (Bool, String) {
+        await press(0, flags: [.maskCommand, .maskShift])
+        let shown = await waitUntil(timeout: 5_000) { self.app.screenshot.isOverlayVisible }
+        let onSpace = app.screenshot.isOverlayOnActiveSpace
+        await press(53, flags: [])
+        let closed = await waitUntil(timeout: 3_000) { !self.app.screenshot.isActive }
+        if !closed {
+            app.screenshot.cancel()
+        }
+        return (shown && onSpace && closed, "sichtbar: \(shown), auf aktivem Space: \(onSpace), Esc schließt: \(closed)")
     }
 
     private func pasteFromPopup(keys: [(UInt16, CGEventFlags)], expected: String, seedClipboard: Bool = true) async -> (Bool, String) {
@@ -756,6 +834,15 @@ final class SelfTestRunner {
             event.setIntegerValueField(.keyboardEventAutorepeat, value: 1)
         }
         event.post(tap: .cghidEventTap)
+    }
+
+    /// Posts like a mouse would; `point` in AppKit coordinates.
+    nonisolated private static func postMouse(_ type: CGEventType, at point: CGPoint) {
+        // CGEvent coordinates: origin top left of the main display, y down.
+        let height = CGDisplayBounds(CGMainDisplayID()).height
+        let location = CGPoint(x: point.x, y: height - point.y)
+        let source = CGEventSource(stateID: .hidSystemState)
+        CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: location, mouseButton: .left)?.post(tap: .cghidEventTap)
     }
 
     private func sleep(_ milliseconds: Int) async {

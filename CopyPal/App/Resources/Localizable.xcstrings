@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
+    "%@ ist belegt – Kürzel ändern …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is in use – change shortcut …"
+          }
+        }
+      }
+    },
     "%lld Abschnitte · %@ px" : {
       "localizations" : {
         "en" : {
@@ -2777,6 +2787,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Previews"
+          }
+        }
+      }
+    },
+    "Wartet auf macOS …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for macOS …"
           }
         }
       }

@@ -96,7 +96,10 @@ final class AppController {
             }
         }
         hotKey.onPress = { [weak self] in self?.showPopup() }
-        screenshotHotKey.onPress = { [weak self] in self?.screenshot.toggle() }
+        screenshotHotKey.onPress = { [weak self] in
+            Log.app.info("Bildschirmfoto-Kürzel gedrückt")
+            self?.screenshot.toggle()
+        }
         applyHotKey()
 
         capture.onStored = { [weak self] _ in self?.didStoreCopy() }
@@ -265,7 +268,11 @@ final class AppController {
             // `shortcut` stays nil after a refused registration, so this retries on
             // every settings change until the combination is free again.
             if screenshotHotKey.shortcut != shortcut {
-                screenshot.setHotKeyAvailable(screenshotHotKey.register(shortcut))
+                let registered = screenshotHotKey.register(shortcut)
+                if !registered {
+                    Log.app.error("Bildschirmfoto-Kürzel \(KeyboardLayout.displayString(for: shortcut), privacy: .public) ist von einer anderen App belegt")
+                }
+                screenshot.setHotKeyAvailable(registered)
             }
         } else {
             screenshotHotKey.register(nil)

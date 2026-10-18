@@ -22,7 +22,10 @@ final class ScreenshotPermissionWindowController: NSObject, NSWindowDelegate {
         self.window = window
         model?.startMonitoring()
         NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
+        // ⌘⇧A may come from a full-screen app: the window opens on that Space, in front
+        // even if macOS does not let CopyPal become active.
+        window.orderFrontOnActiveSpace()
+        window.makeKey()
     }
 
     func close() {
@@ -48,6 +51,7 @@ final class ScreenshotPermissionWindowController: NSObject, NSWindowDelegate {
         window.isMovableByWindowBackground = true
         window.backgroundColor = Theme.Colors.windowBackground
         window.isReleasedWhenClosed = false
+        window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
         window.setContentSize(hosting.view.fittingSize)
         window.center()
         window.delegate = self

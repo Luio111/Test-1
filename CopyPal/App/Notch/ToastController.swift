@@ -32,7 +32,7 @@ final class ToastController {
 
         hideTask?.cancel()
         panel.alphaValue = 0
-        panel.orderFrontRegardless()
+        panel.orderFrontOnActiveSpace()
         animate(to: 1, duration: 0.12)
         hideTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: duration)
@@ -42,6 +42,13 @@ final class ToastController {
             guard !Task.isCancelled else { return }
             self.panel.orderOut(nil)
         }
+    }
+
+    /// Takes the toast away at once, so a screenshot taken next does not show it.
+    func hide() {
+        hideTask?.cancel()
+        hideTask = nil
+        panel.orderOut(nil)
     }
 
     private func animate(to alpha: CGFloat, duration: TimeInterval) {
@@ -63,7 +70,7 @@ final class ToastController {
             defer: false
         )
         panel.isFloatingPanel = true
-        panel.level = .statusBar
+        panel.level = .aboveMenuBar
         panel.collectionBehavior = .notchOverlay
         panel.ignoresMouseEvents = true
         panel.hidesOnDeactivate = false

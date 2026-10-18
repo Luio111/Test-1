@@ -77,6 +77,12 @@ final class StatusItemController: NSObject, NSMenuDelegate {
                 app.screenshot.showPermissionWindow()
             })
         }
+        if AppSettings.screenshotEnabled, !app.screenshot.hotKeyAvailable {
+            let shortcut = KeyboardLayout.displayString(for: AppSettings.screenshotHotKey)
+            menu.addItem(makeItem(String(localized: "\(shortcut) ist belegt – Kürzel ändern …"), symbol: "exclamationmark.triangle") { app in
+                app.showSettings()
+            })
+        }
 
         menu.addItem(.separator())
         menu.addItem(makeItem(String(localized: "Verlauf öffnen"), keyEquivalent: "") { app in

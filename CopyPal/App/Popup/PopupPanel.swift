@@ -12,6 +12,29 @@ extension NSWindow.CollectionBehavior {
     ]
 }
 
+extension NSWindow.Level {
+    /// The popup, its retract animation and the toast at the notch. Above the menu bar
+    /// and its status items, and above the menu bar that slides in over a full-screen
+    /// app when the pointer reaches the top edge: at `.statusBar` either one could end
+    /// up over "Verlauf | Favoriten" beside the notch and take the click.
+    static var aboveMenuBar: NSWindow.Level { .screenSaver }
+}
+
+extension NSWindow {
+    /// Orders the window in on the Space the user sees. Seen with the popup: first shown
+    /// over another app's full-screen Space, a panel stayed on the desktop behind it;
+    /// ordering it in again moves it to the active Space. False when it is still elsewhere.
+    @discardableResult
+    func orderFrontOnActiveSpace() -> Bool {
+        orderFrontRegardless()
+        if !isOnActiveSpace {
+            orderOut(nil)
+            orderFrontRegardless()
+        }
+        return isOnActiveSpace
+    }
+}
+
 /// Takes the first click. The popup never activates CopyPal (the app being pasted
 /// into stays in front), so for macOS every click is the first click into an inactive
 /// app – which NSHostingView ignores by default: buttons and rows would not react.
@@ -73,7 +96,7 @@ final class NotchRetractPanel: NSPanel {
 @MainActor
 private func configureForNotch(_ panel: NSPanel) {
     panel.isFloatingPanel = true
-    panel.level = .statusBar
+    panel.level = .aboveMenuBar
     panel.collectionBehavior = .notchOverlay
     panel.becomesKeyOnlyIfNeeded = false
     panel.hidesOnDeactivate = false

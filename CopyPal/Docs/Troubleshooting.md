@@ -80,6 +80,18 @@ macOS übernimmt die Freigabe „Bildschirmaufnahme“ oft erst nach einem Neust
 - Ein Eintrag, der in den Systemeinstellungen entfernt und neu hinzugefügt wurde, greift manchmal erst nach einem Neustart des Macs.
 - Ad-hoc-signierte Builds („Sign to Run Locally“) bekommen die Freigabe nie dauerhaft – wie bei den Bedienungshilfen die Apple-Development-Signierung verwenden.
 
+## ⌘⇧A tut nichts
+
+- Menüleisten-Menü öffnen: Steht dort „⌘⇧A ist belegt – Kürzel ändern …“, hat eine andere App die Kombination. Dort ein anderes Kürzel wählen.
+- „Bildschirmfoto aufnehmen“ im Menü funktioniert immer, auch wenn das Kürzel nicht ankommt.
+- Zeigt die Notch „Wartet auf macOS …“: Ein Systemdialog zur Bildschirmaufnahme ist offen, eventuell auf einem anderen Space.
+- Bis 18.10.2026 konnten das Overlay und das Berechtigungsfenster über einer App im Vollbild unsichtbar auf dem Schreibtisch-Space landen, und ein Kürzel-Feld in den Einstellungen, das noch „Tasten drücken …“ zeigte, schaltete ⌘⇧A bis zum Neustart ab. Beides ist behoben – mit `copypal-update` aktualisieren.
+- Prüfen: `log show --last 10m --predicate 'subsystem == "<bundle-id>" AND category == "app"'` – jeder Druck steht als „Bildschirmfoto-Kürzel gedrückt“ im Protokoll.
+
+## „Verlauf | Favoriten“ im Pop-up reagiert nicht auf Klicks
+
+Der Umschalter liegt neben der Notch, also in der Menüleiste. Bis 18.10.2026 lag das Pop-up auf derselben Fensterebene wie die Menüleisten-Symbole; diese und die Menüleiste, die über einer App im Vollbild einfährt, konnten den Klick bekommen. Jetzt liegt das Pop-up über beiden. ⇥ wechselt die Liste ebenfalls.
+
 ## macOS 15 fragt monatlich nach der Bildschirmaufnahme
 
 Ab macOS 15 fragt das System etwa einmal im Monat, ob CopyPal den Bildschirm weiter aufnehmen darf. Das ist so gewollt. Der Dialog erscheint vor dem Overlay; nach „Erlauben“ läuft die Aufnahme weiter.

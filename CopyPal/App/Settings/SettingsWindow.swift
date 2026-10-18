@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 import CopyPalCore
 import CopyPalSystem
@@ -301,6 +302,10 @@ private struct HotKeyRecorder: View {
         .buttonStyle(SubtleButtonStyle())
         .accessibilityLabel(recording ? Text("Tasten drücken …") : Text("Tastenkürzel: \(KeyboardLayout.displayString(for: shortcut))"))
         .onDisappear { stop() }
+        // Recording keeps CopyPal's global shortcuts off. A closed or hidden window does
+        // not always end it through `onDisappear`; ⌘⇧A would stay dead until relaunch.
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { _ in stop() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in stop() }
     }
 
     private func start() {

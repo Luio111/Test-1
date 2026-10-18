@@ -60,6 +60,25 @@ final class PopupController {
         return windows.contains { ($0[kCGWindowNumber as String] as? Int) == number }
     }
 
+    #if DEBUG
+    /// Self-test: inside "Favoriten" beside the notch (AppKit coordinates), to click it
+    /// like the user does. The switch ends at the right edge of the band.
+    var favoritesSwitchPoint: CGPoint {
+        let frame = panel.frame
+        let layout = model.layout
+        return CGPoint(
+            x: frame.midX + layout.bodySize.width / 2 - PopupMetrics.wingPadding - 20,
+            y: frame.maxY - layout.bandHeight / 2
+        )
+    }
+
+    /// Self-test: compares the click with the level the popup had before.
+    var panelLevel: NSWindow.Level {
+        get { panel.level }
+        set { panel.level = newValue }
+    }
+    #endif
+
     private var animates: Bool {
         AppSettings.animatePopup && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
@@ -85,14 +104,7 @@ final class PopupController {
         }
         panel.contentView?.layoutSubtreeIfNeeded()
         panel.displayIfNeeded()
-        panel.orderFrontRegardless()
-        if !panel.isOnActiveSpace {
-            // Seen once: first shown over another app's full-screen Space, the panel stayed
-            // on the desktop behind it. Ordering it in again moves it to the active Space.
-            panel.orderOut(nil)
-            panel.orderFrontRegardless()
-        }
-        guard panel.isOnActiveSpace else {
+        guard panel.orderFrontOnActiveSpace() else {
             // Better no popup than an invisible one that keeps the gesture and ⌘V hostage.
             Log.app.error("Pop-up liegt nicht auf dem aktiven Space – abgebrochen (auf dem Bildschirm: \(self.isOnScreen, privacy: .public))")
             panel.orderOut(nil)
