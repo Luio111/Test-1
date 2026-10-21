@@ -1,0 +1,1553 @@
+#if DEBUG
+import AppKit
+import ImageIO
+import WebKit
+import CopyPalCore
+import CopyPalServices
+import CopyPalStorage
+import CopyPalSystem
+
+/// End-to-end check of CopyPal with simulated key presses and real pasteboard writes,
+/// for CI and for a quick check on any Mac: `CopyPal.app/Contents/MacOS/CopyPal --self-test`.
+/// Uses a temporary history and its own settings; it does write the system clipboard.
+///
+/// Opens a window with a text field, posts real keyboard events (no CopyPal marker,
+/// so the event tap treats them like hardware) and checks what lands in the text and
+/// in the history. Exit code: 0 all passed, 1 a check failed, 2 the event tap is
+/// unavailable here (no Accessibility permission), 3 timeout.
+@MainActor
+final class SelfTestRunner {
+    static var isRequested: Bool {
+        CommandLine.arguments.contains("--self-test")
+    }
+
+    private let app: AppController
+    private var window: NSWindow?
+    private let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 480, height: 240))
+    private var failures = 0
+    /// Checks that need something this machine lacks (a permission); never silent.
+    private var skipped = 0
+    private let pasteKey: UInt16
+    private let secretMarker = "SelbsttestGeheimwort\(Int.random(in: 1_000...9_999))"
+    /// Memory after each group of checks: shows where the footprint grows.
+    private var memorySteps: [String] = []
+
+    init(app: AppController) {
+        self.app = app
+        pasteKey = app.input.layout.pasteKeyCode
+    }
+
+    func run() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 240) {
+            Self.write("✘ Zeitüberschreitung nach 240 s")
+            exit(3)
+        }
+        Task { @MainActor in
+            let code = await runAll()
+            exit(code)
+        }
+    }
+
+    // MARK: Scenarios
+
+    private func runAll() async -> Int32 {
+        Self.write("CopyPal Selbsttest – \(AppInfo.buildEnvironment) – macOS \(AppInfo.osVersion)")
+        // A regular app can be brought to the front (in CI by System Events); the
+        // simulated ⌘V must reach this app's text field, not another app.
+        NSApp.setActivationPolicy(.regular)
+        setUpWindow()
+        let active = await waitUntil(timeout: 15_000) {
+            NSApp.activate()
+            return NSApp.isActive
+        }
+        Self.write(active ? "CopyPal ist aktiv." : "CopyPal wurde nicht aktiv – \(focusState)")
+        focusTextView()
+        await sleep(300)
+        Self.write("Fokus: \(focusState)")
+
+        await captureChecks()
+
+        // InputCoordinator starts the tap as soon as Accessibility is granted (≤ 2 s).
+        let tapReady = await waitUntil(timeout: 3_000) { self.app.input.tap.isRunning && self.app.input.tap.isEnabled }
+        guard tapReady else {
+            Self.write("Event-Tap nicht verfügbar (Bedienungshilfen: \(AccessibilityPermission.state == .granted ? "erteilt" : "nicht erteilt")).")
+            Self.write(failures == 0 ? "Erfassen bestanden; Tastatur-Prüfungen übersprungen." : "\(failures) Prüfung(en) fehlgeschlagen.")
+            return failures == 0 ? 2 : 1
+        }
+        app.input.tap.diagnostics.isRecording = true
+        Self.write(String(format: "Event-Tap läuft · ⌘V-Taste %ld · Halteschwelle %.2f s", Int(pasteKey), AppSettings.holdThreshold))
+
+        noteMemory("Erfassen")
+        await gestureChecks()
+        noteMemory("Geste")
+        await popupChecks()
+        noteMemory("Pop-up")
+        await screenshotChecks()
+        noteMemory("Bildschirmfoto")
+        await robustnessChecks()
+        noteMemory("100 Kopien")
+        await performanceChecks()
+
+        if let popup = app.input.tap.diagnostics.snapshot().popup {
+            Self.write(String(format: "Messwert Pop-up-Latenz: Median %.0f ms · p90 %.0f ms (n = %ld)", popup.median, popup.p90, popup.count))
+        }
+        Self.write(summaryLine)
+        return failures == 0 ? 0 : 1
+    }
+
+    private var summaryLine: String {
+        if failures > 0 { return "\(failures) Prüfung(en) fehlgeschlagen." }
+        return skipped > 0 ? "Alle Prüfungen bestanden (\(skipped) übersprungen)." : "Alle Prüfungen bestanden."
+    }
+
+    /// M11: the screenshot hot key, its permission gate, the ⌘V gesture afterwards and
+    /// the capture into the history. Capture checks need Screen Recording; without it
+    /// they are skipped with a warning, never passed silently.
+    private func screenshotChecks() async {
+        await check("Tastenkürzel ⌘⇧A ist registriert") {
+            let registered = self.app.screenshotHotKey.shortcut == AppSettings.screenshotHotKey
+            let available = self.app.screenshot.hotKeyAvailable
+            return (registered && available, "registriert: \(registered), frei: \(available)")
+        }
+
+        await prepare(clipboard: nil)
+        let askedBefore = AppSettings.screenshotPermissionAsked
+        await press(0, flags: [.maskCommand, .maskShift])
+        let appeared = await waitUntil(timeout: 5_000) {
+            self.app.screenshot.isOverlayVisible || self.app.screenshot.isShowingPermissionHint
+        }
+        if !appeared, app.screenshot.isActive {
+            // The frozen capture is still waiting – on macOS 15 a system dialog about
+            // Screen Recording can hold it; nothing the runner can answer.
+            app.screenshot.cancel()
+            skip("⌘⇧A öffnet die Aufnahme oder den Berechtigungshinweis, Esc schließt", reason: "Aufnahme wartet nach 5 s noch auf macOS (Systemdialog?)")
+            focusTextView()
+        } else {
+            await check("⌘⇧A öffnet die Aufnahme oder den Berechtigungshinweis, Esc schließt") {
+                let shown = self.app.screenshot.isOverlayVisible ? "Overlay" : (self.app.screenshot.isShowingPermissionHint ? "Berechtigungsfenster" : "nichts")
+                await self.sleep(200)
+                await self.press(53, flags: [])
+                let closed = await self.waitUntil(timeout: 3_000) {
+                    !self.app.screenshot.isActive && !self.app.screenshot.isShowingPermissionHint
+                }
+                // Never asks macOS for the permission on its own.
+                let notAsked = AppSettings.screenshotPermissionAsked == askedBefore
+                if !closed {
+                    self.app.screenshot.cancel()
+                    self.app.screenshot.closePermissionWindow()
+                }
+                self.focusTextView()
+                await self.sleep(300)
+                let untouched = self.textView.string.isEmpty
+                return (appeared && closed && notAsked && untouched, "gezeigt: \(shown), geschlossen: \(closed), nicht selbst angefragt: \(notAsked), Text unverändert: \(untouched)")
+            }
+        }
+
+        await check("Nach dem Bildschirmfoto fügt ⌘V kurz genau einmal ein") {
+            await self.quickTap(repeats: 1, clipboard: "Nach dem Bildschirmfoto")
+        }
+
+        if appeared, ScreenCapturePermission.state == .granted {
+            await check("⌘⇧A über einem Vollbild-Fenster zeigt die Aufnahme auf diesem Space") {
+                let result = await self.inFullScreen { await self.screenshotInFullScreen() }
+                return result ?? (true, "übersprungen: kein Vollbild auf diesem Mac")
+            }
+        }
+
+        await check("Scroll-Zusammenfügen auf synthetischen Bildern") {
+            let document = Self.syntheticDocument(width: 240, height: 900)
+            let frames = [0, 180, 360].map { document.cropped(PixelRect(x: 0, y: $0, width: 240, height: 360)) }
+            var session = ScrollSession(firstFrame: frames[0], scale: 1)
+            let first = session.accept(frames[1], direction: .down)
+            let second = session.accept(frames[2], direction: .down)
+            let height = session.composite().height
+            return (height == 720 && session.info.sections == 2, "Höhe \(height) px (erwartet 720), Schritte: \(first), \(second)")
+        }
+
+        await check("Markieren: Pfeil, Rechteck, Textmarker und Text per Maus und Tastatur, ⏎ kopiert das Bild mit allem") {
+            await self.annotationEditorCheck()
+        }
+
+        guard ScreenCapturePermission.state == .granted else {
+            skip("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage", reason: "Bildschirmaufnahme auf diesem Rechner nicht erlaubt")
+            return
+        }
+        guard let window else { return }
+        let rect = window.frame.insetBy(dx: 20, dy: 20)
+        let result = await app.screenshot.captureForSelfTest(rect: rect)
+        switch result {
+        case .permissionDenied:
+            skip("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage", reason: "ScreenCaptureKit verweigert die Aufnahme trotz Freigabe")
+        case let .stored(item):
+            await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
+                let scale = self.window?.backingScaleFactor ?? 2
+                let expectedWidth = Int((rect.width * scale).rounded())
+                let width = item.preview.imageSize?.width ?? 0
+                let types = NSPasteboard.general.types?.map(\.rawValue) ?? []
+                let onPasteboard = types.contains(PasteboardTypeID.png) && types.contains(PasteboardTypeID.tiff)
+                let isTop = self.app.history.items.first?.id == item.id
+                let passed = item.kind == .image && abs(width - expectedWidth) <= 2 && onPasteboard && isTop
+                return (passed, "Art: \(item.kind.rawValue), Breite \(width) px (erwartet \(expectedWidth)), PNG+TIFF: \(onPasteboard), oben im Verlauf: \(isTop)")
+            }
+            await check("Bildschirmfoto trägt App und Fenster und ist darüber auffindbar") {
+                let title = self.app.visuals.title(for: item)
+                // The runner may use English: compare with the localized row text.
+                let caption = "CopyPal Selbsttest"
+                let expected = String(localized: "Bildschirmfoto · \(caption)")
+                let found = HistorySearch.filter(self.app.history.items, query: "bildschirmfoto selbsttest").first?.id == item.id
+                return (title == expected && found, "Zeile: „\(title)“ (erwartet „\(expected)“), Suche findet es: \(found)")
+            }
+            await check("Bildschirmfoto wird im Hintergrund nach Text durchsucht") {
+                let done = await self.waitUntil(timeout: 20_000) {
+                    self.app.history.items.first { $0.id == item.id }?.preview.textRecognized == true
+                }
+                return (done, "erkannt: \(done)")
+            }
+            await check("⌘S legt das Bildschirmfoto als PNG-Datei ab") {
+                guard let url = await self.app.screenshot.saveFileForSelfTest(rect: window.frame) else {
+                    return (false, "keine Datei")
+                }
+                defer { try? FileManager.default.removeItem(at: url) }
+                let data = (try? Data(contentsOf: url)) ?? Data()
+                let size = PNGInfo.size(of: data)
+                let scale = window.backingScaleFactor
+                let expectedWidth = Int((window.frame.width * scale).rounded())
+                let ok = size.map { abs($0.width - expectedWidth) <= 2 } ?? false
+                return (ok, "\(url.lastPathComponent), \(size.map { "\($0.width) × \($0.height)" } ?? "kein PNG")")
+            }
+            await check("⇧⏎ kopiert den Text einer Auswahl") {
+                self.textView.string = "Texterkennung Selbsttest 4711"
+                self.textView.font = NSFont.systemFont(ofSize: 28)
+                await self.sleep(300)
+                let text = await self.app.screenshot.captureTextForSelfTest(rect: window.frame) ?? ""
+                let recognized = text.contains("Texterkennung") && text.contains("4711")
+                let stored = await self.waitUntil { self.app.history.items.contains { $0.preview.searchText.contains("4711") } }
+                return (recognized && stored, "erkannt: „\(text.replacingOccurrences(of: "\n", with: " ⏎ "))“, im Verlauf: \(stored)")
+            }
+            await check("Rahmen aufziehen zeigt Knöpfe darunter, „Text kopieren“ kopiert den Text") {
+                await self.overlayTextCheck(in: window.frame, marker: "5822", shiftClick: false)
+            }
+            await check("⇧-Klick in die Auswahl kopiert ihren Text") {
+                await self.overlayTextCheck(in: window.frame, marker: "6933", shiftClick: true)
+            }
+            await check("„Markieren“ unter der Auswahl öffnet den Editor mit ihrem Bild") {
+                await self.overlayAnnotateCheck(in: window.frame)
+            }
+            await check("↓ erweitert eine Webseite (WebKit) um zwei Abschnitte") {
+                await self.extendWebKitCheck()
+            }
+            if let chrome = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.google.Chrome") {
+                await check("↓ erweitert eine Webseite in Google Chrome um zwei Abschnitte") {
+                    await self.extendChromeCheck(chrome)
+                }
+            } else {
+                skip("↓ erweitert eine Webseite in Google Chrome", reason: "Chrome ist hier nicht installiert")
+            }
+        case let .pasteboardOnly(reason):
+            await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
+                (false, "nur in der Zwischenablage: \(reason)")
+            }
+        case let .failed(message):
+            await check("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage") {
+                (false, "fehlgeschlagen: \(message)")
+            }
+        }
+    }
+
+    /// Rows of random pixels: every row unique, like text that never repeats.
+    private static func syntheticDocument(width: Int, height: Int) -> PixelBuffer {
+        var generator = SystemRandomNumberGenerator()
+        var bytes = [UInt8](repeating: 255, count: width * height * PixelBuffer.bytesPerPixel)
+        for index in bytes.indices where index % PixelBuffer.bytesPerPixel != 3 {
+            bytes[index] = UInt8.random(in: 0...255, using: &generator)
+        }
+        return PixelBuffer(width: width, height: height, bgra: bytes)
+    }
+
+    /// M2–M5: what gets recorded, and how.
+    private func captureChecks() async {
+        await check("Kopie erscheint im Verlauf") {
+            await self.copy("Selbsttest Kopie Eins")
+            return (self.topTitle == "Selbsttest Kopie Eins", "oben: „\(self.topTitle ?? "–")“")
+        }
+
+        await check("Als geheim markierte Kopie wird nicht gespeichert") {
+            let before = self.app.history.items.count
+            await self.copy("Passwort 123", extra: [PasteboardTypeID.concealed: Data()])
+            return (self.app.history.items.count == before && self.topTitle != "Passwort 123", "Einträge: \(before) → \(self.app.history.items.count)")
+        }
+
+        await check("Vorübergehend markierte Kopie wird nicht gespeichert") {
+            let before = self.app.history.items.count
+            await self.copy("Einmal-Link", extra: [PasteboardTypeID.transient: Data()])
+            return (self.app.history.items.count == before, "Einträge: \(before) → \(self.app.history.items.count)")
+        }
+
+        await check("Doppelte Kopie rückt nach oben statt doppelt") {
+            await self.copy("Selbsttest Duplikat")
+            await self.copy("Selbsttest Dazwischen")
+            let before = self.app.history.items.count
+            await self.copy("Selbsttest Duplikat")
+            let titles = self.app.history.items.map(\.preview.title)
+            let ok = titles.first == "Selbsttest Duplikat" && titles.filter { $0 == "Selbsttest Duplikat" }.count == 1 && titles.count == before
+            return (ok, "oben: „\(titles.first ?? "–")“, Einträge: \(before) → \(titles.count)")
+        }
+
+        await check("IBAN wird verdeckt gespeichert und läuft ab") {
+            await self.copy("DE89 3704 0044 0532 0130 00")
+            guard let item = self.app.history.items.first else { return (false, "nichts gespeichert") }
+            let masked = item.sensitivity == .iban && item.displayTitle == "DE89 •••• 3000" && item.localOnly
+            self.app.timeSource.advance(by: 61)
+            _ = try? await self.app.engine.removeExpired()
+            await self.app.history.reload()
+            let gone = self.app.history.item(id: item.id) == nil
+            self.app.timeSource.offset = 0
+            return (masked && gone, "verdeckt: \(masked) („\(item.displayTitle)“), nach 61 s gelöscht: \(gone)")
+        }
+
+        await check("Ignorierte App wird nicht aufgezeichnet") {
+            let before = self.app.history.items.count
+            AppSettings.customIgnoredBundleIDs = [Bundle.main.bundleIdentifier ?? ""]
+            await self.copy("aus ignorierter App")
+            AppSettings.customIgnoredBundleIDs = []
+            return (self.app.history.items.count == before, "Einträge: \(before) → \(self.app.history.items.count)")
+        }
+
+        await check("Pause verhindert Aufzeichnung") {
+            let before = self.app.history.items.count
+            self.app.pauseCapture(for: 60)
+            await self.copy("während der Pause")
+            self.app.resumeCapture()
+            await self.copy("nach der Pause")
+            return (self.app.history.items.count == before + 1 && self.topTitle == "nach der Pause", "Einträge: \(before) → \(self.app.history.items.count)")
+        }
+
+        await check("Bild wird gespeichert, Miniatur entsteht") {
+            guard let png = Self.samplePNG() else { return (false, "kein Testbild") }
+            await self.copy(nil, extra: [PasteboardTypeID.png: png])
+            guard let item = self.app.history.items.first, item.kind == .image else {
+                return (false, "oben: \(self.app.history.items.first?.kind.rawValue ?? "–")")
+            }
+            _ = self.app.visuals.thumbnail(for: item)
+            let thumbnail = await self.waitUntil(timeout: 3_000) { self.app.visuals.thumbnails[item.id] != nil }
+            return (thumbnail, "Größe: \(item.preview.imageSize.map { "\($0.width)×\($0.height)" } ?? "–"), Miniatur: \(thumbnail)")
+        }
+
+        await check("Dateien werden als Verweis gespeichert") {
+            let urls = [URL(fileURLWithPath: "/tmp/CopyPal-Selbsttest-A.txt"), URL(fileURLWithPath: "/tmp/CopyPal-Selbsttest-B.pdf")]
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.writeObjects(urls as [NSURL])
+            await self.app.capture.drain()
+            let item = self.app.history.items.first
+            return (item?.kind == .files && item?.preview.fileNames.count == 2, "oben: \(item?.kind.rawValue ?? "–"), \(item?.preview.fileNames ?? [])")
+        }
+
+        await check("Verlauf liegt verschlüsselt auf der Platte") {
+            await self.copy("Text mit \(self.secretMarker) darin")
+            await self.copy(String(repeating: "\(self.secretMarker) ", count: 8_000))
+            let found = Self.files(containing: self.secretMarker, in: self.app.storageDirectory)
+            return (found.isEmpty, found.isEmpty ? "kein Klartext gefunden" : "Klartext in: \(found.joined(separator: ", "))")
+        }
+
+        await check("Verlauf übersteht einen Neustart") {
+            guard let keyStore = self.app.selfTestKeyStore,
+                  let reopened = try? ClipStore.open(directory: self.app.storageDirectory, keyStore: keyStore) else {
+                return (false, "Speicher ließ sich nicht erneut öffnen")
+            }
+            let count = (try? reopened.count()) ?? -1
+            let expected = self.app.history.items.count
+            return (reopened.outcome == .opened && count == expected, "Einträge nach erneutem Öffnen: \(count) (erwartet \(expected))")
+        }
+    }
+
+    /// M1: the gesture itself.
+    private func gestureChecks() async {
+        await check("Tippen fügt genau einmal ein") {
+            await self.quickTap(repeats: 0, clipboard: "Selbsttest A")
+        }
+
+        await check("Tastenwiederholung während des Tippens fügt nur einmal ein") {
+            await self.quickTap(repeats: 3, clipboard: "Selbsttest B")
+        }
+
+        for (name, flags) in [("⌘⇧V", CGEventFlags([.maskCommand, .maskShift])), ("⌥⌘V", CGEventFlags([.maskCommand, .maskAlternate]))] {
+            await check("\(name) wird nicht abgefangen") {
+                await self.prepare(clipboard: "")
+                await self.press(self.pasteKey, flags: flags)
+                await self.sleep(200)
+                let decision = self.app.input.tap.diagnostics.snapshot().entries
+                    .last { $0.keyCode == self.pasteKey && $0.kind == "↓" }?.decision
+                return (decision == "durchgelassen", "Entscheidung: \(decision ?? "–")")
+            }
+        }
+    }
+
+    /// M4/M6: the popup with real entries.
+    private func popupChecks() async {
+        // Known entries: 8 plain texts, then a bold one on top.
+        for index in (2...8).reversed() {
+            await copy("Selbsttest Eintrag \(index)")
+        }
+        await copyBold("Fett formatierter Text")
+
+        await check("Halten öffnet das Pop-up mit den letzten 8 Einträgen") {
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            let opened = await self.waitUntil { self.app.popup.isVisible }
+            await self.sleep(200)
+            let rows = self.app.popup.model.visibleItems.count
+            let empty = self.textView.string.isEmpty
+            self.app.popup.close()
+            return (opened && rows == 8 && empty, "sichtbar: \(opened), Zeilen: \(rows), Text: „\(self.textView.string)“")
+        }
+
+        await check("Pop-up erscheint über einem Vollbild-Fenster") {
+            await self.fullScreenCheck()
+        }
+
+        await check("Klick auf „Favoriten“ neben der Notch wechselt die Liste") {
+            await self.favoritesClick(fromTopEdge: false)
+        }
+
+        await check("Klick auf „Favoriten“, während eine andere App vorne ist") {
+            // As in daily use: CopyPal stays inactive, the popup takes the first click.
+            guard let finder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first else {
+                return (true, "übersprungen: Finder läuft nicht")
+            }
+            NSApp.yieldActivation(to: finder)
+            _ = finder.activate(options: [])
+            guard await self.waitUntil(timeout: 3_000, { !NSApp.isActive }) else {
+                self.focusTextView()
+                return (true, "übersprungen: Finder kam nicht nach vorne")
+            }
+            let result = await self.favoritesClick(fromTopEdge: false, otherAppInFront: true)
+            let stayedInactive = !NSApp.isActive
+            self.focusTextView()
+            _ = await self.waitUntil(timeout: 3_000) { NSApp.isActive }
+            return (result.0 && stayedInactive, "\(result.1), CopyPal blieb im Hintergrund: \(stayedInactive)")
+        }
+
+        await check("Klick auf „Favoriten“ über einem Vollbild-Fenster, Menüleiste eingeblendet") {
+            let result = await self.inFullScreen { () -> (Bool, String) in
+                // For comparison only: the level the popup had until the fix.
+                let level = self.app.popup.panelLevel
+                self.app.popup.panelLevel = .statusBar
+                let before = await self.favoritesClick(fromTopEdge: true)
+                self.app.popup.panelLevel = level
+                let now = await self.favoritesClick(fromTopEdge: true)
+                return (now.0, "\(now.1) · zum Vergleich mit Ebene statusBar: \(before.1)")
+            }
+            return result ?? (true, "übersprungen: kein Vollbild auf diesem Mac")
+        }
+
+        await check("Taste 1 fügt formatiert (fett) ein") {
+            let result = await self.pasteFromPopup(keys: [(18, [])], expected: "Fett formatierter Text")
+            return (result.0 && self.isBold, "\(result.1), fett: \(self.isBold)")
+        }
+
+        await check("⇧1 fügt unformatiert ein") {
+            let result = await self.pasteFromPopup(keys: [(18, .maskShift)], expected: "Fett formatierter Text")
+            return (result.0 && !self.isBold, "\(result.1), fett: \(self.isBold)")
+        }
+
+        await check("Taste 3 fügt Eintrag 3 ein, er rückt nach oben") {
+            guard self.app.history.items.count >= 3 else { return (false, "zu wenige Einträge") }
+            let third = self.app.history.items[2]
+            let result = await self.pasteFromPopup(keys: [(20, [])], expected: third.preview.title)
+            await self.sleep(200)
+            let movedUp = self.app.history.items.first?.id == third.id
+            return (result.0 && movedUp && !self.app.popup.isVisible, "\(result.1), oben: „\(self.topTitle ?? "–")“")
+        }
+
+        await check("Kurzes ⌘V fügt danach denselben Eintrag ein") {
+            let expected = self.topTitle ?? "–"
+            await self.prepare(clipboard: nil)
+            await self.press(self.pasteKey, flags: .maskCommand, holdFor: 60)
+            return await self.expectText(expected)
+        }
+
+        await check("Suche „eintrag 5“ und ↩ fügt den Treffer ein") {
+            let result = await self.pasteFromPopup(
+                keys: Self.typing("eintrag 5") + [(36, [])],
+                expected: "Selbsttest Eintrag 5"
+            )
+            return result
+        }
+
+        await check("Esc leert erst die Suche, dann schließt es") {
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            _ = await self.waitUntil { self.app.popup.isVisible }
+            for (key, flags) in Self.typing("abc") {
+                await self.press(key, flags: flags)
+            }
+            await self.sleep(100)
+            let typed = self.app.popup.model.query
+            await self.press(53, flags: [])
+            await self.sleep(100)
+            let cleared = self.app.popup.model.query.isEmpty && self.app.popup.isVisible
+            await self.press(53, flags: [])
+            let closed = await self.waitUntil { !self.app.popup.isVisible }
+            return (typed == "abc" && cleared && closed && self.textView.string.isEmpty, "Suche: „\(typed)“, geleert: \(cleared), geschlossen: \(closed)")
+        }
+
+        await check("→ zeigt den Eintrag ganz, ← und Esc gehen zurück zur Liste") {
+            guard let top = self.app.history.items.first(where: { $0.kind == .text || $0.kind == .richText }) else { return (false, "kein Text im Verlauf") }
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            _ = await self.waitUntil { self.app.popup.isVisible }
+            let index = self.app.popup.model.visibleItems.firstIndex { $0.id == top.id } ?? 0
+            for _ in 0..<index {
+                await self.press(125, flags: [])
+            }
+            await self.press(124, flags: []) // →
+            let previewing = self.app.popup.model.previewing
+            let loaded = await self.waitUntil {
+                if case .text = self.app.popup.model.previews[top.id] { return true }
+                return false
+            }
+            await self.press(123, flags: []) // ←
+            let backWithLeft = !self.app.popup.model.previewing && self.app.popup.isVisible
+            await self.press(124, flags: [])
+            await self.press(53, flags: []) // Esc leaves the preview, not the popup
+            let backWithEscape = !self.app.popup.model.previewing && self.app.popup.isVisible
+            await self.press(53, flags: [])
+            let closed = await self.waitUntil { !self.app.popup.isVisible }
+            let untouched = self.textView.string.isEmpty
+            return (previewing && loaded && backWithLeft && backWithEscape && closed && untouched,
+                    "Vorschau: \(previewing), Text geladen: \(loaded), ← zurück: \(backWithLeft), Esc zurück: \(backWithEscape), danach geschlossen: \(closed)")
+        }
+
+        await check("⌘P macht zum Favoriten, ⇥ zeigt Favoriten, 1 fügt ihn ein") {
+            guard let second = self.app.history.items.dropFirst().first else { return (false, "zu wenige Einträge") }
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            _ = await self.waitUntil { self.app.popup.isVisible }
+            await self.press(125, flags: []) // ↓ to entry 2
+            await self.press(35, flags: .maskCommand) // ⌘P
+            let pinned = await self.waitUntil { self.app.history.favorites.contains { $0.id == second.id } }
+            await self.press(48, flags: []) // ⇥
+            await self.sleep(100)
+            let showsFavorites = self.app.popup.model.list == .favorites
+            await self.press(18, flags: [])
+            let result = await self.expectText(second.preview.title)
+            return (pinned && showsFavorites && result.0, "angepinnt: \(pinned), Favoritenliste: \(showsFavorites), \(result.1)")
+        }
+
+        await check("⌘⌫ löscht den ausgewählten Eintrag") {
+            guard let first = self.app.history.items.first else { return (false, "leer") }
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            _ = await self.waitUntil { self.app.popup.isVisible }
+            await self.press(51, flags: .maskCommand)
+            let deleted = await self.waitUntil { self.app.history.item(id: first.id) == nil }
+            await self.press(53, flags: [])
+            _ = await self.waitUntil { !self.app.popup.isVisible }
+            return (deleted, "gelöscht: \(deleted)")
+        }
+
+        await check("Kopie vom iPhone: erst Platzhalter, Auswahl lädt den Inhalt") {
+            await self.copy("Vom iPhone kopiert (Test)", extra: [PasteboardTypeID.remoteClipboard: Data()])
+            let placeholder = self.app.history.items.first?.isRemotePlaceholder == true
+            let result = await self.pasteFromPopup(keys: [(18, [])], expected: "Vom iPhone kopiert (Test)", seedClipboard: false)
+            let top = self.app.history.items.first
+            let stored = top?.origin == .remoteDevice && top?.isRemotePlaceholder == false
+            return (placeholder && result.0 && stored, "Platzhalter: \(placeholder), \(result.1), gespeichert: \(stored)")
+        }
+
+        await check("Tastenkürzel ⌃⌥V öffnet das Pop-up") {
+            await self.prepare(clipboard: nil)
+            await self.press(UInt16(9), flags: [.maskControl, .maskAlternate])
+            let opened = await self.waitUntil { self.app.popup.isVisible }
+            await self.press(53, flags: [])
+            _ = await self.waitUntil { !self.app.popup.isVisible }
+            return (opened && self.textView.string.isEmpty, "geöffnet: \(opened)")
+        }
+
+        await check("Präsentationsmodus: Pop-up ohne Inhalte, aus Freigaben herausgehalten") {
+            self.app.presentation.start()
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            let opened = await self.waitUntil { self.app.popup.isVisible }
+            let concealed = self.app.popup.model.concealsContent
+            let hidden = self.app.popup.panelSharingType == .none
+            await self.sleep(200)
+            await self.press(53, flags: [])
+            _ = await self.waitUntil { !self.app.popup.isVisible }
+            self.app.presentation.stop()
+            let off = !self.app.popup.model.concealsContent && AppSettings.presentationUntil == nil
+            return (opened && concealed && hidden && off, "geöffnet: \(opened), ohne Inhalte: \(concealed), aus Freigaben: \(hidden), danach aus: \(off)")
+        }
+
+        await check("⇧ fügt Links ohne Tracking-Parameter ein") {
+            await self.copy("https://example.com/artikel?utm_source=newsletter&id=7&fbclid=abc")
+            return await self.pasteFromPopup(keys: [(18, .maskShift)], expected: "https://example.com/artikel?id=7", seedClipboard: false)
+        }
+
+        await check("„Letzte Kopie vergessen“ löscht den Eintrag und leert die Zwischenablage") {
+            await self.copy("Versehentlich kopiert \(self.secretMarker)")
+            let stored = await self.waitUntil { self.app.history.items.contains { $0.preview.title.hasPrefix("Versehentlich kopiert") } }
+            self.app.forgetLastCopy()
+            let gone = await self.waitUntil { !self.app.history.items.contains { $0.preview.title.hasPrefix("Versehentlich kopiert") } }
+            let cleared = NSPasteboard.general.string(forType: .string) == nil
+            return (stored && gone && cleared, "gespeichert: \(stored), gelöscht: \(gone), Zwischenablage leer: \(cleared)")
+        }
+
+        await check("Neuer Favorit aus eingetipptem Text, mit Name") {
+            await self.app.history.perform { engine in
+                _ = try await engine.addFavorite(text: "Musterstraße 1, 12345 Berlin", label: "Adresse")
+            }
+            let favorite = self.app.history.favorites.first { $0.pinLabel == "Adresse" }
+            let named = favorite.map { self.app.visuals.favoriteName(for: $0) == "Adresse" } ?? false
+            return (favorite != nil && named, "angelegt: \(favorite != nil), Name im Pop-up: \(named)")
+        }
+
+        await check("Zeiger auf dem Menüleisten-Symbol zeigt die Tastenkürzel darunter") {
+            await self.menuBarHintCheck()
+        }
+    }
+
+    /// M8: many quick copies.
+    private func robustnessChecks() async {
+        await check("100 schnelle Kopien: kein Absturz, keine Duplikate, letzte stimmt") {
+            let pasteboard = NSPasteboard.general
+            for index in 1...100 {
+                pasteboard.clearContents()
+                pasteboard.setString("Stress \(index)", forType: .string)
+                await self.sleep(100)
+            }
+            await self.app.capture.drain()
+            let titles = self.app.history.items.map(\.preview.title)
+            // Only the stress copies count: images from earlier checks share the empty title.
+            let stress = titles.filter { $0.hasPrefix("Stress") }
+            let duplicates = stress.count - Set(stress).count
+            return (titles.first == "Stress 100" && duplicates == 0, "oben: „\(titles.first ?? "–")“, Duplikate: \(duplicates), gespeichert: \(stress.count)")
+        }
+    }
+
+    /// M8: big copies must not freeze the UI; idle cost and memory are reported.
+    private func performanceChecks() async {
+        await check("Großes Bild (≈ 20 MB) blockiert die Oberfläche nicht") {
+            guard let png = Self.noisePNG(width: 2_600, height: 2_000) else { return (false, "kein Testbild") }
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setData(png, forType: .png)
+            let meter = StallMeter()
+            meter.start()
+            await self.app.capture.drain()
+            _ = await self.waitUntil(timeout: 5_000) { self.app.history.items.first?.byteSize ?? 0 > 10_000_000 }
+            meter.stop()
+            let stored = (self.app.history.items.first?.byteSize ?? 0) > 10_000_000
+            return (stored && meter.longestStall < 0.25, String(
+                format: "%.1f MB gespeichert: %@, längste Blockade des Main-Threads: %.0f ms",
+                Double(png.count) / 1_000_000, stored ? "ja" : "nein", meter.longestStall * 1_000
+            ))
+        }
+
+        noteMemory("großes Bild")
+
+        // New images are read in the background once; idle means after that.
+        let indexed = await waitUntil(timeout: 60_000) { self.app.textIndexer.isIdle }
+        Self.write(indexed
+            ? String(format: "Texterkennung im Hintergrund fertig · %.0f MB an das System zurückgegeben", Double(app.textIndexer.releasedBytes) / 1_000_000)
+            : "Texterkennung im Hintergrund nach 60 s noch beschäftigt")
+        noteMemory("Texterkennung")
+        await check("Texterkennung läuft im Hilfsprozess, der sich danach beendet") {
+            let recognition = self.app.textRecognition
+            guard recognition.hasHelper else {
+                return (false, "\(TextRecognitionHelper.bundleName) fehlt im App-Bundle")
+            }
+            guard let pid = await recognition.lastHelperPID else {
+                return (false, "kein Bild über den Hilfsprozess gelesen")
+            }
+            // The connection closes 5 s after the last answer; the helper ends with it.
+            let ended = await self.waitUntil(timeout: 15_000) { kill(pid, 0) == -1 && errno == ESRCH }
+            return (pid != getpid() && ended, "Prozess \(pid), danach beendet: \(ended)")
+        }
+        let idle = await Self.cpuUsage(during: 5)
+        Self.write(String(format: "Messwert CPU im Leerlauf (5 s): %.2f %%", idle * 100))
+        let memory = Self.memoryFootprint() / 1_000_000
+        Self.write(String(format: "Messwert Speicher: %.0f MB bei %ld Einträgen", memory, app.history.items.count))
+        Self.write("Messwert Speicher-Verlauf (MB): " + memorySteps.joined(separator: " · "))
+        // Vision's models used to stay here after the first image (121–129 MB, R32).
+        await check("Speicher nach der Texterkennung unter 100 MB") {
+            (memory < 100, String(format: "%.0f MB", memory))
+        }
+    }
+
+    // MARK: Helpers
+
+    private func noteMemory(_ phase: String) {
+        memorySteps.append(String(format: "%@ %.0f", phase, Self.memoryFootprint() / 1_000_000))
+    }
+
+    private func check(_ name: String, _ body: () async -> (Bool, String)) async {
+        let (passed, detail) = await body()
+        if !passed { failures += 1 }
+        Self.write("\(passed ? "✔" : "✘") \(name) – \(detail)")
+    }
+
+    /// A check this machine cannot run. The `::warning::` line becomes a GitHub
+    /// annotation, so a skipped check is never mistaken for a passed one.
+    private func skip(_ name: String, reason: String) {
+        skipped += 1
+        Self.write("⚠︎ \(name) – übersprungen: \(reason)")
+        Self.write("::warning::Selbsttest: \(name) übersprungen – \(reason)")
+    }
+
+    private var topTitle: String? {
+        app.history.items.first?.preview.title
+    }
+
+    /// Writes the pasteboard like another app would, then waits until it is processed.
+    private func copy(_ text: String?, extra: [String: Data] = [:]) async {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        let item = NSPasteboardItem()
+        if let text {
+            item.setString(text, forType: .string)
+        }
+        for (type, data) in extra {
+            item.setData(data, forType: NSPasteboard.PasteboardType(type))
+        }
+        pasteboard.writeObjects([item])
+        await app.capture.drain()
+    }
+
+    private func copyBold(_ text: String) async {
+        let attributed = NSAttributedString(string: text, attributes: [.font: NSFont.boldSystemFont(ofSize: 13)])
+        let rtf = try? attributed.data(
+            from: NSRange(location: 0, length: attributed.length),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
+        )
+        await copy(text, extra: rtf.map { [PasteboardTypeID.rtf: $0] } ?? [:])
+    }
+
+    /// The panel must join a full-screen Space (M7). CI can only put CopyPal's own
+    /// window into full screen; another app's Space is the manual test in M7.md.
+    private func fullScreenCheck() async -> (Bool, String) {
+        let result = await inFullScreen { () -> (Bool, String) in
+            await self.prepare(clipboard: nil)
+            await self.openPopup()
+            let opened = await self.waitUntil { self.app.popup.isVisible }
+            await self.sleep(200)
+            let onSpace = self.app.popup.isOnActiveSpace
+            let onScreen = self.app.popup.isOnScreen
+            self.app.popup.close()
+            await self.sleep(300)
+            return (opened && onSpace && onScreen, "sichtbar: \(opened), auf aktivem Space: \(onSpace), auf dem Bildschirm: \(onScreen)")
+        }
+        return result ?? (true, "übersprungen: kein Vollbild auf diesem Mac")
+    }
+
+    /// Runs `body` while the test window is in full screen; nil when this Mac has none.
+    private func inFullScreen<Value>(_ body: () async -> Value) async -> Value? {
+        guard let window else { return nil }
+        window.styleMask.insert(.resizable)
+        window.collectionBehavior.insert(.fullScreenPrimary)
+        window.toggleFullScreen(nil)
+        guard await waitUntil(timeout: 8_000, { window.styleMask.contains(.fullScreen) }) else {
+            return nil
+        }
+        await sleep(600) // the Space transition
+        let result = await body()
+        window.toggleFullScreen(nil)
+        _ = await waitUntil(timeout: 8_000) { !window.styleMask.contains(.fullScreen) }
+        await sleep(600)
+        focusTextView()
+        return result
+    }
+
+    /// Opens the popup and clicks "Favoriten" beside the notch with real mouse events,
+    /// routed by the window server like the user's mouse. `fromTopEdge`: the pointer
+    /// touches the top edge first, so a menu bar hidden for a full-screen window slides
+    /// in. `otherAppInFront`: CopyPal stays inactive, as in daily use.
+    private func favoritesClick(fromTopEdge: Bool, otherAppInFront: Bool = false) async -> (Bool, String) {
+        if !otherAppInFront {
+            await prepare(clipboard: nil)
+        }
+        await openPopup()
+        guard await waitUntil({ self.app.popup.isVisible }) else { return (false, "Pop-up nicht geöffnet") }
+        await sleep(450) // the opening spring
+        let point = app.popup.favoritesSwitchPoint
+        if fromTopEdge {
+            let top = NSScreen.screens.first { $0.frame.contains(point) }?.frame.maxY ?? point.y
+            Self.postMouse(.mouseMoved, at: CGPoint(x: point.x, y: top - 1))
+            await sleep(1_000)
+        }
+        Self.postMouse(.mouseMoved, at: point)
+        await sleep(150)
+        Self.postMouse(.leftMouseDown, at: point)
+        await sleep(40)
+        Self.postMouse(.leftMouseUp, at: point)
+        let switched = await waitUntil(timeout: 1_000) { self.app.popup.model.list == .favorites }
+        let open = app.popup.isVisible
+        app.popup.close()
+        _ = await waitUntil { !self.app.popup.isVisible }
+        if let screen = NSScreen.main {
+            Self.postMouse(.mouseMoved, at: CGPoint(x: screen.frame.midX, y: screen.frame.midY))
+        }
+        await sleep(200)
+        return (switched && open, "Favoritenliste: \(switched), Pop-up noch offen: \(open)")
+    }
+
+    /// The overlay as a user meets it: ⌘⇧A, drag a frame over the test window, then
+    /// either the "Text kopieren" button under it or a ⇧-click into it. The text of the
+    /// window has to land in the history as text.
+    private func overlayTextCheck(in frame: CGRect, marker: String, shiftClick: Bool) async -> (Bool, String) {
+        textView.string = "Overlay Selbsttest \(marker)"
+        await sleep(300)
+        await press(0, flags: [.maskCommand, .maskShift])
+        guard await waitUntil(timeout: 5_000, { self.app.screenshot.isOverlayVisible }) else {
+            app.screenshot.cancel()
+            focusTextView()
+            return (false, "Aufnahme nicht geöffnet")
+        }
+        await sleep(300)
+        let start = CGPoint(x: frame.minX + 8, y: frame.maxY - 32)
+        if !shiftClick {
+            Self.postMouse(.mouseMoved, at: start)
+            await sleep(400)
+            await saveSnapshot("1-overlay-vor-der-auswahl")
+        }
+        await drag(from: start, to: CGPoint(x: frame.maxX - 8, y: frame.minY + 8))
+        let shown = await waitUntil(timeout: 2_000) { !self.app.screenshot.actionsForSelfTest.isEmpty }
+        if !shiftClick {
+            await saveSnapshot("2-overlay-knoepfe")
+        }
+        let buttons = app.screenshot.actionsForSelfTest.map { "\($0)" }.joined(separator: ", ")
+        let target: CGPoint? = shiftClick
+            ? CGPoint(x: frame.midX, y: frame.midY)
+            : app.screenshot.actionButtonCenterForSelfTest(.copyText)
+        guard let target else {
+            app.screenshot.cancel()
+            focusTextView()
+            return (false, "keine Knöpfe unter der Auswahl (gezeigt: \(shown))")
+        }
+        if !shiftClick {
+            Self.postMouse(.mouseMoved, at: target)
+            await sleep(300)
+            await saveSnapshot("3-overlay-knopf-unter-dem-zeiger")
+        }
+        await click(at: target, flags: shiftClick ? .maskShift : [])
+        let closed = await waitUntil(timeout: 3_000) { !self.app.screenshot.isActive }
+        if !closed {
+            app.screenshot.cancel()
+        }
+        let stored = await waitUntil(timeout: 10_000) {
+            guard let top = self.app.history.items.first else { return false }
+            return top.kind == .text && top.preview.searchText.contains(marker)
+        }
+        focusTextView()
+        await sleep(200)
+        let detail = "Knöpfe: \(buttons.isEmpty ? "keine" : buttons), geschlossen: \(closed), Text im Verlauf: \(stored)"
+        return ((shiftClick || shown) && closed && stored, detail)
+    }
+
+    /// R33: the markup editor as a user works it – tool letters, drags, typing, Esc,
+    /// ] for a larger font, ⌘Z and ⇧⌘Z, ⏎ – on a known picture. The copied PNG has to
+    /// carry every mark where it was drawn.
+    private func annotationEditorCheck() async -> (Bool, String) {
+        guard let picture = Self.annotationTestPicture() else {
+            return (false, "kein Testbild")
+        }
+        app.screenshot.openEditorForSelfTest(picture, scale: 1)
+        guard await waitUntil(timeout: 3_000, { self.app.screenshot.annotationEditorForSelfTest?.window?.isKeyWindow == true }),
+              let editor = app.screenshot.annotationEditorForSelfTest else {
+            app.screenshot.annotationEditorForSelfTest?.window?.close()
+            focusTextView()
+            return (false, "Editor nicht geöffnet")
+        }
+        await sleep(400)
+        let model = editor.model
+        let canvas = editor.canvas
+        func onScreen(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            canvas.screenPointForSelfTest(CGPoint(x: x, y: y)) ?? .zero
+        }
+        await typeKey("a")
+        let arrowTool = model.tool == .arrow
+        await drag(from: onScreen(40, 40), to: onScreen(220, 130))
+        await typeKey("r")
+        await drag(from: onScreen(280, 40), to: onScreen(440, 150))
+        await typeKey("h")
+        await drag(from: onScreen(40, 260), to: onScreen(320, 260))
+        await typeKey("t")
+        await click(at: onScreen(360, 230))
+        let typing = await waitUntil(timeout: 1_500) { canvas.isTypingForSelfTest }
+        await Self.typeText("Notiz 42")
+        await sleep(300)
+        // Esc: the text is done and stays selected; four times ] makes it 8 pt larger.
+        await press(53, flags: [])
+        await sleep(200)
+        let before = model.style.fontSize
+        var viaKeys = true
+        for _ in 0..<4 {
+            if KeyboardLayout.keyCode(typing: "]") != nil {
+                await typeKey("]")
+            } else {
+                viaKeys = false
+                model.adjustSize(by: 1)
+            }
+        }
+        await sleep(200)
+        let grown = model.style.fontSize
+        await saveSnapshot("6-markieren")
+        await press(KeyboardLayout.keyCode(typing: "z", command: true) ?? 6, flags: .maskCommand)
+        let undone = model.style.fontSize
+        await press(KeyboardLayout.keyCode(typing: "z", command: true) ?? 6, flags: [.maskCommand, .maskShift])
+        let redone = model.style.fontSize
+        let tools = model.document.items.map(\.tool.rawValue)
+        let text = model.document.items.compactMap { mark -> String? in
+            if case let .text(string, _) = mark.shape { return string }
+            return nil
+        }.first ?? "–"
+        let previousTop = app.history.items.first?.id
+        await press(36, flags: [])
+        let closed = await waitUntil(timeout: 4_000) { self.app.screenshot.annotationEditorForSelfTest == nil }
+        if !closed {
+            editor.window?.close()
+        }
+        let stored = await waitUntil(timeout: 5_000) {
+            guard let top = self.app.history.items.first else { return false }
+            return top.id != previousTop && top.kind == .image
+        }
+        let marks = NSPasteboard.general.data(forType: .png).map(Self.annotationMarks) ?? (false, "kein PNG in der Zwischenablage")
+        focusTextView()
+        await sleep(200)
+        let sizes = before == 20 && grown == 28 && undone == 26 && redone == 28
+        let passed = arrowTool && typing && tools == ["arrow", "rectangle", "highlighter", "text"] && text == "Notiz 42" && sizes && closed && stored && marks.0
+        let detail = "Werkzeug A: \(arrowTool), Marken: \(tools.joined(separator: ", ")), Text „\(text)“ (getippt: \(typing)), "
+            + "Schrift \(Int(before)) → \(Int(grown)) pt (\(viaKeys ? "]" : "ohne ]-Taste")), ⌘Z \(Int(undone)), ⇧⌘Z \(Int(redone)), "
+            + "geschlossen: \(closed), im Verlauf: \(stored), Bild: \(marks.1)"
+        return (passed, detail)
+    }
+
+    /// The overlay's "Markieren" button: the editor opens with the selection's picture;
+    /// Esc closes it again without asking, as nothing was drawn.
+    private func overlayAnnotateCheck(in frame: CGRect) async -> (Bool, String) {
+        await press(0, flags: [.maskCommand, .maskShift])
+        guard await waitUntil(timeout: 5_000, { self.app.screenshot.isOverlayVisible }) else {
+            app.screenshot.cancel()
+            focusTextView()
+            return (false, "Aufnahme nicht geöffnet")
+        }
+        await sleep(300)
+        await drag(from: CGPoint(x: frame.minX + 8, y: frame.maxY - 32), to: CGPoint(x: frame.maxX - 8, y: frame.minY + 8))
+        _ = await waitUntil(timeout: 2_000) { !self.app.screenshot.actionsForSelfTest.isEmpty }
+        let buttons = app.screenshot.actionsForSelfTest.map { "\($0)" }.joined(separator: ", ")
+        guard let target = app.screenshot.actionButtonCenterForSelfTest(.annotate) else {
+            app.screenshot.cancel()
+            focusTextView()
+            return (false, "kein Knopf „Markieren“ (Knöpfe: \(buttons.isEmpty ? "keine" : buttons))")
+        }
+        await click(at: target)
+        let opened = await waitUntil(timeout: 5_000) { self.app.screenshot.annotationEditorForSelfTest?.window?.isKeyWindow == true }
+        let editor = app.screenshot.annotationEditorForSelfTest
+        let scale = window?.backingScaleFactor ?? 1
+        let expectedWidth = Int(((frame.width - 16) * scale).rounded())
+        let width = editor?.model.image.width ?? 0
+        await sleep(300)
+        await saveSnapshot("7-markieren-aus-der-auswahl")
+        await press(53, flags: [])
+        let closed = await waitUntil(timeout: 3_000) { self.app.screenshot.annotationEditorForSelfTest == nil }
+        if !closed {
+            editor?.window?.close()
+        }
+        focusTextView()
+        await sleep(200)
+        return (opened && abs(width - expectedWidth) <= 4 && closed, "geöffnet: \(opened), Bildbreite \(width) px (erwartet \(expectedWidth)), Esc schließt: \(closed)")
+    }
+
+    /// 600 × 360 px, white, with gray bars like lines of text on the right.
+    private static func annotationTestPicture() -> ImageBox? {
+        guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(data: nil, width: 600, height: 360, bitsPerComponent: 8, bytesPerRow: 0, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+            return nil
+        }
+        context.setFillColor(CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: 600, height: 360))
+        context.setFillColor(CGColor(srgbRed: 0.8, green: 0.8, blue: 0.79, alpha: 1))
+        for row in 0..<8 {
+            context.fill(CGRect(x: 470, y: 30 + row * 40, width: 60 + (row * 23) % 50, height: 10))
+        }
+        return context.makeImage().map { ImageBox($0) }
+    }
+
+    /// Looks at the copied picture where the marks were drawn.
+    private static func annotationMarks(_ png: Data) -> (Bool, String) {
+        guard let source = CGImageSourceCreateWithData(png as CFData, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil),
+              let space = CGColorSpace(name: CGColorSpace.sRGB) else {
+            return (false, "PNG unlesbar")
+        }
+        let width = image.width
+        let height = image.height
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        let drawn = bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+                return false
+            }
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return true
+        }
+        guard drawn, width == 600, height == 360 else {
+            return (false, "\(width) × \(height) px (erwartet 600 × 360)")
+        }
+        // Row 0 is the top of the picture.
+        func pixel(_ x: Int, _ y: Int) -> (r: Int, g: Int, b: Int) {
+            let index = (y * width + x) * 4
+            return (Int(bytes[index]), Int(bytes[index + 1]), Int(bytes[index + 2]))
+        }
+        func isRed(_ p: (r: Int, g: Int, b: Int)) -> Bool { p.r > 200 && p.g < 120 && p.b < 120 }
+        func isWhite(_ p: (r: Int, g: Int, b: Int)) -> Bool { p.r > 240 && p.g > 240 && p.b > 240 }
+        let arrow = pixel(130, 85)
+        let box = pixel(280, 95)
+        let inside = pixel(360, 95)
+        let marker = pixel(180, 260)
+        let bubble = pixel(354, 230)
+        var letters = 0
+        for y in 222..<256 {
+            for x in 366..<470 where isWhite(pixel(x, y)) {
+                letters += 1
+            }
+        }
+        let markerOK = marker.r > 220 && marker.g > 180 && marker.b < 210 && marker.b > 60
+        let passed = isRed(arrow) && isRed(box) && isWhite(inside) && markerOK && isRed(bubble) && letters > 30
+        return (passed, "Pfeil \(arrow), Rechteck \(box), innen \(inside), Textmarker \(marker), Blase \(bubble), weiße Buchstaben-Pixel \(letters)")
+    }
+
+    /// A key that types `character` in the current layout.
+    private func typeKey(_ character: Character) async {
+        await press(KeyboardLayout.keyCode(typing: character) ?? 0, flags: [])
+        await sleep(80)
+    }
+
+    /// Types `text` character by character as Unicode, whatever the layout.
+    private static func typeText(_ text: String) async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global(qos: .userInteractive).async {
+                let source = CGEventSource(stateID: .hidSystemState)
+                for character in text {
+                    let units = Array(String(character).utf16)
+                    for down in [true, false] {
+                        guard let event = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: down) else { continue }
+                        event.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
+                        event.post(tap: .cghidEventTap)
+                        usleep(15_000)
+                    }
+                }
+                continuation.resume()
+            }
+        }
+    }
+
+    /// A long page with a sticky header, like most websites: ↓ has to scroll it and
+    /// join what appears.
+    private static let longPage: String = {
+        let paragraphs = (1...90).map { index in
+            "<p><b>Absatz \(index)</b> – " + String(repeating: "Wort\(index * 7 % 13) ", count: 5 + index % 11) + "</p>"
+        }.joined()
+        return """
+        <html><head><meta charset="utf-8"><style>
+        body { font: 16px -apple-system, sans-serif; margin: 0; background: white; color: #37352F; }
+        header { position: sticky; top: 0; background: #2383E2; color: white; padding: 12px 16px; font-weight: 600; }
+        p { margin: 0; padding: 8px 16px; border-bottom: 1px solid #ddd; }
+        p:nth-of-type(3n) { background: #F4F4F2; }
+        </style></head><body><header>CopyPal Selbsttest – Webseite</header>\(paragraphs)</body></html>
+        """
+    }()
+
+    private func extendWebKitCheck() async -> (Bool, String) {
+        let page = WKWebView(frame: NSRect(x: 0, y: 0, width: 560, height: 420), configuration: WKWebViewConfiguration())
+        page.loadHTMLString(Self.longPage, baseURL: nil)
+        let pageWindow = NSWindow(contentRect: NSRect(x: 220, y: 140, width: 560, height: 420), styleMask: [.titled], backing: .buffered, defer: false)
+        pageWindow.title = "CopyPal Selbsttest Webseite"
+        pageWindow.isReleasedWhenClosed = false
+        pageWindow.contentView = page
+        pageWindow.makeKeyAndOrderFront(nil)
+        defer {
+            pageWindow.orderOut(nil)
+            focusTextView()
+        }
+        _ = await waitUntil(timeout: 5_000) { !page.isLoading }
+        await sleep(600)
+        return await extendCheck(in: pageWindow.frame, topInset: 40, snapshot: "4-erweitern-webkit")
+    }
+
+    /// The same in Google Chrome, which the GitHub runners have: its own process, its
+    /// own scrolling.
+    private func extendChromeCheck(_ chrome: URL) async -> (Bool, String) {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("copypal-selbsttest-seite.html")
+        guard (try? Self.longPage.write(to: file, atomically: true, encoding: .utf8)) != nil else {
+            return (false, "Testseite nicht geschrieben")
+        }
+        // Its own fresh profile: no restored tabs, no profile lock from another instance.
+        let profile = FileManager.default.temporaryDirectory.appendingPathComponent("copypal-selbsttest-chrome-\(UUID().uuidString)")
+        let open = Process()
+        open.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        open.arguments = [
+            "-n", "-a", chrome.path, file.path, "--args",
+            "--user-data-dir=\(profile.path)", "--no-first-run", "--no-default-browser-check", "--disable-search-engine-choice-screen",
+            "--window-position=160,80", "--window-size=900,720",
+        ]
+        guard (try? open.run()) != nil else {
+            return (false, "Chrome startet nicht")
+        }
+        var browser: NSRunningApplication?
+        var found: WindowInfo?
+        defer {
+            browser?.terminate()
+            NSApp.activate()
+            focusTextView()
+        }
+        _ = await waitUntil(timeout: 30_000) {
+            browser = NSRunningApplication.runningApplications(withBundleIdentifier: "com.google.Chrome").first
+            guard let pid = browser?.processIdentifier else { return false }
+            found = WindowList.onScreen().first { $0.ownerPID == pid && $0.layer == 0 && $0.frame.height > 300 }
+            return found != nil
+        }
+        guard let window = found else {
+            await saveSnapshot("5-chrome-ohne-fenster")
+            let pid = browser?.processIdentifier
+            let windows = WindowList.onScreen().filter { $0.ownerPID == pid }.map { "\(Int($0.frame.width))×\(Int($0.frame.height)) Ebene \($0.layer)" }
+            return (false, "kein Chrome-Fenster nach 30 s – läuft: \(browser != nil), Fenster: \(windows.isEmpty ? "keine" : windows.joined(separator: ", "))")
+        }
+        await sleep(2_000)
+        // Below the tab strip and the toolbar.
+        return await extendCheck(in: window.frame, topInset: 130, snapshot: "5-erweitern-chrome")
+    }
+
+    /// ⌘⇧A, a frame over the page below `topInset`, ↓ twice: each step has to add a
+    /// section. Reports what every step did.
+    private func extendCheck(in frame: CGRect, topInset: CGFloat, snapshot: String) async -> (Bool, String) {
+        await press(0, flags: [.maskCommand, .maskShift])
+        guard await waitUntil(timeout: 5_000, { self.app.screenshot.isOverlayVisible }) else {
+            app.screenshot.cancel()
+            return (false, "Aufnahme nicht geöffnet")
+        }
+        await sleep(300)
+        await drag(from: CGPoint(x: frame.minX + 12, y: frame.maxY - topInset), to: CGPoint(x: frame.maxX - 12, y: frame.minY + 12))
+        guard await waitUntil(timeout: 2_000, { !self.app.screenshot.actionsForSelfTest.isEmpty }) else {
+            app.screenshot.cancel()
+            return (false, "keine Auswahl")
+        }
+        var steps: [String] = []
+        for _ in 1...2 {
+            await press(125, flags: [])
+            let finished = await waitUntil(timeout: 8_000) { !self.app.screenshot.isExtendingForSelfTest }
+            steps.append(finished ? (app.screenshot.lastStepDescription ?? "–") : "läuft nach 8 s noch")
+        }
+        let sections = app.screenshot.stitchedSectionsForSelfTest
+        await saveSnapshot(snapshot)
+        app.screenshot.cancel()
+        _ = await waitUntil { !self.app.screenshot.isActive }
+        return (sections >= 2, "Abschnitte: \(sections) · " + steps.joined(separator: " | "))
+    }
+
+    /// CI: the screen as the user sees it, kept as a job artifact (the folder in
+    /// `COPYPAL_SELFTEST_SHOTS`); nothing when the variable is not set.
+    private func saveSnapshot(_ name: String) async {
+        guard let folder = ProcessInfo.processInfo.environment["COPYPAL_SELFTEST_SHOTS"],
+              let screen = NSScreen.main ?? NSScreen.screens.first,
+              let display = ScreenCaptureEngine.display(for: screen),
+              let image = try? await ScreenCaptureEngine.captureDisplay(display),
+              let png = ImageConversion.png(image.image, scale: display.scale) else {
+            return
+        }
+        let directory = URL(fileURLWithPath: folder, isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent(name).appendingPathExtension("png")
+        if (try? png.write(to: url)) != nil {
+            Self.write("Bild für die CI: \(url.lastPathComponent)")
+        }
+    }
+
+    private func drag(from start: CGPoint, to end: CGPoint) async {
+        Self.postMouse(.mouseMoved, at: start)
+        await sleep(150)
+        Self.postMouse(.leftMouseDown, at: start)
+        await sleep(40)
+        for step in 1...12 {
+            let fraction = CGFloat(step) / 12
+            Self.postMouse(.leftMouseDragged, at: CGPoint(x: start.x + (end.x - start.x) * fraction, y: start.y + (end.y - start.y) * fraction))
+            await sleep(16)
+        }
+        Self.postMouse(.leftMouseUp, at: end)
+        await sleep(150)
+    }
+
+    private func click(at point: CGPoint, flags: CGEventFlags = []) async {
+        Self.postMouse(.mouseMoved, at: point, flags: flags)
+        await sleep(150)
+        Self.postMouse(.leftMouseDown, at: point, flags: flags)
+        await sleep(40)
+        Self.postMouse(.leftMouseUp, at: point, flags: flags)
+    }
+
+    /// The pointer rests on the menu bar icon: the card with the shortcuts appears below
+    /// it and goes again when the pointer leaves.
+    private func menuBarHintCheck() async -> (Bool, String) {
+        guard let item = app.statusItemController, let icon = item.iconFrameOnScreen else {
+            return (false, "kein Menüleisten-Symbol")
+        }
+        let hint = item.hintController
+        Self.postMouse(.mouseMoved, at: CGPoint(x: icon.midX, y: icon.midY))
+        let shown = await waitUntil(timeout: 2_000) { hint.isVisible }
+        let card = hint.frame
+        let below = card.maxY <= icon.minY && card.minX < icon.maxX && card.maxX > icon.minX
+        if let screen = NSScreen.main {
+            Self.postMouse(.mouseMoved, at: CGPoint(x: screen.frame.midX, y: screen.frame.midY))
+        }
+        let gone = await waitUntil(timeout: 2_000) { !hint.isVisible }
+        return (shown && below && gone, "gezeigt: \(shown), unter dem Symbol: \(below), wieder weg: \(gone)")
+    }
+
+    /// ⌘⇧A over a full-screen window: the overlay must be on that Space (new panels each
+    /// session; the first order-in could land on the desktop behind it).
+    private func screenshotInFullScreen() async -> (Bool, String) {
+        await press(0, flags: [.maskCommand, .maskShift])
+        let shown = await waitUntil(timeout: 5_000) { self.app.screenshot.isOverlayVisible }
+        let onSpace = app.screenshot.isOverlayOnActiveSpace
+        await press(53, flags: [])
+        let closed = await waitUntil(timeout: 3_000) { !self.app.screenshot.isActive }
+        if !closed {
+            app.screenshot.cancel()
+        }
+        return (shown && onSpace && closed, "sichtbar: \(shown), auf aktivem Space: \(onSpace), Esc schließt: \(closed)")
+    }
+
+    private func pasteFromPopup(keys: [(UInt16, CGEventFlags)], expected: String, seedClipboard: Bool = true) async -> (Bool, String) {
+        await prepare(clipboard: seedClipboard ? "" : nil)
+        await openPopup()
+        _ = await waitUntil { self.app.popup.isVisible }
+        for (key, flags) in keys {
+            await press(key, flags: flags)
+        }
+        return await expectText(expected)
+    }
+
+    /// Key codes of letters that sit on the same keys in US and German layouts.
+    private static func typing(_ text: String) -> [(UInt16, CGEventFlags)] {
+        let codes: [Character: UInt16] = [
+            "a": 0, "b": 11, "c": 8, "e": 14, "g": 5, "i": 34, "n": 45, "r": 15, "t": 17, "5": 23, " ": 49,
+        ]
+        return text.compactMap { character in
+            codes[character].map { code in (code, CGEventFlags()) }
+        }
+    }
+
+    private func setUpWindow() {
+        let window = NSWindow(
+            contentRect: NSRect(x: 200, y: 200, width: 480, height: 240),
+            styleMask: [.titled],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "CopyPal Selbsttest"
+        window.isReleasedWhenClosed = false
+        textView.isRichText = true
+        textView.isEditable = true
+        window.contentView = textView
+        self.window = window
+        focusTextView()
+    }
+
+    private func focusTextView() {
+        NSApp.activate()
+        window?.makeKeyAndOrderFront(nil)
+        _ = window?.makeFirstResponder(textView)
+    }
+
+    /// Empties the text field; `clipboard` (if not nil) goes onto the pasteboard as an
+    /// ordinary copy first.
+    private func prepare(clipboard: String?) async {
+        if let clipboard {
+            if clipboard.isEmpty {
+                NSPasteboard.general.clearContents()
+                await app.capture.drain()
+            } else {
+                await copy(clipboard)
+            }
+        }
+        // Plain text takes on the typing attributes, so a previous bold paste would
+        // make the next plain one bold too.
+        textView.string = ""
+        textView.typingAttributes = [.font: NSFont.systemFont(ofSize: 13), .foregroundColor: NSColor.textColor]
+        focusTextView()
+        await sleep(150)
+    }
+
+    private func openPopup() async {
+        Self.post(pasteKey, down: true, flags: .maskCommand)
+        await sleep(Int(AppSettings.holdThreshold * 1000) + 250)
+        Self.post(pasteKey, down: false, flags: .maskCommand)
+    }
+
+    private var isBold: Bool {
+        guard textView.textStorage?.length ?? 0 > 0,
+              let font = textView.textStorage?.attribute(.font, at: 0, effectiveRange: nil) as? NSFont else {
+            return false
+        }
+        return NSFontManager.shared.traits(of: font).contains(.boldFontMask)
+    }
+
+    private func expectText(_ expected: String) async -> (Bool, String) {
+        let matched = await waitUntil { self.textView.string == expected }
+        await sleep(250) // a second, unwanted paste would show up now
+        let text = textView.string
+        let passed = matched && text == expected
+        return (passed, passed ? "Text: „\(text)“" : "Text: „\(text)“ (erwartet „\(expected)“) · \(focusState) · Tap: \(recentDecisions)")
+    }
+
+    /// Which app and window have the keyboard focus right now.
+    private var focusState: String {
+        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "?"
+        let keyWindow = window?.isKeyWindow == true ? "Testfenster" : (NSApp.keyWindow?.title ?? "keins")
+        let textFocused = window?.firstResponder === textView
+        return "vorne: \(front), CopyPal aktiv: \(NSApp.isActive), Key-Fenster: \(keyWindow), Textfeld fokussiert: \(textFocused)"
+    }
+
+    /// The tap's last decisions for the paste key, oldest first.
+    private var recentDecisions: String {
+        app.input.tap.diagnostics.snapshot().entries
+            .filter { $0.keyCode == pasteKey || $0.kind == "Pop-up" }
+            .suffix(4)
+            .map { "\($0.kind)\($0.isRepeat ? "(Wdh.)" : "") \($0.decision)" }
+            .joined(separator: ", ")
+    }
+
+    private func waitUntil(timeout milliseconds: Int = 2_000, _ condition: () -> Bool) async -> Bool {
+        var waited = 0
+        while !condition() {
+            if waited >= milliseconds { return false }
+            await sleep(25)
+            waited += 25
+        }
+        return true
+    }
+
+    private func press(_ keyCode: UInt16, flags: CGEventFlags, holdFor milliseconds: Int = 40) async {
+        await Self.postTimed([
+            TimedKey(keyCode: keyCode, down: true, flags: flags),
+            TimedKey(keyCode: keyCode, down: false, flags: flags, delay: milliseconds),
+        ])
+        await sleep(30)
+    }
+
+    /// A quick ⌘V (with `repeats` autorepeats, 20 ms apart) must paste `clipboard`
+    /// exactly once. The events are posted with exact gaps, but a stalled CI machine can
+    /// still deliver the ↑ to the tap after the hold threshold: that trial is a hold, not
+    /// a tap, and says nothing about the gesture, so it is repeated (at most three tries).
+    private func quickTap(repeats: Int, clipboard: String) async -> (Bool, String) {
+        let threshold = AppSettings.holdThreshold * 1_000
+        var stretched: [String] = []
+        for _ in 0..<3 {
+            await prepare(clipboard: clipboard)
+            let held = await tapPasteKey(repeats: repeats)
+            let result = await expectText(clipboard)
+            let note = stretched.isEmpty ? "" : " · \(stretched.count)× wiederholt, Runner streckte den Tipp auf \(stretched.joined(separator: ", "))"
+            if result.0 {
+                return (true, result.1 + note)
+            }
+            guard let held, held >= threshold * 0.8 else {
+                return (false, result.1 + note)
+            }
+            stretched.append(String(format: "%.0f ms", held))
+            if app.popup.isVisible {
+                app.popup.close()
+            }
+            await sleep(300)
+        }
+        return (false, "Runner zu langsam: jeder Tipp wurde zum Halten (\(stretched.joined(separator: ", ")), Schwelle \(Int(threshold)) ms)")
+    }
+
+    /// Posts ⌘V down, `repeats` autorepeats and up, then returns how long the tap saw
+    /// the key held (milliseconds), or nil when it did not log the ↑ within a second.
+    private func tapPasteKey(repeats: Int) async -> Double? {
+        let lastID = app.input.tap.diagnostics.snapshot().entries.last?.id ?? 0
+        var keys = [TimedKey(keyCode: pasteKey, down: true, flags: .maskCommand)]
+        keys += (0..<repeats).map { _ in TimedKey(keyCode: pasteKey, down: true, flags: .maskCommand, autorepeat: true, delay: 20) }
+        keys.append(TimedKey(keyCode: pasteKey, down: false, flags: .maskCommand, delay: 20))
+        await Self.postTimed(keys)
+        let seen = await waitUntil(timeout: 1_000) { self.heldMilliseconds(after: lastID) != nil }
+        return seen ? heldMilliseconds(after: lastID) : nil
+    }
+
+    /// Milliseconds between the paste key's first ↓ and its ↑ as the tap logged them,
+    /// looking only at entries newer than `id`.
+    private func heldMilliseconds(after id: Int) -> Double? {
+        let entries = app.input.tap.diagnostics.snapshot().entries.filter { $0.id > id && $0.keyCode == pasteKey }
+        guard let down = entries.first(where: { $0.kind == "↓" && !$0.isRepeat }),
+              let up = entries.last(where: { $0.kind == "↑" }),
+              up.uptime >= down.uptime else {
+            return nil
+        }
+        return (up.uptime - down.uptime) * 1_000
+    }
+
+    /// One key event of a timed sequence, posted `delay` milliseconds after the previous one.
+    struct TimedKey: Sendable {
+        var keyCode: UInt16
+        var down: Bool
+        var flags: UInt64
+        var autorepeat = false
+        var delay = 0
+
+        init(keyCode: UInt16, down: Bool, flags: CGEventFlags, autorepeat: Bool = false, delay: Int = 0) {
+            self.keyCode = keyCode
+            self.down = down
+            self.flags = flags.rawValue
+            self.autorepeat = autorepeat
+            self.delay = delay
+        }
+    }
+
+    /// Posts the events with exact gaps from a background thread. Sleeping on the main
+    /// actor overshoots whenever it is busy (layout, the store), and on a slow CI
+    /// machine that once stretched a quick tap past the hold threshold.
+    private static func postTimed(_ keys: [TimedKey]) async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global(qos: .userInteractive).async {
+                for key in keys {
+                    if key.delay > 0 {
+                        usleep(useconds_t(key.delay * 1_000))
+                    }
+                    post(key.keyCode, down: key.down, flags: CGEventFlags(rawValue: key.flags), autorepeat: key.autorepeat)
+                }
+                continuation.resume()
+            }
+        }
+    }
+
+    /// Posts like a keyboard would: no CopyPal marker, so the tap handles it.
+    nonisolated private static func post(_ keyCode: UInt16, down: Bool, flags: CGEventFlags, autorepeat: Bool = false) {
+        let source = CGEventSource(stateID: .hidSystemState)
+        guard let event = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: down) else {
+            return
+        }
+        event.flags = flags
+        if autorepeat {
+            event.setIntegerValueField(.keyboardEventAutorepeat, value: 1)
+        }
+        event.post(tap: .cghidEventTap)
+    }
+
+    /// Posts like a mouse would; `point` in AppKit coordinates.
+    nonisolated private static func postMouse(_ type: CGEventType, at point: CGPoint, flags: CGEventFlags = []) {
+        // CGEvent coordinates: origin top left of the main display, y down.
+        let height = CGDisplayBounds(CGMainDisplayID()).height
+        let location = CGPoint(x: point.x, y: height - point.y)
+        let source = CGEventSource(stateID: .hidSystemState)
+        let event = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: location, mouseButton: .left)
+        event?.flags = flags
+        event?.post(tap: .cghidEventTap)
+    }
+
+    private func sleep(_ milliseconds: Int) async {
+        try? await Task.sleep(for: .milliseconds(milliseconds))
+    }
+
+    private static func samplePNG() -> Data? {
+        let image = NSImage(size: NSSize(width: 64, height: 32), flipped: false) { rect in
+            NSColor.systemOrange.setFill()
+            rect.fill()
+            return true
+        }
+        guard let tiff = image.tiffRepresentation else { return nil }
+        return ImageConversion.png(fromImageData: tiff)
+    }
+
+    /// Random pixels: a PNG that does not compress (about width × height × 4 bytes).
+    private static func noisePNG(width: Int, height: Int) -> Data? {
+        var generator = SystemRandomNumberGenerator()
+        var words = [UInt64](repeating: 0, count: width * height / 2)
+        for index in words.indices {
+            words[index] = generator.next()
+        }
+        let pixels = words.withUnsafeBytes { Data($0) }
+        guard let provider = CGDataProvider(data: pixels as CFData),
+              let image = CGImage(
+                  width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: width * 4,
+                  space: CGColorSpaceCreateDeviceRGB(),
+                  bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
+                  provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent
+              ) else {
+            return nil
+        }
+        return NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])
+    }
+
+    /// Share of one CPU core used by CopyPal over `seconds` of waiting.
+    private static func cpuUsage(during seconds: Double) async -> Double {
+        func cpuTime() -> Double {
+            var usage = rusage()
+            getrusage(RUSAGE_SELF, &usage)
+            return Double(usage.ru_utime.tv_sec + usage.ru_stime.tv_sec)
+                + Double(usage.ru_utime.tv_usec + usage.ru_stime.tv_usec) / 1_000_000
+        }
+        let start = cpuTime()
+        try? await Task.sleep(for: .seconds(seconds))
+        return (cpuTime() - start) / seconds
+    }
+
+    /// Physical memory footprint (what Activity Monitor shows as "Memory").
+    private static func memoryFootprint() -> Double {
+        var info = rusage_info_v4()
+        let result = withUnsafeMutablePointer(to: &info) { pointer in
+            pointer.withMemoryRebound(to: rusage_info_t?.self, capacity: 1) {
+                proc_pid_rusage(getpid(), RUSAGE_INFO_V4, $0)
+            }
+        }
+        return result == 0 ? Double(info.ri_phys_footprint) : 0
+    }
+
+    /// Files below `directory` whose bytes contain `marker`.
+    private static func files(containing marker: String, in directory: URL) -> [String] {
+        guard let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil) else { return [] }
+        let needle = Data(marker.utf8)
+        var found: [String] = []
+        for case let url as URL in enumerator where !url.hasDirectoryPath {
+            if let data = try? Data(contentsOf: url), data.range(of: needle) != nil {
+                found.append(url.lastPathComponent)
+            }
+        }
+        return found
+    }
+
+    nonisolated private static func write(_ line: String) {
+        FileHandle.standardOutput.write(Data((line + "\n").utf8))
+    }
+}
+
+/// Measures the longest gap between 10 ms timer ticks on the main thread.
+@MainActor
+private final class StallMeter {
+    private(set) var longestStall: TimeInterval = 0
+    private var timer: Timer?
+    private var lastTick = Date()
+
+    func start() {
+        lastTick = Date()
+        let timer = Timer(timeInterval: 0.01, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.tick()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
+    }
+
+    func stop() {
+        tick()
+        timer?.invalidate()
+        timer = nil
+    }
+
+    private func tick() {
+        let now = Date()
+        longestStall = max(longestStall, now.timeIntervalSince(lastTick))
+        lastTick = now
+    }
+}
+#endif

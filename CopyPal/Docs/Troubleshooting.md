@@ -64,6 +64,45 @@ Auf MacBooks mit Notch blendet macOS Menüleisten-Symbole aus, wenn die Menüs d
 - Andere Symbole mit gedrückter ⌘-Taste aus der Menüleiste ziehen.
 - CopyPal erneut öffnen (Finder, Spotlight oder `open`): Das öffnet die Diagnose.
 
+## Pop-up erscheint im Vollbild einer anderen App nicht
+
+Das Pop-up ist ein eigenes Fenster, das beim Öffnen auf den gerade sichtbaren Space wandert (`moveToActiveSpace`), auch in den Vollbild-Space einer anderen App. Landet es trotzdem nicht dort, bricht CopyPal das Öffnen ab, statt ein unsichtbares Pop-up offen zu lassen: ⌘V funktioniert sofort wieder normal, und im Protokoll steht „Pop-up liegt nicht auf dem aktiven Space“.
+
+- Prüfen: `log show --last 10m --predicate 'subsystem == "<bundle-id>" AND category == "app"'`
+- Umgehung: Vollbild kurz verlassen und wieder betreten, dann ⌘V halten.
+- Bitte melden mit macOS-Version, der App im Vollbild und ob CopyPal kurz vorher neu gestartet wurde.
+
+## Bildschirmaufnahme: Häkchen gesetzt, aber ⌘⇧A zeigt weiter das Berechtigungsfenster
+
+macOS übernimmt die Freigabe „Bildschirmaufnahme“ oft erst nach einem Neustart der App. Das Berechtigungsfenster erkennt das und zeigt „CopyPal neu starten“.
+
+- Hilft das nicht: CopyPal beenden, `tccutil reset ScreenCapture <bundle-id>`, CopyPal starten, ⌘⇧A, „Freigabe anfordern“.
+- Ein Eintrag, der in den Systemeinstellungen entfernt und neu hinzugefügt wurde, greift manchmal erst nach einem Neustart des Macs.
+- Ad-hoc-signierte Builds („Sign to Run Locally“) bekommen die Freigabe nie dauerhaft – wie bei den Bedienungshilfen die Apple-Development-Signierung verwenden.
+
+## ⌘⇧A tut nichts
+
+- Menüleisten-Menü öffnen: Steht dort „⌘⇧A ist belegt – Kürzel ändern …“, hat eine andere App die Kombination. Dort ein anderes Kürzel wählen.
+- „Bildschirmfoto aufnehmen“ im Menü funktioniert immer, auch wenn das Kürzel nicht ankommt.
+- Zeigt die Notch „Wartet auf macOS …“: Ein Systemdialog zur Bildschirmaufnahme ist offen, eventuell auf einem anderen Space.
+- Bis 18.10.2026 konnten das Overlay und das Berechtigungsfenster über einer App im Vollbild unsichtbar auf dem Schreibtisch-Space landen, und ein Kürzel-Feld in den Einstellungen, das noch „Tasten drücken …“ zeigte, schaltete ⌘⇧A bis zum Neustart ab. Beides ist behoben – mit `copypal-update` aktualisieren.
+- Prüfen: `log show --last 10m --predicate 'subsystem == "<bundle-id>" AND category == "app"'` – jeder Druck steht als „Bildschirmfoto-Kürzel gedrückt“ im Protokoll.
+
+## „Verlauf | Favoriten“ im Pop-up reagiert nicht auf Klicks
+
+Der Umschalter liegt neben der Notch, also in der Menüleiste. Bis 18.10.2026 lag das Pop-up auf derselben Fensterebene wie die Menüleisten-Symbole; diese und die Menüleiste, die über einer App im Vollbild einfährt, konnten den Klick bekommen. Jetzt liegt das Pop-up über beiden. ⇥ wechselt die Liste ebenfalls.
+
+## macOS 15 fragt monatlich nach der Bildschirmaufnahme
+
+Ab macOS 15 fragt das System etwa einmal im Monat, ob CopyPal den Bildschirm weiter aufnehmen darf. Das ist so gewollt. Der Dialog erscheint vor dem Overlay; nach „Erlauben“ läuft die Aufnahme weiter.
+
+## Erweitern (↓) scrollt in die falsche Richtung oder gar nicht
+
+- Falsche Richtung: Tools wie Mos oder Scroll Reverser drehen auch CopyPals Scroll-Ereignisse um. Einstellungen → Allgemein → Bildschirmfoto → „Scrollrichtung umkehren“.
+- Gar nicht, Status „Inhalt scrollt nicht“: Ein anderes Fenster liegt über der Auswahl, oder die App scrollt nicht mit dem Mausrad. Das Erweitern braucht die Bedienungshilfen-Freigabe (wie ⌘V).
+- „Kein Übergang gefunden“: Die App verändert beim Scrollen mehr als den Inhalt (Animationen, Hintergrundbilder, sich wiederholende Zeilen). Der bisherige Teil bleibt erhalten; ⏎ nimmt ihn auf.
+- Labor (Debug-Build) → „Ohne Zeiger-Sprung scrollen“ hilft beim Eingrenzen.
+
 ## Weitere Befehle
 
 | Zweck | Befehl |

@@ -7,7 +7,8 @@ struct DiagnosticsReportTests {
         signing: SigningStatus = .developer(teamID: "ABCDE12345", certificate: "Apple Development: Jane Doe (XYZ123)"),
         accessibility: PermissionState = .granted,
         access: PasteboardAccessStatus = .alwaysAllow,
-        probe: PasteboardProbe? = nil
+        probe: PasteboardProbe? = nil,
+        screenCapture: PermissionState? = nil
     ) -> DiagnosticsSnapshot {
         DiagnosticsSnapshot(
             appVersion: "0.1.0",
@@ -19,6 +20,7 @@ struct DiagnosticsReportTests {
             accessibility: accessibility,
             pasteboardAccess: access,
             pasteboardProbe: probe,
+            screenCapture: screenCapture,
             createdAt: Date(timeIntervalSince1970: 0)
         )
     }
@@ -28,9 +30,20 @@ struct DiagnosticsReportTests {
         #expect(report.contains("Signatur: Team ABCDE12345 – Apple Development"))
         #expect(report.contains("Gebaut mit: Xcode 16.4 · macosx15.5"))
         #expect(report.contains("Bedienungshilfen: erteilt"))
+        #expect(report.contains("Bildschirmaufnahme: – (Bildschirmfoto aus)"))
         #expect(report.contains("Lesetest: nicht ausgeführt"))
         #expect(report.contains("Zeitpunkt: 1970-01-01T00:00:00Z"))
         #expect(!report.contains("Hinweis:"))
+    }
+
+    @Test func screenCaptureIsReportedAndFlagged() {
+        let granted = DiagnosticsReport.text(for: snapshot(screenCapture: .granted))
+        #expect(granted.contains("Bildschirmaufnahme: erteilt"))
+        #expect(DiagnosticsWarning.warnings(for: snapshot(screenCapture: .granted)).isEmpty)
+        let denied = snapshot(screenCapture: .denied)
+        #expect(DiagnosticsReport.text(for: denied).contains("Bildschirmaufnahme: nicht erteilt"))
+        #expect(DiagnosticsWarning.warnings(for: denied) == [.screenCaptureDenied])
+        #expect(DiagnosticsWarning.warnings(for: snapshot(screenCapture: nil)).isEmpty)
     }
 
     @Test func reportNeverContainsCertificateHolder() {
