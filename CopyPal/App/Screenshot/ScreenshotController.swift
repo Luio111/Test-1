@@ -66,6 +66,11 @@ final class ScreenshotController {
     /// ⌘S: the picture also as a file.
     @ObservationIgnored private var wantsFile = false
     @ObservationIgnored private var savePending = false
+    /// E: into the markup editor instead of straight to the pasteboard.
+    @ObservationIgnored private var wantsEdit = false
+    @ObservationIgnored private var editPending = false
+    /// Open markup windows; each removes itself when it closes.
+    @ObservationIgnored private var editors: [AnnotationEditorController] = []
     @ObservationIgnored private var keyMonitor: Any?
     @ObservationIgnored private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
@@ -225,6 +230,8 @@ final class ScreenshotController {
         wantsText = false
         wantsFile = false
         savePending = false
+        wantsEdit = false
+        editPending = false
         generation += 1
         let current = generation
         sourceApp = NSWorkspace.shared.frontmostApplication
@@ -402,12 +409,15 @@ final class ScreenshotController {
         if case let .keyDown(.confirm, modifiers, _) = input {
             wantsText = modifiers.contains(.shift)
             wantsFile = savePending
+            wantsEdit = editPending
             savePending = false
+            editPending = false
         }
         if case let .mouseDown(_, modifiers) = input {
             // ⇧-click on a frame or into the selection: its text instead of the picture.
             wantsText = modifiers.contains(.shift)
             wantsFile = false
+            wantsEdit = false
         }
         switch input {
         case let .mouseMoved(point), let .mouseDown(point, _), let .mouseDragged(point, _), let .mouseUp(point, _):
@@ -429,6 +439,10 @@ final class ScreenshotController {
             handle(.keyDown(.confirm, [], isRepeat: false))
         case .copyText:
             handle(.keyDown(.confirm, [.shift], isRepeat: false))
+        case .annotate:
+            editPending = true
+            handle(.keyDown(.confirm, [], isRepeat: false))
+            editPending = false
         case .save:
             savePending = true
             handle(.keyDown(.confirm, [], isRepeat: false))
@@ -595,6 +609,15 @@ final class ScreenshotController {
                 }
                 return true
             }
+            if modifiers.isDisjoint(with: [.command, .option, .control]), characters?.lowercased() == "e" {
+                // E: like ⏎, then into the markup editor.
+                if !isRepeat {
+                    editPending = true
+                    handle(.keyDown(.confirm, [], isRepeat: false))
+                    editPending = false
+                }
+                return true
+            }
             if let key = ScreenshotKeyMap.key(forKeyCode: keyCode) {
                 handle(.keyDown(key, modifiers, isRepeat: isRepeat))
             }
@@ -647,6 +670,7 @@ final class ScreenshotController {
         let caption = capturedFrom(for: rect)
         let asText = wantsText
         let asFile = wantsFile
+        let asEdit = wantsEdit
         Task {
             let result: Result<ImageBox, ScreenCaptureEngine.Failure>
             do {
@@ -660,7 +684,9 @@ final class ScreenshotController {
             switch result {
             case let .success(image):
                 self.endSession()
-                if asText {
+                if asEdit {
+                    self.openEditor(image, scale: display.scale, sourceBundleID: source, capturedFrom: caption)
+                } else if asText {
                     await self.publishText(image, sourceBundleID: source)
                 } else {
                     await self.publish(image, scale: display.scale, sourceBundleID: source, capturedFrom: caption, asFile: asFile)
@@ -688,6 +714,7 @@ final class ScreenshotController {
         let caption = capturedFrom(for: rect)
         let asText = wantsText
         let asFile = wantsFile
+        let asEdit = wantsEdit
         let snapshot = session
         Task {
             let image = await Task.detached(priority: .userInitiated) { () -> ImageBox? in
@@ -695,7 +722,9 @@ final class ScreenshotController {
             }.value
             guard current == self.generation else { return }
             self.endSession()
-            if let image, asText {
+            if let image, asEdit {
+                self.openEditor(image, scale: scale, sourceBundleID: source, capturedFrom: caption)
+            } else if let image, asText {
                 await self.publishText(image, sourceBundleID: source)
             } else if let image {
                 await self.publish(image, scale: scale, sourceBundleID: source, capturedFrom: caption, asFile: asFile)
@@ -742,6 +771,31 @@ final class ScreenshotController {
             Log.app.error("Bildschirmfoto nicht gespeichert: \(message, privacy: .public)")
             app.toast.show(String(localized: "Bildschirmfoto fehlgeschlagen"), systemImage: "exclamationmark.triangle")
         }
+    }
+
+    /// E: the picture opens in the markup editor; "Kopieren" or "Sichern" there publish
+    /// it with its marks like ⏎ or ⌘S would have (ROADMAP R33).
+    private func openEditor(_ image: ImageBox, scale: CGFloat, sourceBundleID: String?, capturedFrom: String) {
+        let editor = AnnotationEditorController(image: image, scale: scale) { [weak self] finish, result in
+            guard let self else { return }
+            switch finish {
+            case .cancel:
+                break
+            case .copy, .save:
+                guard let result else {
+                    self.app.toast.show(String(localized: "Bildschirmfoto fehlgeschlagen"), systemImage: "exclamationmark.triangle")
+                    return
+                }
+                Task {
+                    await self.publish(result, scale: scale, sourceBundleID: sourceBundleID, capturedFrom: capturedFrom, asFile: finish == .save)
+                }
+            }
+        }
+        editor.onClose = { [weak self, weak editor] in
+            self?.editors.removeAll { $0 === editor }
+        }
+        editors.append(editor)
+        editor.show()
     }
 
     /// ⇧⏎: the recognized text goes to the pasteboard and the history, like a copy.
@@ -1210,6 +1264,16 @@ final class ScreenshotController {
     var isExtendingForSelfTest: Bool {
         if case .extending = machine.state { return true }
         return false
+    }
+
+    /// Self-test: the markup window opened last.
+    var annotationEditorForSelfTest: AnnotationEditorController? {
+        editors.last
+    }
+
+    /// Self-test: opens `image` in the markup editor as E after a capture does.
+    func openEditorForSelfTest(_ image: ImageBox, scale: CGFloat) {
+        openEditor(image, scale: scale, sourceBundleID: nil, capturedFrom: "CopyPal Selbsttest")
     }
 
     /// Self-test: the buttons under the selection, on any screen.

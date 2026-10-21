@@ -23,6 +23,9 @@ enum Theme {
         static let accentFillPressed = Color.dynamic(light: 0x165FA6, dark: 0x165FA6)
 
         static let windowBackground = NSColor.dynamic(light: 0xFFFFFF, dark: 0x191919)
+        /// Behind a picture being marked up: a step darker than the window, so the
+        /// picture's edge shows even when it is white.
+        static let canvasBackground = NSColor.dynamic(light: 0xEDEDEB, dark: 0x111111)
     }
 
     /// Notion-style tag colors: tinted background, dark text in light mode.

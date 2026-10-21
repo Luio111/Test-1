@@ -641,6 +641,16 @@
         }
       }
     },
+    "Auswählen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select"
+          }
+        }
+      }
+    },
     "Bearbeiten" : {
       "localizations" : {
         "en" : {
@@ -841,6 +851,16 @@
         }
       }
     },
+    "Bild mit Markierungen kopieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy picture with markup"
+          }
+        }
+      }
+    },
     "Bildschirmaufnahme" : {
       "localizations" : {
         "en" : {
@@ -961,6 +981,16 @@
         }
       }
     },
+    "Bildschirmfoto mit Markierungen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot with markup"
+          }
+        }
+      }
+    },
     "Bildschirmfoto mit Tastenkürzel" : {
       "localizations" : {
         "en" : {
@@ -1037,6 +1067,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Asks screen sharing to leave out the pop-up and the hints at the notch. Many apps respect this, not all – presentation mode is the safe choice."
+          }
+        }
+      }
+    },
+    "Blau" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue"
           }
         }
       }
@@ -1237,6 +1277,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The image goes straight to the clipboard and the history – ready for ⌘V."
+          }
+        }
+      }
+    },
+    "Das Bildschirmfoto wird weder kopiert noch gesichert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The screenshot is neither copied nor saved."
           }
         }
       }
@@ -1461,6 +1511,26 @@
         }
       }
     },
+    "Eigene Farbe" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom Color"
+          }
+        }
+      }
+    },
+    "Eine Markierung anklicken, um sie zu ändern – oder ein Werkzeug wählen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click a mark to change it – or pick a tool."
+          }
+        }
+      }
+    },
     "Einmalcodes erkennen" : {
       "localizations" : {
         "en" : {
@@ -1547,6 +1617,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entries not used for this long disappear."
+          }
+        }
+      }
+    },
+    "Ellipse" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ellipse"
           }
         }
       }
@@ -1657,6 +1737,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esc again discards %lld sections"
+          }
+        }
+      }
+    },
+    "Esc oder ⌘⏎: Text fertig · ⏎: neue Zeile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esc or ⌘⏎: text done · ⏎: new line"
           }
         }
       }
@@ -1831,6 +1921,16 @@
         }
       }
     },
+    "Füllen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fill"
+          }
+        }
+      }
+    },
     "Für Bildschirmfotos braucht CopyPal die Freigabe „Bildschirmaufnahme“. CopyPal nimmt nur auf, wenn du das Tastenkürzel drückst – nie im Hintergrund. Im Verlauf werden Bildschirmfotos verschlüsselt gespeichert; wie jede Kopie kann macOS sie per Universal Clipboard an dein iPhone oder iPad geben." : {
       "localizations" : {
         "en" : {
@@ -1847,6 +1947,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Built with"
+          }
+        }
+      }
+    },
+    "Gelb" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yellow"
           }
         }
       }
@@ -1887,6 +1997,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "resize"
+          }
+        }
+      }
+    },
+    "Grün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Green"
           }
         }
       }
@@ -2151,6 +2271,16 @@
         }
       }
     },
+    "Klicken und tippen · [ ]: Schrift kleiner, größer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click and type · [ ]: smaller, larger text"
+          }
+        }
+      }
+    },
     "Kopien aus Passwortmanagern und als geheim markierte Inhalte speichert CopyPal nie." : {
       "localizations" : {
         "en" : {
@@ -2341,6 +2471,26 @@
         }
       }
     },
+    "Lila" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purple"
+          }
+        }
+      }
+    },
+    "Linie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Line"
+          }
+        }
+      }
+    },
     "Link" : {
       "localizations" : {
         "en" : {
@@ -2407,6 +2557,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Makes images and screenshots searchable and checks them for IBANs, card numbers and keys – on this Mac, without the network."
+          }
+        }
+      }
+    },
+    "Markieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark Up"
+          }
+        }
+      }
+    },
+    "Markieren: Text, Pfeile, Formen und Textmarker einfügen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark up: add text, arrows, shapes and highlights"
+          }
+        }
+      }
+    },
+    "Markierung löschen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Mark"
+          }
+        }
+      }
+    },
+    "Markierungen verwerfen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard markup?"
           }
         }
       }
@@ -2691,6 +2881,16 @@
         }
       }
     },
+    "Orange" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orange"
+          }
+        }
+      }
+    },
     "Passwortmanager und markierte Inhalte werden nie gespeichert." : {
       "localizations" : {
         "en" : {
@@ -2717,6 +2917,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pause"
+          }
+        }
+      }
+    },
+    "Pfeil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrow"
           }
         }
       }
@@ -2831,6 +3041,36 @@
         }
       }
     },
+    "Rechteck" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rectangle"
+          }
+        }
+      }
+    },
+    "Rot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Red"
+          }
+        }
+      }
+    },
+    "Rückgängig" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo"
+          }
+        }
+      }
+    },
     "Schließen" : {
       "localizations" : {
         "en" : {
@@ -2871,12 +3111,32 @@
         }
       }
     },
+    "Schriftgröße" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Font size"
+          }
+        }
+      }
+    },
     "Schritt %lld von %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Step %lld of %lld"
+          }
+        }
+      }
+    },
+    "Schwarz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Black"
           }
         }
       }
@@ -3001,6 +3261,16 @@
         }
       }
     },
+    "Sprechblase" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubble"
+          }
+        }
+      }
+    },
     "Später" : {
       "localizations" : {
         "en" : {
@@ -3037,6 +3307,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Startup"
+          }
+        }
+      }
+    },
+    "Stift" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pen"
+          }
+        }
+      }
+    },
+    "Strichstärke" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Line width"
           }
         }
       }
@@ -3151,6 +3441,26 @@
         }
       }
     },
+    "Text auf einer Fläche in der gewählten Farbe" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text on a background in the chosen color"
+          }
+        }
+      }
+    },
+    "Text der Markierung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text of the mark"
+          }
+        }
+      }
+    },
     "Text des Favoriten" : {
       "localizations" : {
         "en" : {
@@ -3207,6 +3517,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Text recognition failed"
+          }
+        }
+      }
+    },
+    "Textmarker" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highlighter"
           }
         }
       }
@@ -3401,6 +3721,16 @@
         }
       }
     },
+    "Verwerfen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard"
+          }
+        }
+      }
+    },
     "Vom iPhone" : {
       "localizations" : {
         "en" : {
@@ -3501,12 +3831,42 @@
         }
       }
     },
+    "Weiter markieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep Marking Up"
+          }
+        }
+      }
+    },
     "Weiter scrollen und anfügen" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scroll further and append"
+          }
+        }
+      }
+    },
+    "Weiß" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "White"
+          }
+        }
+      }
+    },
+    "Wiederholen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redo"
           }
         }
       }
@@ -3601,6 +3961,16 @@
         }
       }
     },
+    "Ziehen: verschieben · Doppelklick: Text ändern · Pfeiltasten: genau setzen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag: move · Double-click: edit text · Arrow keys: nudge"
+          }
+        }
+      }
+    },
     "Zu Favoriten" : {
       "localizations" : {
         "en" : {
@@ -3687,6 +4057,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clear the clipboard afterwards"
+          }
+        }
+      }
+    },
+    "[ und ] ändern die Größe" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[ and ] change the size"
           }
         }
       }
@@ -4047,6 +4427,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "⇧ Click copies just the text"
+          }
+        }
+      }
+    },
+    "⇧: Quadrat, Kreis · ⌥: von der Mitte · [ ]: dünner, dicker" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧: square, circle · ⌥: from the center · [ ]: thinner, thicker"
+          }
+        }
+      }
+    },
+    "⇧: gerade Linie · [ ]: dünner, dicker" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧: straight line · [ ]: thinner, thicker"
+          }
+        }
+      }
+    },
+    "⇧: in 45°-Schritten · [ ]: dünner, dicker" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧: in 45° steps · [ ]: thinner, thicker"
           }
         }
       }

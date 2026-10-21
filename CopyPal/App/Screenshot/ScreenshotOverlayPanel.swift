@@ -315,7 +315,7 @@ final class ScreenshotOverlayView: NSView {
         ))
 
         if let actions = newScene.actions, let selection = newScene.selection {
-            actionBar.update(actions)
+            actionBar.update(actions, maxWidth: bounds.width - 16)
             actionBar.layoutSubtreeIfNeeded()
             actionBar.frame = Self.actionBarFrame(size: actionBar.fittingSize, selection: selection, in: bounds)
             actionBar.isHidden = false

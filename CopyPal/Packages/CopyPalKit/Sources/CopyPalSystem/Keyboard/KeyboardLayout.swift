@@ -39,6 +39,22 @@ public enum KeyboardLayout {
         return Resolution(pasteKeyCode: fallbackPasteKeyCode, layoutName: name, resolved: false)
     }
 
+    /// The physical key that types `character` in the current layout, with ⌘ when
+    /// `command` (shortcuts, like `resolvePasteKey`). Nil when no single key does, such
+    /// as "]" on a German keyboard. The self-test types with it.
+    public static func keyCode(typing character: Character, command: Bool = false) -> UInt16? {
+        guard let source = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
+              let dataPointer = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData) else {
+            return nil
+        }
+        let layoutData = Unmanaged<CFData>.fromOpaque(dataPointer).takeUnretainedValue()
+        guard let bytes = CFDataGetBytePtr(layoutData) else { return nil }
+        let layout = UnsafeRawPointer(bytes).assumingMemoryBound(to: UCKeyboardLayout.self)
+        let wanted = String(character).lowercased()
+        let modifiers = command ? UInt32((cmdKey >> 8) & 0xFF) : 0
+        return (UInt16(0)..<128).first { self.character(for: $0, layout: layout, modifiers: modifiers)?.lowercased() == wanted }
+    }
+
     /// How a shortcut is written in menus, e.g. "⌃⌥V", in the current layout.
     public static func displayString(for shortcut: HotKeyShortcut) -> String {
         shortcut.modifiers.symbolsInMenuOrder + keyName(for: shortcut.keyCode)

@@ -33,7 +33,7 @@ Schwerpunkte sind Datenschutz und Einfachheit. Die iPhone-App ist ausdrücklich 
 | M9 | Beta-Vertrieb: Developer ID, Notarisierung, Sparkle | vorbereitet (Sparkle, `scripts/release.sh`, Anleitungen) · braucht Developer-Account (D10) |
 | M10 | Release 1.0 | vorbereitet (Website, Rechtstexte als Vorlage, Checkliste) · braucht D11 und deine Angaben |
 | M11 | Bildschirmfoto: ⌘⇧A, Einrasten an Fenstern und Kontrastbereichen, Scroll-Aufnahme | umgesetzt, Kernlogik auf Linux getestet, CI-Selbsttest · Handtest offen (`Docs/Testplaene/M11.md`) |
-| M12 | Abrundung: Texterkennung, Präsentationsmodus, Vorschau, Favoritennamen, Kürzel-Karte | umgesetzt, Kern auf Linux getestet, CI-Selbsttest · Handtest offen (`Docs/Testplaene/M12.md`) |
+| M12 | Abrundung: Texterkennung, Präsentationsmodus, Vorschau, Favoritennamen, Kürzel-Karte, Bildschirmfotos markieren | umgesetzt, Kern auf Linux getestet, CI-Selbsttest · Handtest offen (`Docs/Testplaene/M12.md`) |
 
 ### Reihenfolge (schwierigste Risiken zuerst)
 
@@ -80,6 +80,8 @@ Test-1/
    │  ├─ MenuBar/      StatusItemController, MainMenu (unsichtbar, für ⌘-Kurzbefehle)
    │  ├─ DesignSystem/ Theme (Tokens), Components
    │  ├─ Popup/        PopupPanel, PopupController, PopupViewModel, PopupView, ClipRowView
+   │  ├─ Screenshot/   ScreenshotController, Overlay, Knopfleiste unter der Auswahl, Ergebnis (M11)
+   │  ├─ Annotation/   Fenster „Markieren“: Modell, Zeichenfläche, Werkzeug- und Stilzeile (M12)
    │  ├─ Notch/        ScreenLocator, NotchAnimator, CopyFeedbackController
    │  ├─ Onboarding/   OnboardingWindowController + Schritt-Views
    │  ├─ Settings/     SettingsWindowController + Allgemein/Verlauf/Datenschutz/Favoriten/Über
@@ -646,13 +648,14 @@ Plan und Auswahl: `Docs/Ideen-und-Design-Review.md`, Abschnitt „Umsetzungsplan
 - **Suche:** findet auch App-Namen und Typwörter (bild, link, farbe, datei, bildschirmfoto), nach den Inhaltstreffern.
 - **Bildschirmfreigabe:** Pop-up und Hinweise bitten Freigaben, sie wegzulassen (abschaltbar). Präsentationsmodus (Menü, Einstellungen): Zeilen zeigen nur Art, App und Alter; endet nach 2 Stunden.
 - **Bildschirmfoto:** App und Fenstertitel in Zeile und Suche; ⇧⏎ oder ⇧-Klick kopiert den Text; ⌘S legt zusätzlich ein PNG dort ab, wo macOS Bildschirmfotos ablegt. Hinweisleiste mit Tasten-Kappen („Klick Bild kopieren · ⇧ Klick Text kopieren · …“) und klickbare Knöpfe unter der Auswahl (Bild kopieren, Text kopieren, Sichern, Erweitern, Verwerfen).
+- **Markieren:** „Markieren E“ unter der Auswahl öffnet ein Fenster mit dem Bild: Pfeil, Linie, Rechteck, Ellipse, Stift, Textmarker und Text (Kommentar, mit oder ohne Sprechblase). Farbe, Strichstärke und Schriftgröße frei einstellbar (Regler, Pfeilchen, `[` `]`), je Werkzeug gemerkt; Markierungen verschieben, Griffe, ⌘Z/⇧⌘Z. Kopieren ⏎ und Sichern ⌘S veröffentlichen das Bild mit Markierungen wie ⏎ und ⌘S im Overlay. Modell, Geometrie und Rückgängig in Core (Linux-Tests), Zeichnen in `AnnotationRenderer` (dieselbe Darstellung im Fenster und im Bild).
 - **Texterkennung (Vision, auf diesem Mac):** Bilder werden durchsuchbar; eine IBAN, Karte oder ein Schlüssel im Bild macht den Eintrag sensibel. Abschaltbar. Vision läuft in einem Hilfsprozess, der sich nach der Arbeit beendet (ADR 0005).
 - **Kleinigkeiten mit Wirkung:** ⇧-Einfügen entfernt Tracking-Parameter aus Links; „Letzte Kopie vergessen“ im Menü; „Neuer Favorit …“ aus eingetipptem Text; CopyPal-Fenster geben beim Schließen den Fokus an die vorherige App zurück.
 
 **Fertig wenn**
 - [ ] Alle Punkte aus `Docs/Testplaene/M12.md` am Mac geprüft.
 - [ ] Kern (Suche, Link-Bereinigung, Lesereihenfolge, Texterkennung im Speicher, Favoriten) auf Linux getestet. *(CI)*
-- [ ] Selbsttest: Präsentationsmodus, Vorschau, saubere Links, „Letzte Kopie vergessen“, Kürzel-Karte, Bildschirmfoto-Zeile, Texterkennung (im Hilfsprozess, der sich danach beendet; Speicher der App unter 100 MB), Knöpfe unter der Auswahl und ⇧-Klick (echtes Ziehen und Klicken), ⌘S, neuer Favorit. *(CI)*
+- [ ] Selbsttest: Präsentationsmodus, Vorschau, saubere Links, „Letzte Kopie vergessen“, Kürzel-Karte, Bildschirmfoto-Zeile, Texterkennung (im Hilfsprozess, der sich danach beendet; Speicher der App unter 100 MB), Knöpfe unter der Auswahl und ⇧-Klick (echtes Ziehen und Klicken), ⌘S, neuer Favorit, Markieren (Werkzeug-Tasten, Ziehen, Tippen, `]`, ⌘Z, ⏎ – das kopierte Bild trägt jede Markierung an ihrer Stelle; „Markieren“ unter der Auswahl öffnet den Editor). *(CI)*
 - [ ] Null Compiler-Warnungen. *(CI)*
 
 ---
@@ -737,6 +740,7 @@ Plan und Auswahl: `Docs/Ideen-und-Design-Review.md`, Abschnitt „Umsetzungsplan
 | R30 | Klicks neben der Notch („Verlauf \| Favoriten“) landen bei Menüleisten-Symbolen oder der über Vollbild eingeblendeten Menüleiste (gemeldet 18.10.2026) | Pop-up, Rückzug und Hinweis auf Ebene `screenSaver` statt `statusBar`; der Selbsttest klickt „Favoriten“ mit echten Mausereignissen, auch über Vollbild mit eingeblendeter Menüleiste und mit einer anderen App vorne. Auf dem Runner (ohne Notch, Symbole weit rechts) klappte der Klick auch mit der alten Ebene – auf dem MacBook mit Notch noch zu bestätigen | M7, M11 |
 | R31 | ⌘⇧A „tut nichts“: Overlay oder Berechtigungsfenster landen über einer Vollbild-App auf dem Schreibtisch-Space; ein offenes Kürzel-Feld schaltet die Kürzel ab; ein Systemdialog hält die Aufnahme an (gemeldet 18.10.2026) | Overlay und Fenster werden auf den aktiven Space geholt (wie das Pop-up); Kürzel-Feld endet, sobald das Fenster den Fokus verliert; nach 1,5 s „Wartet auf macOS …“; belegtes Kürzel als Hinweis im Menü; Selbsttest ⌘⇧A über Vollbild | M11 |
 | R32 | Vision hält seine Modelle nach der ersten Texterkennung im Speicher (im App-Prozess: 51 → 129 MB) | Texterkennung in einem XPC-Hilfsprozess, der 5 s nach der letzten Antwort endet (ADR 0005); der Selbsttest prüft das Ende des Prozesses und den Speicher der App (< 100 MB). Große Bilder werden verkleinert gelesen (16 MP); abschaltbar unter Datenschutz | M12 |
+| R33 | Markierungen sehen im Fenster anders aus als im kopierten Bild (Zoom, Retina, Koordinaten oben links gegen unten links) oder gehen beim Tippen verloren | Ein Renderer für beides, Größen in Punkten des Bildes; Text wird beim Tippen schon wie im Ergebnis gezeichnet (das Textfeld zeigt nur den Cursor); Tests prüfen Pixel an bekannten Stellen (Linux-Modell, macOS-Renderer, Selbsttest mit echter Maus und Tastatur); Rückfrage vor dem Verwerfen | M12 |
 
 ---
 

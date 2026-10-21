@@ -5,6 +5,7 @@ import SwiftUI
 enum ScreenshotAction: Sendable {
     case copyImage
     case copyText
+    case annotate
     case save
     case extend
     case undoSection
@@ -12,10 +13,11 @@ enum ScreenshotAction: Sendable {
 }
 
 /// The buttons under a finished selection (Docs/Design.md, "Bildschirmfoto-Overlay"):
-/// the size, "Bild kopieren", "Text kopieren", "Sichern", "Erweitern" (once stitched
-/// "Weiter" and "Abschnitt zurück") and discard. Every button shows its key, so the
-/// keyboard way is learned on the side. AppKit lays the buttons out, so each has a
-/// frame the overlay and the self-test know.
+/// the size, "Bild kopieren", "Text kopieren", "Markieren", "Sichern", "Erweitern"
+/// (once stitched "Weiter" and "Abschnitt zurück") and discard. Every button shows its
+/// key, so the keyboard way is learned on the side. Too wide for the screen, the
+/// secondary buttons keep only symbol and key. AppKit lays the buttons out, so each
+/// has a frame the overlay and the self-test know.
 final class ScreenshotActionBar: NSView {
     struct Content: Equatable {
         var sizeText: String
@@ -34,6 +36,7 @@ final class ScreenshotActionBar: NSView {
 
     var onAction: ((ScreenshotAction) -> Void)?
     private(set) var content: Content?
+    private var maxWidth = CGFloat.greatestFiniteMagnitude
     private let stack = NSStackView()
     private let sizeLabel = NSTextField(labelWithString: "")
     private var buttons: [ActionButtonHost] = []
@@ -96,13 +99,18 @@ final class ScreenshotActionBar: NSView {
         addCursorRect(bounds, cursor: .arrow)
     }
 
-    func update(_ content: Content) {
-        guard content != self.content else { return }
-        let rebuild = content.stitched != self.content?.stitched
+    func update(_ content: Content, maxWidth: CGFloat) {
+        guard content != self.content || maxWidth != self.maxWidth else { return }
+        let rebuild = content.stitched != self.content?.stitched || maxWidth != self.maxWidth
         self.content = content
+        self.maxWidth = maxWidth
         sizeLabel.stringValue = content.sizeText
         if rebuild {
-            rebuildButtons(stitched: content.stitched)
+            rebuildButtons(stitched: content.stitched, compact: false)
+            layoutSubtreeIfNeeded()
+            if fittingSize.width > maxWidth {
+                rebuildButtons(stitched: content.stitched, compact: true)
+            }
         }
     }
 
@@ -113,12 +121,16 @@ final class ScreenshotActionBar: NSView {
         return button.convert(button.bounds, to: self)
     }
 
-    private func rebuildButtons(stitched: Bool) {
+    private func rebuildButtons(stitched: Bool, compact: Bool) {
         for view in stack.arrangedSubviews {
             stack.removeArrangedSubview(view)
             view.removeFromSuperview()
         }
         buttons = Self.items(stitched: stitched).map { item in
+            var item = item
+            if compact, !item.prominent {
+                item.title = ""
+            }
             let button = ActionButtonHost(rootView: ActionButtonLabel(item: item))
             button.configure(item)
             button.onPress = { [weak self] action in
@@ -141,6 +153,8 @@ final class ScreenshotActionBar: NSView {
                  accessibilityLabel: String(localized: "Bild kopieren")),
             Item(action: .copyText, title: String(localized: "Text kopieren"), symbol: "text.viewfinder", keys: "⇧⏎",
                  accessibilityLabel: String(localized: "Text kopieren")),
+            Item(action: .annotate, title: String(localized: "Markieren"), symbol: "pencil.tip.crop.circle", keys: "E",
+                 accessibilityLabel: String(localized: "Markieren: Text, Pfeile, Formen und Textmarker einfügen")),
             Item(action: .save, title: String(localized: "Sichern"), symbol: "square.and.arrow.down", keys: "⌘S",
                  accessibilityLabel: String(localized: "Kopieren und als Datei sichern")),
         ]

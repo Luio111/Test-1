@@ -36,6 +36,7 @@ enum AppSettings {
         static let screenshotScrollReversed = "screenshotScrollReversed"
         static let screenshotPermissionAsked = "screenshotPermissionAsked"
         static let screenCaptureWasGranted = "screenCaptureWasGranted"
+        static let annotationStyles = "annotationStyles"
     }
 
     /// Read by the Sparkle delegate off the main actor, hence public and plain.
@@ -279,6 +280,13 @@ enum AppSettings {
     static var screenCaptureWasGranted: Bool {
         get { defaults.bool(forKey: Key.screenCaptureWasGranted) }
         set { set(newValue, for: Key.screenCaptureWasGranted) }
+    }
+
+    /// The markup editor's last colour and sizes per tool (ROADMAP R33). Remembered
+    /// only, nothing to re-apply: no change notification.
+    static var annotationStyles: AnnotationStyleBook {
+        get { AnnotationStyleBook.decoded(defaults.data(forKey: Key.annotationStyles)) }
+        set { defaults.set(newValue.encoded(), forKey: Key.annotationStyles) }
     }
 
     // MARK: Derived

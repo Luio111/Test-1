@@ -1,5 +1,6 @@
 #if DEBUG
 import AppKit
+import ImageIO
 import WebKit
 import CopyPalCore
 import CopyPalServices
@@ -163,6 +164,10 @@ final class SelfTestRunner {
             return (height == 720 && session.info.sections == 2, "Höhe \(height) px (erwartet 720), Schritte: \(first), \(second)")
         }
 
+        await check("Markieren: Pfeil, Rechteck, Textmarker und Text per Maus und Tastatur, ⏎ kopiert das Bild mit allem") {
+            await self.annotationEditorCheck()
+        }
+
         guard ScreenCapturePermission.state == .granted else {
             skip("Bereich landet als Bild im Verlauf und als PNG + TIFF in der Zwischenablage", reason: "Bildschirmaufnahme auf diesem Rechner nicht erlaubt")
             return
@@ -224,6 +229,9 @@ final class SelfTestRunner {
             }
             await check("⇧-Klick in die Auswahl kopiert ihren Text") {
                 await self.overlayTextCheck(in: window.frame, marker: "6933", shiftClick: true)
+            }
+            await check("„Markieren“ unter der Auswahl öffnet den Editor mit ihrem Bild") {
+                await self.overlayAnnotateCheck(in: window.frame)
             }
             await check("↓ erweitert eine Webseite (WebKit) um zwei Abschnitte") {
                 await self.extendWebKitCheck()
@@ -835,6 +843,203 @@ final class SelfTestRunner {
         await sleep(200)
         let detail = "Knöpfe: \(buttons.isEmpty ? "keine" : buttons), geschlossen: \(closed), Text im Verlauf: \(stored)"
         return ((shiftClick || shown) && closed && stored, detail)
+    }
+
+    /// R33: the markup editor as a user works it – tool letters, drags, typing, Esc,
+    /// ] for a larger font, ⌘Z and ⇧⌘Z, ⏎ – on a known picture. The copied PNG has to
+    /// carry every mark where it was drawn.
+    private func annotationEditorCheck() async -> (Bool, String) {
+        guard let picture = Self.annotationTestPicture() else {
+            return (false, "kein Testbild")
+        }
+        app.screenshot.openEditorForSelfTest(picture, scale: 1)
+        guard await waitUntil(timeout: 3_000, { self.app.screenshot.annotationEditorForSelfTest?.window?.isKeyWindow == true }),
+              let editor = app.screenshot.annotationEditorForSelfTest else {
+            app.screenshot.annotationEditorForSelfTest?.window?.close()
+            focusTextView()
+            return (false, "Editor nicht geöffnet")
+        }
+        await sleep(400)
+        let model = editor.model
+        let canvas = editor.canvas
+        func onScreen(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            canvas.screenPointForSelfTest(CGPoint(x: x, y: y)) ?? .zero
+        }
+        await typeKey("a")
+        let arrowTool = model.tool == .arrow
+        await drag(from: onScreen(40, 40), to: onScreen(220, 130))
+        await typeKey("r")
+        await drag(from: onScreen(280, 40), to: onScreen(440, 150))
+        await typeKey("h")
+        await drag(from: onScreen(40, 260), to: onScreen(320, 260))
+        await typeKey("t")
+        await click(at: onScreen(360, 230))
+        let typing = await waitUntil(timeout: 1_500) { canvas.isTypingForSelfTest }
+        await Self.typeText("Notiz 42")
+        await sleep(300)
+        // Esc: the text is done and stays selected; four times ] makes it 8 pt larger.
+        await press(53, flags: [])
+        await sleep(200)
+        let before = model.style.fontSize
+        var viaKeys = true
+        for _ in 0..<4 {
+            if KeyboardLayout.keyCode(typing: "]") != nil {
+                await typeKey("]")
+            } else {
+                viaKeys = false
+                model.adjustSize(by: 1)
+            }
+        }
+        await sleep(200)
+        let grown = model.style.fontSize
+        await saveSnapshot("6-markieren")
+        await press(KeyboardLayout.keyCode(typing: "z", command: true) ?? 6, flags: .maskCommand)
+        let undone = model.style.fontSize
+        await press(KeyboardLayout.keyCode(typing: "z", command: true) ?? 6, flags: [.maskCommand, .maskShift])
+        let redone = model.style.fontSize
+        let tools = model.document.items.map(\.tool.rawValue)
+        let text = model.document.items.compactMap { mark -> String? in
+            if case let .text(string, _) = mark.shape { return string }
+            return nil
+        }.first ?? "–"
+        let previousTop = app.history.items.first?.id
+        await press(36, flags: [])
+        let closed = await waitUntil(timeout: 4_000) { self.app.screenshot.annotationEditorForSelfTest == nil }
+        if !closed {
+            editor.window?.close()
+        }
+        let stored = await waitUntil(timeout: 5_000) {
+            guard let top = self.app.history.items.first else { return false }
+            return top.id != previousTop && top.kind == .image
+        }
+        let marks = NSPasteboard.general.data(forType: .png).map(Self.annotationMarks) ?? (false, "kein PNG in der Zwischenablage")
+        focusTextView()
+        await sleep(200)
+        let sizes = before == 20 && grown == 28 && undone == 26 && redone == 28
+        let passed = arrowTool && typing && tools == ["arrow", "rectangle", "highlighter", "text"] && text == "Notiz 42" && sizes && closed && stored && marks.0
+        let detail = "Werkzeug A: \(arrowTool), Marken: \(tools.joined(separator: ", ")), Text „\(text)“ (getippt: \(typing)), "
+            + "Schrift \(Int(before)) → \(Int(grown)) pt (\(viaKeys ? "]" : "ohne ]-Taste")), ⌘Z \(Int(undone)), ⇧⌘Z \(Int(redone)), "
+            + "geschlossen: \(closed), im Verlauf: \(stored), Bild: \(marks.1)"
+        return (passed, detail)
+    }
+
+    /// The overlay's "Markieren" button: the editor opens with the selection's picture;
+    /// Esc closes it again without asking, as nothing was drawn.
+    private func overlayAnnotateCheck(in frame: CGRect) async -> (Bool, String) {
+        await press(0, flags: [.maskCommand, .maskShift])
+        guard await waitUntil(timeout: 5_000, { self.app.screenshot.isOverlayVisible }) else {
+            app.screenshot.cancel()
+            focusTextView()
+            return (false, "Aufnahme nicht geöffnet")
+        }
+        await sleep(300)
+        await drag(from: CGPoint(x: frame.minX + 8, y: frame.maxY - 32), to: CGPoint(x: frame.maxX - 8, y: frame.minY + 8))
+        _ = await waitUntil(timeout: 2_000) { !self.app.screenshot.actionsForSelfTest.isEmpty }
+        let buttons = app.screenshot.actionsForSelfTest.map { "\($0)" }.joined(separator: ", ")
+        guard let target = app.screenshot.actionButtonCenterForSelfTest(.annotate) else {
+            app.screenshot.cancel()
+            focusTextView()
+            return (false, "kein Knopf „Markieren“ (Knöpfe: \(buttons.isEmpty ? "keine" : buttons))")
+        }
+        await click(at: target)
+        let opened = await waitUntil(timeout: 5_000) { self.app.screenshot.annotationEditorForSelfTest?.window?.isKeyWindow == true }
+        let editor = app.screenshot.annotationEditorForSelfTest
+        let scale = window?.backingScaleFactor ?? 1
+        let expectedWidth = Int(((frame.width - 16) * scale).rounded())
+        let width = editor?.model.image.width ?? 0
+        await sleep(300)
+        await saveSnapshot("7-markieren-aus-der-auswahl")
+        await press(53, flags: [])
+        let closed = await waitUntil(timeout: 3_000) { self.app.screenshot.annotationEditorForSelfTest == nil }
+        if !closed {
+            editor?.window?.close()
+        }
+        focusTextView()
+        await sleep(200)
+        return (opened && abs(width - expectedWidth) <= 4 && closed, "geöffnet: \(opened), Bildbreite \(width) px (erwartet \(expectedWidth)), Esc schließt: \(closed)")
+    }
+
+    /// 600 × 360 px, white, with gray bars like lines of text on the right.
+    private static func annotationTestPicture() -> ImageBox? {
+        guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(data: nil, width: 600, height: 360, bitsPerComponent: 8, bytesPerRow: 0, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+            return nil
+        }
+        context.setFillColor(CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: 600, height: 360))
+        context.setFillColor(CGColor(srgbRed: 0.8, green: 0.8, blue: 0.79, alpha: 1))
+        for row in 0..<8 {
+            context.fill(CGRect(x: 470, y: 30 + row * 40, width: 60 + (row * 23) % 50, height: 10))
+        }
+        return context.makeImage().map { ImageBox($0) }
+    }
+
+    /// Looks at the copied picture where the marks were drawn.
+    private static func annotationMarks(_ png: Data) -> (Bool, String) {
+        guard let source = CGImageSourceCreateWithData(png as CFData, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil),
+              let space = CGColorSpace(name: CGColorSpace.sRGB) else {
+            return (false, "PNG unlesbar")
+        }
+        let width = image.width
+        let height = image.height
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        let drawn = bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+                return false
+            }
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return true
+        }
+        guard drawn, width == 600, height == 360 else {
+            return (false, "\(width) × \(height) px (erwartet 600 × 360)")
+        }
+        // Row 0 is the top of the picture.
+        func pixel(_ x: Int, _ y: Int) -> (r: Int, g: Int, b: Int) {
+            let index = (y * width + x) * 4
+            return (Int(bytes[index]), Int(bytes[index + 1]), Int(bytes[index + 2]))
+        }
+        func isRed(_ p: (r: Int, g: Int, b: Int)) -> Bool { p.r > 200 && p.g < 120 && p.b < 120 }
+        func isWhite(_ p: (r: Int, g: Int, b: Int)) -> Bool { p.r > 240 && p.g > 240 && p.b > 240 }
+        let arrow = pixel(130, 85)
+        let box = pixel(280, 95)
+        let inside = pixel(360, 95)
+        let marker = pixel(180, 260)
+        let bubble = pixel(354, 230)
+        var letters = 0
+        for y in 222..<256 {
+            for x in 366..<470 where isWhite(pixel(x, y)) {
+                letters += 1
+            }
+        }
+        let markerOK = marker.r > 220 && marker.g > 180 && marker.b < 210 && marker.b > 60
+        let passed = isRed(arrow) && isRed(box) && isWhite(inside) && markerOK && isRed(bubble) && letters > 30
+        return (passed, "Pfeil \(arrow), Rechteck \(box), innen \(inside), Textmarker \(marker), Blase \(bubble), weiße Buchstaben-Pixel \(letters)")
+    }
+
+    /// A key that types `character` in the current layout.
+    private func typeKey(_ character: Character) async {
+        await press(KeyboardLayout.keyCode(typing: character) ?? 0, flags: [])
+        await sleep(80)
+    }
+
+    /// Types `text` character by character as Unicode, whatever the layout.
+    private static func typeText(_ text: String) async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global(qos: .userInteractive).async {
+                let source = CGEventSource(stateID: .hidSystemState)
+                for character in text {
+                    let units = Array(String(character).utf16)
+                    for down in [true, false] {
+                        guard let event = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: down) else { continue }
+                        event.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
+                        event.post(tap: .cghidEventTap)
+                        usleep(15_000)
+                    }
+                }
+                continuation.resume()
+            }
+        }
     }
 
     /// A long page with a sticky header, like most websites: ↓ has to scroll it and
