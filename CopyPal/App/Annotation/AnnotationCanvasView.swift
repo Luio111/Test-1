@@ -11,7 +11,7 @@ final class AnnotationCanvasView: NSView, NSTextViewDelegate {
     /// The picture's top-left corner in the view.
     private var pictureOrigin: CGPoint = .zero
     private var drag: Drag?
-    private var textView: AnnotationTextView?
+    private var textView: NSTextView?
     private let textUndo = UndoManager()
     /// Room around the picture.
     private static let margin: CGFloat = 24
@@ -383,8 +383,9 @@ final class AnnotationCanvasView: NSView, NSTextViewDelegate {
         }
     }
 
-    private func makeTextView(_ string: String) -> AnnotationTextView {
-        let view = AnnotationTextView(frame: .zero)
+    private func makeTextView(_ string: String) -> NSTextView {
+        let view = NSTextView(frame: .zero)
+        Self.configureTextView(view)
         view.string = string
         view.delegate = self
         addSubview(view)
@@ -413,6 +414,28 @@ final class AnnotationCanvasView: NSView, NSTextViewDelegate {
         textUndo
     }
 
+    /// The text view only takes the keys and shows the caret; the canvas paints the letters.
+    private static func configureTextView(_ view: NSTextView) {
+        view.isRichText = false
+        view.importsGraphics = false
+        view.allowsUndo = true
+        view.drawsBackground = false
+        view.textColor = .clear
+        view.typingAttributes[.foregroundColor] = NSColor.clear
+        view.textContainerInset = .zero
+        view.textContainer?.lineFragmentPadding = 0
+        view.textContainer?.widthTracksTextView = false
+        view.textContainer?.containerSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        view.isHorizontallyResizable = true
+        view.isVerticallyResizable = true
+        view.isAutomaticQuoteSubstitutionEnabled = false
+        view.isAutomaticDashSubstitutionEnabled = false
+        view.isAutomaticTextReplacementEnabled = false
+        view.isContinuousSpellCheckingEnabled = false
+        view.focusRingType = .none
+        view.setAccessibilityLabel(String(localized: "Text der Markierung"))
+    }
+
     #if DEBUG
     /// Self-test: where a point of the picture is on screen.
     func screenPointForSelfTest(_ point: CGPoint) -> CGPoint? {
@@ -425,38 +448,4 @@ final class AnnotationCanvasView: NSView, NSTextViewDelegate {
         textView != nil && window?.firstResponder === textView
     }
     #endif
-}
-
-/// Takes the keys of a text being typed; the canvas paints the letters.
-final class AnnotationTextView: NSTextView {
-    override init(frame frameRect: NSRect, textContainer container: NSTextContainer?) {
-        super.init(frame: frameRect, textContainer: container)
-        configure()
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("not used")
-    }
-
-    private func configure() {
-        isRichText = false
-        importsGraphics = false
-        allowsUndo = true
-        drawsBackground = false
-        textColor = .clear
-        typingAttributes[.foregroundColor] = NSColor.clear
-        textContainerInset = .zero
-        textContainer?.lineFragmentPadding = 0
-        textContainer?.widthTracksTextView = false
-        textContainer?.containerSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
-        isHorizontallyResizable = true
-        isVerticallyResizable = true
-        isAutomaticQuoteSubstitutionEnabled = false
-        isAutomaticDashSubstitutionEnabled = false
-        isAutomaticTextReplacementEnabled = false
-        isContinuousSpellCheckingEnabled = false
-        focusRingType = .none
-        setAccessibilityLabel(String(localized: "Text der Markierung"))
-    }
 }
