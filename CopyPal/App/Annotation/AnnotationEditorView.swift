@@ -139,11 +139,14 @@ struct AnnotationEditorView: View {
         let size = Binding<Double>(
             get: { tool.usesFontSize ? model.style.fontSize : model.style.lineWidth },
             set: { value in
+                // Whole steps; the slider itself has none, as its tick marks would
+                // turn into a comb over 40 sizes.
+                let stepped = (value / step).rounded() * step
                 model.changeStyle { style in
                     if tool.usesFontSize {
-                        style.fontSize = value
+                        style.fontSize = stepped
                     } else {
-                        style.lineWidth = value
+                        style.lineWidth = stepped
                     }
                 }
             }
@@ -152,7 +155,7 @@ struct AnnotationEditorView: View {
         return HStack(spacing: Theme.Spacing.s) {
             Text(verbatim: title)
                 .foregroundStyle(Theme.Colors.textSecondary)
-            Slider(value: size, in: range, step: step, onEditingChanged: { editing in
+            Slider(value: size, in: range, onEditingChanged: { editing in
                 model.adjustingStyle(editing)
             })
             .controlSize(.small)
