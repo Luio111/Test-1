@@ -49,11 +49,14 @@ public enum DiagnosticsWarning: Sendable, Hashable, CaseIterable {
     case pasteboardMayAsk
     case pasteboardDenied
     case pasteboardStatusUnknown
+    /// Screenshots are enabled but Screen Recording is not granted (M11).
+    case screenCaptureDenied
 
     public static func warnings(for snapshot: DiagnosticsSnapshot) -> [DiagnosticsWarning] {
         var result: [DiagnosticsWarning] = []
         if !snapshot.signing.isStable { result.append(.unstableSigning) }
         if snapshot.accessibility == .denied { result.append(.accessibilityDenied) }
+        if snapshot.screenCapture == .denied { result.append(.screenCaptureDenied) }
         switch snapshot.pasteboardAccess {
         case .ask, .systemDefault: result.append(.pasteboardMayAsk)
         case .alwaysDeny: result.append(.pasteboardDenied)
@@ -94,6 +97,8 @@ public struct DiagnosticsSnapshot: Sendable, Equatable {
     public var accessibility: PermissionState
     public var pasteboardAccess: PasteboardAccessStatus
     public var pasteboardProbe: PasteboardProbe?
+    /// Screen Recording, for screenshots (M11); nil while the feature is switched off.
+    public var screenCapture: PermissionState?
     public var createdAt: Date
 
     public init(
@@ -106,6 +111,7 @@ public struct DiagnosticsSnapshot: Sendable, Equatable {
         accessibility: PermissionState,
         pasteboardAccess: PasteboardAccessStatus,
         pasteboardProbe: PasteboardProbe? = nil,
+        screenCapture: PermissionState? = nil,
         createdAt: Date = Date()
     ) {
         self.appVersion = appVersion
@@ -117,6 +123,7 @@ public struct DiagnosticsSnapshot: Sendable, Equatable {
         self.accessibility = accessibility
         self.pasteboardAccess = pasteboardAccess
         self.pasteboardProbe = pasteboardProbe
+        self.screenCapture = screenCapture
         self.createdAt = createdAt
     }
 }

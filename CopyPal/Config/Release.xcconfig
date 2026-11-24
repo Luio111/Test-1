@@ -2,3 +2,7 @@
 
 PRODUCT_BUNDLE_IDENTIFIER = $(BUNDLE_ID_PREFIX).CopyPal
 INFOPLIST_KEY_CFBundleDisplayName = CopyPal
+
+// Sparkle (ROADMAP M9, Docs/Release.md): fill in once the update key exists.
+// COPYPAL_FEED_URL = https://<github-name>.github.io/<repo>/appcast.xml
+// COPYPAL_SPARKLE_PUBLIC_KEY = <public key from ./scripts/release.sh --setup-sparkle>

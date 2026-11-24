@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CopyPal – Der Verlauf deiner Zwischenablage</title>
+  <meta name="description" content="CopyPal: ⌘V halten zeigt deine letzten Kopien an der Notch. Verschlüsselt, lokal, ohne neue Tastenkombinationen.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="icon" aria-hidden="true">📋</div>
+  <h1>Der Verlauf deiner Zwischenablage.<br>Mit <kbd>⌘V</kbd>.</h1>
+  <p><strong>CopyPal</strong> merkt sich, was du kopierst. <kbd>⌘V</kbd> kurz drücken fügt wie immer ein. <kbd>⌘V</kbd> halten zeigt deine letzten 8 Kopien an der Notch.</p>
+  <!-- Replace with the latest release (Docs/Release.md). -->
+  <a class="button" href="https://github.com/OWNER/REPO/releases/latest">Für macOS laden</a>
+  <p class="note">macOS 14 Sonoma oder neuer · Apple Silicon und Intel · kostenlos während der Beta</p>
+</header>
+<main>
+  <h2>So einfach</h2>
+  <ol class="steps">
+    <li><strong>⌘C</strong>Kopieren wie immer. CopyPal merkt es sich.</li>
+    <li><strong>⌘V tippen</strong>Fügt den letzten Eintrag ein – nichts ändert sich.</li>
+    <li><strong>⌘V halten</strong>Deine letzten Kopien erscheinen. <kbd>1</kbd>–<kbd>8</kbd> fügt ein, mit <kbd>⇧</kbd> ohne Formatierung.</li>
+  </ol>
+
+  <h2>Was CopyPal kann</h2>
+  <ul>
+    <li><strong>Suchen</strong> – im geöffneten Verlauf einfach lostippen.</li>
+    <li><strong>Favoriten</strong> – <kbd>⌘P</kbd> pinnt an, <kbd>⇥</kbd> wechselt dorthin. Mit eigenen Namen wie „E-Mail privat“.</li>
+    <li><strong>Vorschauen</strong> – Bilder, Links, Farben, Dateien und das Symbol der App, aus der kopiert wurde.</li>
+    <li><strong>iPhone</strong> – Kopien über die Universelle Zwischenablage erscheinen mit iPhone-Symbol.</li>
+    <li><strong>Ohne Freigabe</strong> – <kbd>⌃⌥V</kbd> öffnet den Verlauf auch per Tastenkürzel.</li>
+  </ul>
+
+  <h2>Deine Daten bleiben bei dir</h2>
+  <ul>
+    <li>Alles bleibt <strong>verschlüsselt auf deinem Mac</strong> (AES-GCM, Schlüssel im Schlüsselbund).</li>
+    <li><strong>Keine Konten, keine Cloud, keine Statistik.</strong> Ins Netz geht CopyPal nur für Updates – und nur, wenn du zustimmst.</li>
+    <li><strong>Passwörter bleiben draußen</strong>: Kopien aus Passwortmanagern werden nie gespeichert.</li>
+    <li><strong>Sensibles verschwindet</strong>: IBAN, Kartennummern, API-Schlüssel und Einmalcodes werden verdeckt, nach einer Minute gelöscht und nie ans iPhone weitergegeben.</li>
+  </ul>
+
+  <h2>Fragen</h2>
+  <details>
+    <summary>Warum braucht CopyPal die Freigabe „Bedienungshilfen“?</summary>
+    <p>Nur so kann CopyPal unterscheiden, ob du <kbd>⌘V</kbd> kurz drückst oder hältst, und den gewählten Eintrag einfügen. CopyPal reagiert ausschließlich auf <kbd>⌘V</kbd> und speichert keine Tastatureingaben.</p>
+  </details>
+  <details>
+    <summary>Und „Zugriff auf die Zwischenablage“?</summary>
+    <p>Ab macOS 15.4 fragt macOS, bevor eine App die Zwischenablage liest. Für einen Clipboard-Manager ist „Immer erlauben“ nötig, sonst erscheint bei jeder Kopie eine Rückfrage.</p>
+  </details>
+  <details>
+    <summary>Sendet CopyPal Daten?</summary>
+    <p>Nein. Der Verlauf bleibt verschlüsselt auf deinem Mac. Optional prüft CopyPal auf Updates (ohne Systemprofil) und lädt Website-Symbole für kopierte Links – beides nur, wenn du es einschaltest.</p>
+  </details>
+  <details>
+    <summary>Was ist mit Passwörtern?</summary>
+    <p>Passwortmanager markieren ihre Kopien; CopyPal liest diese nie. Zusätzlich stehen 1Password, Bitwarden, die Passwörter-App, die Schlüsselbundverwaltung und Banking-Apps auf einer Ignorierliste, die du erweitern kannst.</p>
+  </details>
+  <details>
+    <summary>macOS 26 hat doch einen Verlauf in Spotlight?</summary>
+    <p>Ja – CopyPal ist anders: kein neues Tastenkürzel (einfach <kbd>⌘V</kbd> halten), Einfügen mit einer Zahl, verschlüsselte Ablage, automatische Erkennung sensibler Inhalte, Favoriten mit Namen und die Kontrolle, was aufs iPhone geht.</p>
+  </details>
+  <details>
+    <summary>Wie deinstalliere ich CopyPal?</summary>
+    <p>CopyPal beenden und aus „Programme“ löschen. Der verschlüsselte Verlauf liegt unter <code>~/Library/Application Support</code>, der Schlüssel in der Schlüsselbundverwaltung (Eintrag „CopyPal“).</p>
+  </details>
+</main>
+<footer>
+  <hr>
+  <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
+</footer>
+</body>
+</html>

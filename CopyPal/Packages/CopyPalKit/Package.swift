@@ -20,11 +20,25 @@ let package = Package(
         .library(name: "CopyPalSystem", targets: ["CopyPalSystem"]),
         .library(name: "CopyPalServices", targets: ["CopyPalServices"]),
     ],
+    dependencies: [
+        // Exact versions: the Xcode project is generated and its Package.resolved is not
+        // checked in, so this keeps every build on the same code.
+        .package(url: "https://github.com/groue/GRDB.swift.git", exact: "7.9.0"),
+        // CryptoKit's API for Linux (CI tests). On macOS the app uses CryptoKit itself.
+        .package(url: "https://github.com/apple/swift-crypto.git", exact: "3.15.1"),
+    ],
     targets: [
         .target(name: "CopyPalCore"),
-        .target(name: "CopyPalStorage", dependencies: ["CopyPalCore"]),
+        .target(
+            name: "CopyPalStorage",
+            dependencies: [
+                "CopyPalCore",
+                .product(name: "GRDB", package: "GRDB.swift"),
+                .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux])),
+            ]
+        ),
         .target(name: "CopyPalSystem", dependencies: ["CopyPalCore"], swiftSettings: macOSOnlySettings),
-        .target(name: "CopyPalServices", dependencies: ["CopyPalCore", "CopyPalStorage", "CopyPalSystem"]),
+        .target(name: "CopyPalServices", dependencies: ["CopyPalCore", "CopyPalStorage"]),
 
         .testTarget(name: "CopyPalCoreTests", dependencies: ["CopyPalCore"]),
         .testTarget(name: "CopyPalStorageTests", dependencies: ["CopyPalStorage"]),

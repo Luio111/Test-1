@@ -16,12 +16,14 @@ final class DiagnosticsWindowController: NSObject, NSWindowDelegate {
 
         // Accessory apps are not active by default; without this the window opens
         // behind the frontmost app.
+        FocusReturn.remember()
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
     }
 
     func windowWillClose(_ notification: Notification) {
         model.stopMonitoring()
+        FocusReturn.windowWillClose(window)
     }
 
     /// Coming back from System Settings: re-read every row, not only the live ones.

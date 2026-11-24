@@ -19,6 +19,8 @@ struct DiagnosticsView: View {
                 Hairline()
                 pasteboardSection
                 Hairline()
+                crashSection
+                Hairline()
                 footer
             }
             .padding(.horizontal, Theme.Layout.pageHorizontalPadding)
@@ -83,6 +85,8 @@ struct DiagnosticsView: View {
             "Der Zugriff auf die Zwischenablage ist verboten. CopyPal kann nichts mitlesen."
         case .pasteboardStatusUnknown:
             "Der Zugriff auf die Zwischenablage lässt sich nicht auslesen. Baue die App mit Xcode 16.3 oder neuer."
+        case .screenCaptureDenied:
+            "Die Bildschirmaufnahme ist nicht erteilt. Bildschirmfotos sind so nicht möglich."
         }
     }
 
@@ -151,6 +155,22 @@ struct DiagnosticsView: View {
                     }
                 }
             }
+            PropertyRow(label: "Bildschirmaufnahme", systemImage: "camera.viewfinder") {
+                HStack(spacing: Theme.Spacing.s) {
+                    switch snapshot.screenCapture {
+                    case .granted:
+                        StatusTag(text: "Erteilt", style: .green)
+                    case .denied:
+                        StatusTag(text: "Nicht erteilt", style: .red)
+                        Button("Anfragen") { model.requestScreenCapture() }
+                            .buttonStyle(SubtleButtonStyle())
+                        Button("Systemeinstellungen öffnen") { model.openScreenCaptureSettings() }
+                            .buttonStyle(SubtleButtonStyle())
+                    case nil:
+                        StatusTag(text: "Nicht benötigt (Bildschirmfoto aus)", style: .gray)
+                    }
+                }
+            }
         }
     }
 
@@ -199,6 +219,27 @@ struct DiagnosticsView: View {
                 Text(verbatim: probe.types.joined(separator: "\n"))
                     .font(Theme.Typography.mono)
                     .foregroundStyle(Theme.Colors.textSecondary)
+            }
+        }
+    }
+
+    private var crashSection: some View {
+        SectionBlock(title: "Abstürze") {
+            PropertyRow(label: "Letzter Absturz", systemImage: "exclamationmark.octagon") {
+                if let crash = model.latestCrash {
+                    HStack(spacing: Theme.Spacing.s) {
+                        Text(crash.date.formatted(date: .abbreviated, time: .shortened))
+                        Button {
+                            model.copyCrashReport()
+                        } label: {
+                            model.crashCopied ? Text("Kopiert ✓") : Text("Absturzbericht kopieren")
+                        }
+                        .buttonStyle(SubtleButtonStyle())
+                    }
+                } else {
+                    Text("Keiner")
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
             }
         }
     }

@@ -1,0 +1,64 @@
+/* CopyPal website: calm, reduced, Notion-like (see Docs/Design.md). No external fonts or scripts. */
+:root {
+  --bg: #ffffff;
+  --surface: #f7f7f5;
+  --text: #37352f;
+  --text-secondary: #73726e;
+  --divider: rgba(55, 53, 47, 0.09);
+  --accent: #1c6fc2;
+  --accent-hover: #165fa6;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #191919;
+    --surface: #202020;
+    --text: rgba(255, 255, 255, 0.81);
+    --text-secondary: #9b9b9b;
+    --divider: rgba(255, 255, 255, 0.094);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+}
+main, header, footer { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+header { padding-top: 72px; padding-bottom: 40px; }
+h1 { font-size: 40px; line-height: 1.15; margin: 16px 0 12px; font-weight: 700; }
+h2 { font-size: 22px; margin: 48px 0 12px; }
+h3 { font-size: 16px; margin: 24px 0 4px; }
+p, li { color: var(--text-secondary); }
+strong { color: var(--text); }
+kbd {
+  font: 600 14px ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: var(--text);
+}
+.icon { font-size: 40px; }
+.button {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 6px;
+  margin: 8px 12px 8px 0;
+}
+.button:hover { background: var(--accent-hover); }
+.note { font-size: 14px; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; padding: 0; list-style: none; }
+.steps li { background: var(--surface); border-radius: 8px; padding: 16px; }
+.steps li strong { display: block; margin-bottom: 4px; }
+hr { border: 0; border-top: 1px solid var(--divider); margin: 48px 0; }
+details { border-top: 1px solid var(--divider); padding: 12px 0; }
+summary { cursor: pointer; font-weight: 600; color: var(--text); }
+footer { padding-top: 24px; padding-bottom: 48px; font-size: 14px; }
+footer a, main a { color: var(--accent); }
+.placeholder { background: #fadec9; color: #49290e; padding: 0 4px; border-radius: 3px; }

@@ -51,7 +51,59 @@ Quelle: `App/DesignSystem/Components.swift`.
 | `SubtleButtonStyle` | Sekundäraktion: Rahmen, Hover-Hintergrund |
 | `PrimaryButtonStyle` | Hauptaktion: Akzentfarbe gefüllt |
 
+## Pop-up an der Notch
+
+Entschieden (12.10.2026): **Variante A „dunkel wie die Notch“.** Das Pop-up ist die Notch selbst, die nach unten wächst – immer schwarz, ohne Rand, nahtlos an der Kamera.
+
+- **Form** (`App/Notch/NotchShape.swift`): bündig an der Oberkante, oben konkave Ausläufer (8 pt) wie bei der Notch, unten Radius 20. Ohne Notch dieselbe Form oben mittig, so hoch wie die Menüleiste.
+- **Aufbau, flach:** In der Höhe der Notch links die Suche, rechts „Verlauf | Favoriten“, die Mitte bleibt frei für die Kamera. Darunter bis zu 8 Zeilen à 28 pt, unten eine Hinweiszeile (26 pt). Breite 520 pt (breiter, wenn die Notch es verlangt).
+- **Farben** (`Theme.Notch`): Weiß 92 % Text, 60 % sekundär (6,3:1), 40 % nur dekorativ, Auswahl 14 %, Flächen 10 %.
+- **Bewegung** (`PopupMotion`): Öffnen als Feder 0,42 s mit leichtem Nachfedern („fällt“ aus der Notch), die Form deckt den Inhalt dabei auf, Zeilen folgen mit 18 ms Versatz. Schließen: Inhalt sofort weg, die schwarze Form zieht sich in 0,26 s zurück (eigenes, passives Fenster, damit Fokus und Einfügen sofort bei der App sind). „Bewegung reduzieren“ oder die Einstellung schaltet alles ab.
+- **Maus:** Darüberfahren wählt eine Zeile aus (erst nach einer echten Mausbewegung), Klick fügt ein. „Verlauf“ und „Favoriten“ neben der Notch sind anklickbar (wie ⇥).
+- **Hinweiszeile:** ⌘P heißt „Favorit hinzufügen“ bzw. „Favorit entfernen“, je nach ausgewähltem Eintrag.
+
+## Pop-up: Vorschau, Präsentationsmodus, Favoritennamen (M12)
+
+- **Vorschau (→):** ersetzt die Liste in derselben schwarzen Form, so hoch wie acht Zeilen. Kopfzeile wie eine Zeile (Nummer, Name, Art, Zeit, App), darunter Text in 12,5 pt Weiß 92 % (bis 11 Zeilen, Links bis 6 mit Kürzung in der Mitte), Bild mit Radius 6 und Pixelmaß in SF Mono 11, Farbe als 72-pt-Feld mit Hex und RGB, Dateien als Liste. Fußzeile „↩ einfügen · ⇧ ohne Formatierung · ↑↓ blättern · ← zurück“.
+- **Präsentationsmodus:** Zeilen zeigen nur das Symbol und die Art („Link“, „Bild“) in Weiß 60 %, dazu Zeit und App; keine Vorschaubilder, Farbfelder, Tags oder Favoritennamen. Fußzeile mit `eye.slash`. Das Menüleisten-Symbol wird `eye.slash`.
+- **Favoritennamen:** Name in Weiß 92 %, dahinter die erste Zeile in 12 pt Weiß 60 %.
+- **Sensible Einträge:** statt der Zeit „noch 42 s“ (Ziffern gleich breit), Fußzeile „⌘P behalten“; ein Bild mit erkannter IBAN zeigt nur sein Symbol.
+
+## Bildschirmfoto-Overlay (M11)
+
+Das Overlay gehört zur Notch-Welt: immer dunkel, eine Akzentfarbe, Werte in SF Mono.
+
+- **Abdunkeln:** Schwarz 45 % über dem eingefrorenen Bild – heller als übliche Screenshot-Tools, damit der Inhalt zum Einrasten lesbar bleibt. Markierter Kandidat und Auswahl bleiben ungedunkelt.
+- **Kandidat:** 1,5 pt `accent` (#2383E2) plus 8 % Füllung, Radius 4; die einzige Akzentfarbe im Overlay. 150 ms ease-out beim Wechsel, nichts bei „Bewegung reduzieren“ oder ausgeschalteter Animation.
+- **Auswahl:** 1 px Weiß 92 %; vier runde Ecken-Griffe 6 pt Weiß 92 % mit 0,5 pt schwarzem Ring, erst nach dem Loslassen.
+- **Kapseln:** Schwarz, Höhe 26, ganz gerundet. Größe „1.280 × 720“ in SF Mono 12 Weiß 92 % unter der Auswahl (darüber, wenn unten kein Platz ist), solange gezogen oder erweitert wird. Status unten mittig in Weiß 92 %.
+- **Tasten-Kappe** (überall im Overlay gleich): umrandet und dunkler als ihr Untergrund – Schwarz 40 %, Rand Weiß 32 %, Radius 4, 11 semibold Weiß 80 % (auf der Akzentfläche Rand 55 %, Schrift 95 %). So liest sie sich als Taste neben einer Beschriftung in reinem Weiß.
+- **Hinweisleiste** (unten mittig, auf dem Bildschirm, an dem gearbeitet wird): schwarz, Radius 12, Rand Weiß 16 %, weicher Schatten (Schwarz 60 %, 12 pt), damit sie sich vom abgedunkelten Bild abhebt. Jeder Eintrag ist eine Tasten-Kappe und daneben, was sie tut. Oben, was jetzt geht (13 medium, Weiß): „Klick Bild kopieren · ⇧ Klick Text kopieren · Ziehen Bereich wählen · Esc Abbrechen“. Darunter kleiner (11, Weiß 60 %) die Extras: „⇥ größerer Rahmen · Leertaste nur Fenster · ⌥ Klick erst auswählen · ↓ scrollen und verlängern“.
+- **Knöpfe unter der Auswahl** (nach dem Aufziehen oder ⌥-Klick): schwarze Leiste wie die Hinweisleiste, links die Größe in SF Mono 12 Weiß 60 %, dann Knöpfe (Höhe 30, Radius 7) als eigene Flächen: Weiß 17 % mit Rand Weiß 16 %, Hover 25 %, gedrückt 32 %; Symbol und Text (13 medium) in reinem Weiß, am Ende die Taste als Kappe. **Bild kopieren ⏎** ist die einzige Hauptaktion (Akzentfläche #1C6FC2, Hover #2383E2), dann Text kopieren ⇧⏎, Markieren E, Sichern ⌘S, Erweitern ↓ (nach dem ersten Abschnitt: Weiter ↓ und Abschnitt zurück ⌫), ✕ Esc. Leiste mit Rand Weiß 16 % und weichem Schatten wie die Hinweisleiste. Sitzt unter der Auswahl, darüber, wenn die Hinweisleiste im Weg ist, und in ihrer Unterkante, wenn sie den Bildschirm füllt. Die Hinweisleiste zeigt dann nur noch die Extras (Ecken ziehen, ⌘-Pfeile, Klick daneben). Ist die Leiste breiter als der Bildschirm, behalten die Nebenknöpfe nur Symbol und Taste.
+- **Erweitern:** Das aktuelle Bild erscheint direkt in der Auswahl; keine zweite Vorschau.
+- **Zeiger:** Fadenkreuz, nie versteckt. Koordinaten „412, 318“ neben dem Zeiger, solange nichts markiert ist.
+- **Ergebnis:** die bekannte Kapsel an der Notch, „Bildschirmfoto kopiert“ mit `camera.viewfinder`.
+- **Berechtigungsfenster:** Aufbau wie das Onboarding (`PageHeader`, `StatusTag`, eine Hauptaktion), damit es als Teil von CopyPal erkennbar ist.
+
+## Markieren (Fenster nach „Markieren E“)
+
+Ein normales CopyPal-Fenster (hell oder dunkel wie das System), kein Overlay: hier wird in Ruhe gearbeitet.
+
+- **Werkzeugzeile** (oben): Symbol-Knöpfe 32 × 28, Radius 6, in Gruppen mit Haarlinien: Auswählen V | Stift P, Textmarker H | Pfeil A, Linie L, Rechteck R, Ellipse O | Text T. Das gewählte Werkzeug als Akzentfläche (#1C6FC2) mit weißem Symbol, die anderen mit Hover-Fläche. Rechts Rückgängig ⌘Z, Wiederholen ⇧⌘Z, Löschen ⌫. Tooltips nennen Name und Taste.
+- **Stilzeile** darunter, passend zum Werkzeug oder zur ausgewählten Markierung: acht Farbkreise (Rot, Orange, Gelb, Grün, Blau, Lila, Schwarz, Weiß; der gewählte mit Akzentring) und der Farbkreis für eigene Farben; „Strichstärke“ bzw. bei Text „Schriftgröße“ als Regler, Pfeilchen und Wert in pt; „Füllen“ bei Rechteck und Ellipse, „Sprechblase“ bei Text. Jedes Werkzeug merkt sich seine Einstellungen.
+- **Bild:** auf `canvasBackground` (#EDEDEB / #111111) mit weichem Schatten, nie vergrößert; ein sehr langes Bild füllt die Breite und scrollt.
+- **Markierungen:** Größen in Punkten des Bildes (20 pt Text ist so groß wie 20-pt-Text auf dem Bildschirm, von dem es stammt). Pfeil mit gefüllter Spitze, die mit der Linie wächst; Textmarker 40 % deckend in einem Zug; Text fett in der Systemschrift, mit Sprechblase in der Farbe (Schrift weiß auf Rot, Blau, Lila, Schwarz, sonst schwarz), ohne Sprechblase in der Farbe mit weichem Schein in der Gegenfarbe.
+- **Auswahl:** gestrichelter Rahmen im Akzent, runde weiße Griffe mit Akzentring an Linienenden und Ecken.
+- **Untere Zeile:** links ein Hinweis zum Werkzeug („⇧: Quadrat, Kreis · ⌥: von der Mitte · [ ]: dünner, dicker“), rechts Abbrechen, Sichern ⌘S und als Hauptaktion **Kopieren ⏎**.
+
+## Kürzel-Karte unter dem Menüleisten-Symbol
+
+Ruht der Zeiger 0,35 s auf dem Symbol, erscheint darunter eine kleine Karte – wie die Kapseln an der Notch schwarz, Radius 12, 1-px-Rand Weiß 8 %. Sie ersetzt den Tooltip.
+
+- **Zeilen:** links der Name in Weiß 60 % („Verlauf-Pop-up“, „Bildschirmfoto“), rechts die Kürzel als Tasten-Kappen (Weiß 10 %, Radius 4, Schrift 12 medium Weiß 92 %), dahinter „halten“, „oder“, „belegt“ bzw. „aus“ in Weiß 60 %.
+- **Status:** Fehlt eine Berechtigung oder ist die Aufzeichnung pausiert, steht das oben, durch eine Linie getrennt.
+- **Verhalten:** ignoriert die Maus, verschwindet beim Verlassen und sobald das Menü aufgeht; 120 ms Ein- und Ausblenden (aus bei „Bewegung reduzieren“). VoiceOver liest denselben Inhalt als Hilfe des Symbols.
+
 ## Offen
 
-- **Pop-up aus der Notch (M4/M7):** Variante A „dunkel wie die Notch“ (nahtloser Übergang, immer dunkel) oder Variante B „folgt dem System“ (hell/dunkel, mit dunklem Übergang an der Notch). Entscheidung anhand eines klickbaren Entwurfs vor M4.
 - App-Icon und Menüleisten-Icon (nach der Namensprüfung, D8). Bis dahin SF Symbol `doc.on.clipboard`.

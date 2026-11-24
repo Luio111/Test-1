@@ -15,6 +15,7 @@ public enum DiagnosticsReport {
             "macOS: \(snapshot.osVersion)",
             "Signatur: \(describe(snapshot.signing))",
             "Bedienungshilfen: \(describe(snapshot.accessibility))",
+            "Bildschirmaufnahme: \(snapshot.screenCapture.map(describe) ?? "– (Bildschirmfoto aus)")",
             "Zugriff auf Zwischenablage: \(describe(snapshot.pasteboardAccess))",
             "Lesetest: \(snapshot.pasteboardProbe.map(describe) ?? "nicht ausgeführt")",
         ]
@@ -39,6 +40,8 @@ public enum DiagnosticsReport {
             "Zugriff auf die Zwischenablage ist verboten – CopyPal kann nichts mitlesen."
         case .pasteboardStatusUnknown:
             "Zugriff auf die Zwischenablage nicht auslesbar – App mit Xcode 16.3 oder neuer bauen."
+        case .screenCaptureDenied:
+            "Bildschirmaufnahme nicht erteilt – Bildschirmfotos sind nicht möglich."
         }
     }
 

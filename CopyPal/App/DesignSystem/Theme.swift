@@ -23,6 +23,9 @@ enum Theme {
         static let accentFillPressed = Color.dynamic(light: 0x165FA6, dark: 0x165FA6)
 
         static let windowBackground = NSColor.dynamic(light: 0xFFFFFF, dark: 0x191919)
+        /// Behind a picture being marked up: a step darker than the window, so the
+        /// picture's edge shows even when it is white.
+        static let canvasBackground = NSColor.dynamic(light: 0xEDEDEB, dark: 0x111111)
     }
 
     /// Notion-style tag colors: tinted background, dark text in light mode.
@@ -87,6 +90,20 @@ enum Theme {
 
     enum Motion {
         static let quick = Animation.easeOut(duration: 0.15)
+    }
+
+    /// The popup and status capsule at the notch are always black like the camera
+    /// housing (Docs/Design.md, variant A), so they use fixed light-on-black colors.
+    enum Notch {
+        static let fill = Color.black
+        static let textPrimary = Color.white.opacity(0.92)
+        /// Information on black: white at 60 % reaches 6.3:1.
+        static let textSecondary = Color.white.opacity(0.6)
+        /// Decorative only (placeholder).
+        static let textTertiary = Color.white.opacity(0.4)
+        static let selection = Color.white.opacity(0.14)
+        static let control = Color.white.opacity(0.1)
+        static let divider = Color.white.opacity(0.08)
     }
 }
 
