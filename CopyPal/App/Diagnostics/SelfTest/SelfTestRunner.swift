@@ -233,6 +233,7 @@ final class SelfTestRunner {
             await check("„Markieren“ unter der Auswahl öffnet den Editor mit ihrem Bild") {
                 await self.overlayAnnotateCheck(in: window.frame)
             }
+            await annotateWithOtherAppInFrontProbe(in: window.frame)
             await check("↓ erweitert eine Webseite (WebKit) um zwei Abschnitte") {
                 await self.extendWebKitCheck()
             }
@@ -957,6 +958,50 @@ final class SelfTestRunner {
         focusTextView()
         await sleep(200)
         return (opened && abs(width - expectedWidth) <= 4 && closed, "geöffnet: \(opened), Bildbreite \(width) px (erwartet \(expectedWidth)), Esc schließt: \(closed)")
+    }
+
+    /// As in daily use: another app is in front when ⌘⇧A and "Markieren" are used.
+    /// Reports whether the editor gets the keyboard (no check yet: a measurement).
+    private func annotateWithOtherAppInFrontProbe(in frame: CGRect) async {
+        guard let finder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first else {
+            Self.write("Messwert Markieren mit anderer App vorne: Finder läuft nicht")
+            return
+        }
+        NSApp.yieldActivation(to: finder)
+        _ = finder.activate(options: [])
+        let finderFront = await waitUntil(timeout: 3_000) { !NSApp.isActive }
+        await press(0, flags: [.maskCommand, .maskShift])
+        guard await waitUntil(timeout: 5_000, { self.app.screenshot.isOverlayVisible }) else {
+            app.screenshot.cancel()
+            focusTextView()
+            Self.write("Messwert Markieren mit anderer App vorne: Aufnahme nicht geöffnet")
+            return
+        }
+        await sleep(300)
+        await drag(from: CGPoint(x: frame.minX + 8, y: frame.maxY - 32), to: CGPoint(x: frame.maxX - 8, y: frame.minY + 8))
+        _ = await waitUntil(timeout: 2_000) { !self.app.screenshot.actionsForSelfTest.isEmpty }
+        guard let target = app.screenshot.actionButtonCenterForSelfTest(.annotate) else {
+            app.screenshot.cancel()
+            focusTextView()
+            Self.write("Messwert Markieren mit anderer App vorne: kein Knopf „Markieren“")
+            return
+        }
+        await click(at: target)
+        let opened = await waitUntil(timeout: 5_000) { self.app.screenshot.annotationEditorForSelfTest?.window?.isVisible == true }
+        await sleep(600)
+        let editor = app.screenshot.annotationEditorForSelfTest
+        let key = editor?.window?.isKeyWindow ?? false
+        let active = NSApp.isActive
+        let front = NSWorkspace.shared.frontmostApplication?.localizedName ?? "–"
+        await typeKey("r")
+        await sleep(200)
+        let keysReach = editor?.model.tool == .rectangle
+        await saveSnapshot("8-markieren-andere-app-vorne")
+        editor?.window?.close()
+        _ = await waitUntil(timeout: 2_000) { self.app.screenshot.annotationEditorForSelfTest == nil }
+        focusTextView()
+        _ = await waitUntil(timeout: 3_000) { NSApp.isActive }
+        Self.write("Messwert Markieren mit anderer App vorne: Finder vorne: \(finderFront), Editor sichtbar: \(opened), Key-Fenster: \(key), CopyPal aktiv: \(active), vorne: \(front), Taste R erreicht den Editor: \(keysReach)")
     }
 
     /// 600 × 360 px, white, with gray bars like lines of text on the right.
